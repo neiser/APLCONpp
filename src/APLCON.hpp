@@ -17,11 +17,11 @@ namespace APLCON {
 static constexpr auto ValueIdx = 0;
 static constexpr auto SigmaIdx = 1;
 
-template<class ... Types>
+template<class ... Vars>
 struct Fitter {
 
     template<class ... Constraints>
-    void DoFit(Types&... types, Constraints&&... constraints) {
+    void DoFit(Vars&... vars, Constraints&&... constraints) {
 
         using namespace detail;
 
@@ -30,28 +30,28 @@ struct Fitter {
             constexpr auto innerDim_sigmas = getInnerDim<SigmaIdx>(build_indices<Nt>());
             static_assert(compare_array(innerDim, innerDim_sigmas), "The implementation of link_fitter returns unequal number of values and sigmas.");
         }
-        const auto nVar = getNvars(innerDim, build_indices<Nt>(), types...);
+        const auto nVar = getNvars(innerDim, build_indices<Nt>(), vars...);
 
         // fill the initial values
         {
             X.resize(nVar);
             linker_linear_t linker(X.begin());
             // sigmas are the sqrt's of the covariance diagonal
-            callLinkFitter<ValueIdx>(linker, [] (double& v, const double& t) { v = t; }, types...);
+            callLinkFitter<ValueIdx>(linker, [] (double& v, const double& t) { v = t; }, vars...);
         }
 
         // fill the initial uncertainties / sigmas
         {
             V.resize((nVar*nVar+nVar)/2);
             linker_diagonal_t linker(V.begin());
-            callLinkFitter<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, types...);
+            callLinkFitter<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, vars...);
         }
 
 
         // dispatch via AllocF to ensure optimal constraint storage handling
         // (and then reach RunAPLCON)
         constexpr auto isConstexpr = add(isConstraintsSizeConstexpr<Constraints>()...)==0;
-        AllocF(std::enable_if<isConstexpr>(), types..., std::forward<Constraints>(constraints)...);
+        AllocF(std::enable_if<isConstexpr>(), vars..., std::forward<Constraints>(constraints)...);
 
     }
 
@@ -62,28 +62,29 @@ private:
     std::vector<double> V;
     std::vector<double> F_dynamic; // only used if non-constexpr constraints size
 
-    static constexpr auto Nt = sizeof...(Types);
+    static constexpr auto Nt = sizeof...(Vars);
     using idx_array_t = std::array<std::size_t, Nt>;
 
     template<class ... Constraints>
-    void AllocF(std::enable_if<true>, Types&... types, Constraints&&... constraints) {
+    void AllocF(std::enable_if<true>, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
-        constexpr auto nConstraints = add(constraint_test<Constraints(Types...)>().getN()...);
+        constexpr auto nConstraints = add(constraint_test<Constraints(Vars...)>().getN()...);
         // alloc on stack
         std::array<double, nConstraints> F_static;
-        RunAPLCON(F_static, types..., std::forward<Constraints>(constraints)...);
+        RunAPLCON(F_static, vars..., std::forward<Constraints>(constraints)...);
     }
 
     template<class ... Constraints>
-    void AllocF(std::enable_if<false>, Types&... types, Constraints&&... constraints) {
-        const auto nConstraints = add(getConstraintDim<Constraints>(std::forward<Constraints>(constraints), types...)...);
+    void AllocF(std::enable_if<false>, Vars&... vars, Constraints&&... constraints) {
+        using namespace detail;
+        const auto nConstraints = add(getConstraintDim<Constraints>(std::forward<Constraints>(constraints), vars...)...);
         // alloc on heap
         F_dynamic.resize(nConstraints);
-        RunAPLCON(F_dynamic, types..., std::forward<Constraints>(constraints)...);
+        RunAPLCON(F_dynamic, vars..., std::forward<Constraints>(constraints)...);
     }
 
     template<class F_t, class ... Constraints>
-    void RunAPLCON(F_t& F, Types&... types, Constraints&&... constraints) {
+    void RunAPLCON(F_t& F, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
 
         c_aplcon_aplcon(X.size(), F.size());
@@ -95,15 +96,15 @@ private:
         do {
 
             // compute F from constraints
-            callConstraints(F.begin(), types..., std::forward<Constraints>(constraints)...);
+            callConstraints(F.begin(), vars..., std::forward<Constraints>(constraints)...);
 
             // call APLCON iteration
             c_aplcon_aploop(X.data(), V.data(), F.data(), &aplcon_ret);
 
-            // copy X into types, for constraint evaluation
+            // copy X into vars, for constraint evaluation
             linker_linear_t linker(X.begin());
             // sigmas are the sqrt's of the covariance diagonal
-            callLinkFitter<ValueIdx>(linker, [] (const double& v, double& t) { t = v; }, types...);
+            callLinkFitter<ValueIdx>(linker, [] (const double& v, double& t) { t = v; }, vars...);
 
         }
         while(aplcon_ret<0);
@@ -111,92 +112,92 @@ private:
         // copy back the sigmas
         linker_diagonal_t linker(V.begin());
         // sigmas are the sqrt's of the covariance diagonal
-        callLinkFitter<SigmaIdx>(linker, [] (const double& v, double& t) { t = std::sqrt(v); }, types...);
+        callLinkFitter<SigmaIdx>(linker, [] (const double& v, double& t) { t = std::sqrt(v); }, vars...);
 
     }
 
     /// callConstraints
 
     template<class It, class Constraint, class... Constraints>
-    static void callConstraints(It it, const Types&... types, Constraint&& constraint, Constraints&&... constraints) noexcept {
-        callConstraint<It>(it, std::forward<Constraint>(constraint), types...);
-        callConstraints(it, types..., std::forward<Constraints>(constraints)...);
+    static void callConstraints(It it, const Vars&... vars, Constraint&& constraint, Constraints&&... constraints) noexcept {
+        callConstraint<It>(it, std::forward<Constraint>(constraint), vars...);
+        callConstraints(it, vars..., std::forward<Constraints>(constraints)...);
     }
 
     template<class It>
-    static void callConstraints(It, const Types&...)  noexcept {}
+    static void callConstraints(It, const Vars&...)  noexcept {}
 
     template<class It, class Constraint>
     static typename
     std::enable_if<
-    detail::constraint_test<Constraint(Types...), detail::c_is_multi>::value,
+    detail::constraint_test<Constraint(Vars...), detail::c_is_multi>::value,
     void>::type
-    callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
+    callConstraint(It& it, Constraint&& constraint, const Vars&... vars) noexcept {
         // Making F_ constexpr is probably too limiting for constraints (think of TreeFitter with rather complex lambdas)
-        const auto& F_ = std::forward<Constraint>(constraint)(types...);
+        const auto& F_ = std::forward<Constraint>(constraint)(vars...);
         it = std::copy(F_.begin(), F_.end(), it);
     }
 
     template<class It, class Constraint>
     static typename
     std::enable_if<
-    detail::constraint_test<Constraint(Types...), detail::c_is_single>::value,
+    detail::constraint_test<Constraint(Vars...), detail::c_is_single>::value,
     void>::type
-    callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
+    callConstraint(It& it, Constraint&& constraint, const Vars&... vars) noexcept {
         // single scalar is just copied to current position
-        *it++ = std::forward<Constraint>(constraint)(types...);
+        *it++ = std::forward<Constraint>(constraint)(vars...);
     }
 
     /// callLinkFitter
 
-    template<size_t N, class Linker, class Func, class Type, class... Types_>
-    static void callLinkFitter(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
+    template<size_t N, class Linker, class Func, class Var, class... Vars_>
+    static void callLinkFitter(Linker&& linker, Func&& f, Var&& var, Vars_&&... vars) noexcept {
         callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f),
-                          std::enable_if<detail::is_stl_cont<Type>::value>(), std::forward<Type>(type));
-        callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Types_>(types)...);
+                          std::enable_if<detail::is_stl_cont<Var>::value>(), std::forward<Var>(var));
+        callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Vars_>(vars)...);
     }
 
     template<size_t N, class Linker, class Func>
     static void callLinkFitter(Linker&&, Func&&) noexcept {}
 
-    template<size_t N, class Linker, class Func, class Type>
-    static void callLinkFitter(Linker&& linker, Func&& f, std::enable_if<false>, Type&& type) noexcept {
-        std::forward<Linker>(linker)(std::forward<Func>(f), std::forward<Type>(type).template linkFitter<N>());
+    template<size_t N, class Linker, class Func, class Var>
+    static void callLinkFitter(Linker&& linker, Func&& f, std::enable_if<false>, Var&& var) noexcept {
+        std::forward<Linker>(linker)(std::forward<Func>(f), std::forward<Var>(var).template linkFitter<N>());
     }
 
-    template<size_t N, class Linker, class Func, class Type>
-    static void callLinkFitter(Linker&& linker, Func&& f, std::enable_if<true>, Type&& container) noexcept {
-        for(auto& type : std::forward<Type>(container))
-            callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::enable_if<false>(), type);
+    template<size_t N, class Linker, class Func, class Var>
+    static void callLinkFitter(Linker&& linker, Func&& f, std::enable_if<true>, Var&& container) noexcept {
+        for(auto& var : std::forward<Var>(container))
+            callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::enable_if<false>(), var);
     }
 
     /// getNvars
 
-    template<size_t... Idx, class... Types_>
+    template<size_t... Idx, class... Vars_>
     static size_t
-    getNvars(const idx_array_t& innerDims, detail::indices<Idx...>, Types_&&... types) noexcept {
+    getNvars(const idx_array_t& innerDims, detail::indices<Idx...>, Vars_&&... vars) noexcept {
         using namespace detail;
         return add(
                     std::get<Idx>(innerDims)
                     * // multiply pairwise innerDims by outerDims
-                    getOuterDim<Types_>(
-                        std::enable_if<is_stl_cont<Types>::value>(),
-                        std::forward<Types_>(types))...
+                    getOuterDim<Vars_>(
+                        std::enable_if<is_stl_cont<Vars>::value>(),
+                        std::forward<Vars_>(vars))...
                     );
     }
 
     /// getOuterDim
 
-    template<class Type>
+    template<class Var>
     static size_t
-    getOuterDim(std::enable_if<true>, Type&& type) noexcept {
+    getOuterDim(std::enable_if<true>, Var&& var) noexcept {
         // no other way than calling non-constexpr .size()
-        return std::forward<Type>(type).size();
+        return std::forward<Var>(var).size();
     }
 
-    template<class Type>
+    template<class Var>
     static constexpr size_t
-    getOuterDim(std::enable_if<false>, Type&&) noexcept {
+    getOuterDim(std::enable_if<false>, Var&&) noexcept {
         return 1;
     }
 
@@ -206,26 +207,26 @@ private:
     static constexpr idx_array_t
     getInnerDim(detail::indices<Idx...>) noexcept {
         return idx_array_t{
-            // dispatch depending if Type in parameter pack is container or not
-            // if yes, inspect value_type. if no, inspect inner type itself
-            getInnerDim<N, Types>(std::enable_if<detail::is_stl_cont<Types>::value>())...
+            // dispatch depending if Var in parameter pack is container or not
+            // if yes, inspect value_type. if no, inspect inner Var itself
+            getInnerDim<N, Vars>(std::enable_if<detail::is_stl_cont<Vars>::value>())...
         };
     }
 
-    template<size_t N, class Type>
+    template<size_t N, class Var>
     static constexpr std::size_t
     getInnerDim(std::enable_if<false>) noexcept {
         // inspect the templated function
-        using f_t = decltype(&Type::template linkFitter<N>);
-        using r_t = typename std::result_of<f_t(Type)>::type;
+        using f_t = decltype(&Var::template linkFitter<N>);
+        using r_t = typename std::result_of<f_t(Var)>::type;
         return std::tuple_size<r_t>::value;
 
     }
 
-    template<size_t N, class Type>
+    template<size_t N, class Var>
     static constexpr size_t
     getInnerDim(std::enable_if<true>) noexcept {
-        return getInnerDim<N, typename Type::value_type>(std::enable_if<false>());
+        return getInnerDim<N, typename Var::value_type>(std::enable_if<false>());
     }
 
 
@@ -234,20 +235,20 @@ private:
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    detail::constraint_test<Constraint(Types...), detail::c_is_constsize>::value,
+    detail::constraint_test<Constraint(Vars...), detail::c_is_constsize>::value,
     std::size_t>::type
-    getConstraintDim(Constraint&&, const Types&...) noexcept {
-        return detail::constraint_test<Constraint(Types...)>().getN();
+    getConstraintDim(Constraint&&, const Vars&...) noexcept {
+        return detail::constraint_test<Constraint(Vars...)>().getN();
     }
 
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    detail::constraint_test<Constraint(Types...), detail::c_is_container>::value,
+    detail::constraint_test<Constraint(Vars...), detail::c_is_container>::value,
     std::size_t>::type
-    getConstraintDim(Constraint&& constraint, const Types&... types) noexcept {
-        // call the constraint with the given types (no other way to figure it out)
-        return std::forward<Constraint>(constraint)(types...).size();
+    getConstraintDim(Constraint&& constraint, const Vars&... vars) noexcept {
+        // call the constraint with the given vars (no other way to figure it out)
+        return std::forward<Constraint>(constraint)(vars...).size();
     }
 
     /// isConstraintsSizeConstexpr
@@ -255,7 +256,7 @@ private:
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    detail::constraint_test<Constraint(Types...), detail::c_is_constsize>::value,
+    detail::constraint_test<Constraint(Vars...), detail::c_is_constsize>::value,
     std::size_t>::type
     isConstraintsSizeConstexpr() noexcept {
         return 0;
@@ -264,7 +265,7 @@ private:
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    detail::constraint_test<Constraint(Types...), detail::c_is_container>::value,
+    detail::constraint_test<Constraint(Vars...), detail::c_is_container>::value,
     std::size_t>::type
     isConstraintsSizeConstexpr() noexcept {
         return 1;
