@@ -86,17 +86,14 @@ add(const T& t, const Ts&... ts) noexcept {
 // start of fitter helpers
 
 static constexpr size_t c_is_nothing    = 0;
-static constexpr size_t c_is_container  = 1;
 static constexpr size_t c_is_array      = 2;
 static constexpr size_t c_is_arithmetic = 3;
 
 template<typename T>
 struct constraint_test {
-    static constexpr size_t value = is_stl_container_like<T>::value
-                                    ? c_is_container
-                                    : (std::is_arithmetic<T>::value
-                                       ? c_is_arithmetic
-                                       : c_is_nothing);
+    static constexpr size_t value = std::is_arithmetic<T>::value
+                                    ? c_is_arithmetic
+                                    : c_is_nothing;
 };
 
 template<typename T, std::size_t N_>
@@ -150,6 +147,8 @@ struct linker_diagonal_t {
     }
 };
 
+
+
 static constexpr auto ValueIdx = 0;
 static constexpr auto SigmaIdx = 1;
 
@@ -166,9 +165,6 @@ struct Fitter {
 
     template<class ... Constraints>
     void DoFit(Types&... types, const Constraints&... constraints) {
-
-        const auto nConstraints = getConstraintDim(types..., constraints...);
-        cout << "Constraints: " << nConstraints  << endl;
 
         constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nt>());
         {
@@ -192,10 +188,13 @@ struct Fitter {
             applyto<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, types...);
         }
 
-//        {
-//            F.resize(nConstraints);
+        constexpr auto nConstraints = add(getConstraintDim<Constraints>()...);
+        cout << "Constraints: " << nConstraints  << endl;
 
-//        }
+        {
+            F.resize(nConstraints);
+
+        }
 
         for(auto x : X)
             cout << x << ' ';
@@ -210,26 +209,22 @@ struct Fitter {
     /// applyto
 
     template<size_t N, class Linker, class Func, class Type, class... Types_>
-    static constexpr void
-    applyto(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
+    static void applyto(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
         applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f),
                    std::enable_if<is_stl_container_like<Type>::value>(), std::forward<Type>(type));
         applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Types_>(types)...);
     }
 
     template<size_t N, class Linker, class Func>
-    static constexpr void
-    applyto(Linker&&, Func&&) noexcept {}
+    static void applyto(Linker&&, Func&&) noexcept {}
 
     template<size_t N, class Linker, class Func, class Type>
-    static constexpr void
-    applyto(Linker&& linker, Func&& f, std::enable_if<false>, Type&& type) noexcept {
+    static void applyto(Linker&& linker, Func&& f, std::enable_if<false>, Type&& type) noexcept {
         std::forward<Linker>(linker)(std::forward<Func>(f), std::forward<Type>(type).template link_fitter<N>());
     }
 
     template<size_t N, class Linker, class Func, class Type>
-    static constexpr void
-    applyto(Linker&& linker, Func&& f, std::enable_if<true>, Type&& container) noexcept {
+    static void applyto(Linker&& linker, Func&& f, std::enable_if<true>, Type&& container) noexcept {
         for(auto& type : std::forward<Type>(container))
             applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::enable_if<false>(), type);
     }
@@ -286,28 +281,15 @@ struct Fitter {
 
     /// getConstraintDim
 
-    template<class Constraint, class ... Constraints>
-    static constexpr std::size_t
-    getConstraintDim(const Types&... types, const Constraint& c, const Constraints& ... c_) noexcept {
-        return getConstraintDim(types..., c) + getConstraintDim(types..., c_...);
-    }
-
-    template<class Constraint>
-    static constexpr typename std::enable_if<constraint_test<typename std::result_of<Constraint(Types...)>::type>::value == c_is_container, std::size_t>::type
-    getConstraintDim(const Types&... types, const Constraint& c) noexcept {
-        // no other way than calling it
-        return c(types...).size();
-    }
-
     template<class Constraint>
     static constexpr typename std::enable_if<constraint_test<typename std::result_of<Constraint(Types...)>::type>::value == c_is_array, std::size_t>::type
-    getConstraintDim(const Types&..., const Constraint&) noexcept {
+    getConstraintDim() noexcept {
         return constraint_test<typename std::result_of<Constraint(Types...)>::type>::N;
     }
 
     template<class Constraint>
     static constexpr typename std::enable_if<constraint_test<typename std::result_of<Constraint(Types...)>::type>::value == c_is_arithmetic, std::size_t>::type
-    getConstraintDim(const Types&..., const Constraint&) noexcept {
+    getConstraintDim() noexcept {
         return 1;
     }
 };
@@ -351,7 +333,7 @@ int main()
 
     auto constraint1 = [] (const A& a) {
         cout << "Vector was called: " << std::get<ValueIdx>(a.px) << endl;
-        return std::vector<double>{6,7};
+        return std::array<double, 2>{6,7};
     };
 
     auto constraint2 = [] (const A& a, const vector<B>& b) {
