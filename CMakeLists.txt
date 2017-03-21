@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
-project(APLCONpp)
+project(APLCONpp CXX Fortran)
 
 # check for in-source build, forbid it!
 if(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR AND NOT MSVC_IDE)
@@ -15,5 +15,6 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+add_subdirectory(APLCON)
 add_subdirectory(third-party)
 add_subdirectory(src)
