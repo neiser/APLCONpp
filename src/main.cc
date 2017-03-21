@@ -9,6 +9,8 @@
 
 using namespace std;
 
+// general helpers
+
 template<typename T>
 std::string getTypeAsString() {
     return abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
@@ -24,7 +26,7 @@ struct is_stl_container_like
             decltype(pt->begin()) * = nullptr,
             decltype(pt->end()) * = nullptr,
             decltype(cpt->begin()) * = nullptr,
-            decltype(cpt->end()) * = nullptr)
+            decltype(cpt->end()) * = nullptr) noexcept
     {
         typedef typename A::iterator iterator;
         typedef typename A::const_iterator const_iterator;
@@ -35,15 +37,53 @@ struct is_stl_container_like
     }
 
     template<typename A>
-    static constexpr bool test(...) {
+    static constexpr bool test(...) noexcept {
         return false;
     }
 
-    typedef typename std::remove_const<T>::type test_type;
+    typedef typename std::decay<T>::type test_type;
     static constexpr bool value = test<test_type>(nullptr);
 
 };
 
+template <std::size_t... Is>
+struct indices {};
+
+template <std::size_t N, std::size_t... Is>
+struct build_indices : build_indices<N-1, N-1, Is...> {};
+
+template <std::size_t... Is>
+struct build_indices<0, Is...> : indices<Is...> {};
+
+template<class T, size_t N, size_t... Idx>
+constexpr bool compare_array_impl(const std::array<T,N> a, const std::array<T,N> b, indices<Idx...>) noexcept {
+    return std::tie(a[Idx]...) == std::tie(b[Idx]...);
+}
+
+template<class T, class U, size_t N>
+constexpr bool compare_array(const std::array<T,N>& a, const std::array<U,N>& b) noexcept {
+    return compare_array_impl(a, b, build_indices<N>());
+}
+
+//template<typename... T>
+//std::tuple<const T&...> ctie(const T&... args)
+//{
+//    return std::tie( args... );
+//}
+
+template<class T = void>
+static constexpr size_t
+add() noexcept {
+    return 0;
+}
+
+template<class T, class... Ts>
+static constexpr size_t
+add(const T& t, const Ts&... ts) noexcept {
+    return t + add(ts...);
+}
+
+// start of fitter helpers
 
 static constexpr size_t c_is_nothing    = 0;
 static constexpr size_t c_is_container  = 1;
@@ -65,50 +105,50 @@ struct constraint_test<std::array<T, N_>> {
     static constexpr size_t N = N_;
 };
 
-struct get_num_args_t {
-    std::size_t num_args = 0;
-    template<class... Args>
-    void operator()(Args&&...) {
-        num_args = sizeof...(Args);
-    }
-};
-
 struct fill_linear_t {
 
     using it_t = std::vector<double>::iterator;
-    it_t x;
+    it_t it;
 
-    constexpr fill_linear_t(const it_t& x_) : x(x_) {}
+    constexpr fill_linear_t(const it_t& it_)
+        : it(it_) {}
 
-    template<class End = void>
-    constexpr void operator()() const noexcept {}
+    template<typename Func, std::size_t I = 0, typename... Tp>
+    typename std::enable_if<I == sizeof...(Tp), void>::type
+    operator()(Func, const std::tuple<Tp...>&)
+    { }
 
-    template<class Head, class... Tail>
-    void operator()(const Head& head, const Tail&... tail) noexcept {
-        *x++ = head;
-        this->operator()(tail...);
+    template<typename Func, std::size_t I = 0, typename... Tp>
+    typename std::enable_if<I < sizeof...(Tp), void>::type
+    operator()(Func f, const std::tuple<Tp...>& t)
+    {
+        f(*it++, std::get<I>(t));
+//        *it++ = std::get<I>(t);
+        this->operator()<Func, I + 1, Tp...>(f, t);
     }
+
 };
 
-struct fill_diagonal_t {
-    using it_t = std::vector<double>::iterator;
-    it_t v;
-    std::size_t n = 0;
+//struct fill_diagonal_t {
+//    using it_t = std::vector<double>::iterator;
+//    it_t v;
+//    std::size_t n = 0;
 
-    constexpr fill_diagonal_t(it_t v_) : v(v_) {}
+//    constexpr fill_diagonal_t(it_t v_) : v(v_) {}
 
-    template<class End = void>
-    constexpr void operator()() const noexcept {}
 
-    template<class Head, class... Tail>
-    void operator()(const Head& head, const Tail&... tail) noexcept {
-        for(std::size_t i = 0; i<n ; i++)
-            *v++ = 0;
-        *v++ = head;
-        n++;
-        this->operator()(tail...);
-    }
-};
+//    template<class... Types>
+//    void operator()(const Head& head, const Tail&... tail) noexcept {
+//        for(std::size_t i = 0; i<n ; i++)
+//            *v++ = 0;
+//        *v++ = head;
+//        n++;
+//        this->operator()(tail...);
+//    }
+//};
+
+static constexpr auto ValueIdx = 0;
+static constexpr auto SigmaIdx = 1;
 
 template<class ... Types>
 struct Fitter {
@@ -118,30 +158,43 @@ struct Fitter {
     X_t V;
     X_t F;
 
+    static constexpr auto Nt = sizeof...(Types);
+    using idx_array_t = std::array<std::size_t, Nt>;
+
+
     template<class ... Constraints>
     void DoFit(Types&... types, const Constraints&... constraints) {
         const auto nConstraints = getConstraintDim(types..., constraints...);
         cout << "Constraints: " << nConstraints  << endl;
 
-        const auto nVar = getTypesDim(types...);
+
+        constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nt>());
+        {
+            constexpr auto innerDim_sigmas = getInnerDim<SigmaIdx>(build_indices<Nt>());
+            static_assert(compare_array(innerDim, innerDim_sigmas), "The implementation of link_fitter returns unequal number of values and sigmas.");
+        }
+        const auto nVar = getNvars(innerDim, build_indices<Nt>(), types...);
+
         cout << "Variables: " << nVar  << endl;
+
+        const auto& set_vector = [] (double& v, const double& t) { v = t; };
 
         {
             X.resize(nVar);
-            fill_linear_t f(X.begin());
-            fillX(f, types...);
+            fill_linear_t filler(X.begin());
+            applyto<ValueIdx>(filler, set_vector, types...);
         }
 
-        {
-            V.resize((nVar*nVar+nVar)/2);
-            fill_diagonal_t f(V.begin());
-            fillV(f, types...);
-        }
+//        {
+//            V.resize((nVar*nVar+nVar)/2);
+//            fill_diagonal_t f(V.begin());
+//            fill<SigmaIdx>(f, types...);
+//        }
 
-        {
-            F.resize(nConstraints);
+//        {
+//            F.resize(nConstraints);
 
-        }
+//        }
 
         for(auto x : X)
             cout << x << ' ';
@@ -153,92 +206,87 @@ struct Fitter {
         cout << endl;
     }
 
+
+
+
     /// fillF
 
 
+    /// applyto
 
-
-    /// fillV
-
-    template<class Filler, class Type, class... Types_>
+    template<size_t N, class Filler, class Func, class Type, class... Types_>
     static constexpr void
-    fillV(Filler& f, const Type& type, const Types_&... types) noexcept {
-        fillV(f, std::enable_if<is_stl_container_like<Type>::value>(), type);
-        fillV(f, types...);
+    applyto(Filler&& filler, Func&& f, Type&& type, Types_&&... types) noexcept {
+        applyto<N>(std::forward<Filler>(filler), std::forward<Func>(f),
+                   std::enable_if<is_stl_container_like<Type>::value>(), std::forward<Type>(type));
+        applyto<N>(std::forward<Filler>(filler), std::forward<Func>(f), std::forward<Types_>(types)...);
     }
 
-    template<class Filler>
+    template<size_t N, class Filler, class Func>
     static constexpr void
-    fillV(Filler&) noexcept {}
+    applyto(Filler&&, Func&&) noexcept {}
 
-    template<class Filler, class Type>
+    template<size_t N, class Filler, class Func, class Type>
     static constexpr void
-    fillV(Filler& f, std::enable_if<false>, const Type& type) noexcept {
-        const_cast<Type&>(type).fitter_sigmas(f); // difference from X to V
+    applyto(Filler&& filler, Func&& f, std::enable_if<false>, Type&& type) noexcept {
+        std::forward<Filler>(filler)(std::forward<Func>(f), std::forward<Type>(type).template link_fitter<N>());
     }
 
-    template<class Filler, class Type>
-    static constexpr typename std::enable_if<is_stl_container_like<Type>::value, void>::type
-    fillV(Filler& f, std::enable_if<true>, const Type& container) noexcept {
-        for(const auto& type : container)
-            fillV(f, std::enable_if<false>(), type);
-    }
-
-    /// fillX
-
-    template<class Filler, class Type, class... Types_>
+    template<size_t N, class Filler, class Func, class Type>
     static constexpr void
-    fillX(Filler& f, const Type& type, const Types_&... types) noexcept {
-        fillX(f, std::enable_if<is_stl_container_like<Type>::value>(), type);
-        fillX(f, types...);
+    applyto(Filler&& filler, Func&& f, std::enable_if<true>, Type&& container) noexcept {
+        for(auto& type : std::forward<Type>(container))
+            applyto<N>(std::forward<Filler>(filler), std::forward<Func>(f), std::enable_if<false>(), type);
     }
 
-    template<class Filler>
-    static constexpr void
-    fillX(Filler&) noexcept {}
+    /// getNvars
 
-    template<class Filler, class Type>
-    static constexpr void
-    fillX(Filler& f, std::enable_if<false>, const Type& type) noexcept {
-        const_cast<Type&>(type).fitter_values(f); // difference from X to V
-    }
-
-    template<class Filler, class Type>
-    static constexpr typename std::enable_if<is_stl_container_like<Type>::value, void>::type
-    fillX(Filler& f, std::enable_if<true>, const Type& container) noexcept {
-        for(const auto& type : container)
-            fillX(f, std::enable_if<false>(), type);
-    }
-
-    /// getTypesDim
-
-    template<class Type, class... Types_>
-    static constexpr std::size_t
-    getTypesDim(const Type& type, const Types_&... types) noexcept {
-        return getTypesDim(std::enable_if<is_stl_container_like<Type>::value>(), type) + getTypesDim(types...);
-    }
-
-    static constexpr std::size_t
-    getTypesDim() noexcept {
-        return 0;
+    template<size_t... Idx, class... Types_>
+    static size_t
+    getNvars(const idx_array_t& innerDims, indices<Idx...>, Types_&&... types) noexcept {
+        return add(
+                    get<Idx>(innerDims)
+                    * // multiply pairwise innerDims by outerDims
+                    getOuterDim<Types_>(
+                       std::enable_if<is_stl_container_like<Types>::value>(),
+                       std::forward<Types_>(types))...
+                   );
     }
 
     template<class Type>
-    static constexpr std::size_t
-    getTypesDim(std::enable_if<false>, const Type& type) noexcept {
-        // use lambda to have function C++11 constexpr compliant
-        return [] (Type& t) {
-            get_num_args_t a;
-            t.fitter_values(a);
-            return a.num_args;
-        }(const_cast<Type&>(type));
+    static size_t
+    getOuterDim(std::enable_if<true>, Type&& type) noexcept {
+        return std::forward<Type>(type).size();
     }
 
     template<class Type>
-    static constexpr typename std::enable_if<is_stl_container_like<Type>::value, size_t>::type
-    getTypesDim(std::enable_if<true>, const Type& container) noexcept {
-        // don't know if checking for empty here is really a good idea...
-        return container.empty() ? 0 : container.size()*getTypesDim(std::enable_if<false>(), container.front());
+    static constexpr size_t
+    getOuterDim(std::enable_if<false>, Type&&) noexcept {
+        return 1;
+    }
+
+    /// getInnerDim
+
+    template<size_t N, size_t... Idx>
+    static constexpr idx_array_t
+    getInnerDim(indices<Idx...>) noexcept {
+        return idx_array_t{getInnerDim<N, Types>(std::enable_if<is_stl_container_like<Types>::value>())...};
+    }
+
+    template<size_t N, class Type>
+    static constexpr std::size_t
+    getInnerDim(std::enable_if<false>) noexcept {
+        // inspect the templated function
+        using f_t = decltype(&Type::template link_fitter<N>);
+        using r_t = typename std::result_of<f_t(Type)>::type;
+        return std::tuple_size<r_t>::value;
+
+    }
+
+    template<size_t N, class Type>
+    static constexpr size_t
+    getInnerDim(std::enable_if<true>) noexcept {
+        return getInnerDim<N, typename Type::value_type>(std::enable_if<false>());
     }
 
     /// getConstraintDim
@@ -269,25 +317,16 @@ struct Fitter {
     }
 };
 
-struct ValueSigma_t {
-    double V;
-    double S;
-};
+using ValueSigma_t = std::tuple<double,  double>;
 
 struct A {
 
     ValueSigma_t E, px, py, pz;
 
-    template<class Fitter>
-    void fitter_values(Fitter& f) {
-        cout << "A fitter_values called" << endl;
-        f(E.V, px.V, py.V, pz.V);
-    }
-
-    template<class Fitter>
-    constexpr void fitter_sigmas(Fitter& f) {
-        cout << "A fitter_sigmas called" << endl;
-        f(E.S, px.S, py.S, pz.S);
+    template<size_t N>
+    std::tuple<double&,double&,double&,double&> link_fitter() noexcept {
+        cout << "A fitter called N=" << N << endl;
+        return std::tie(std::get<N>(E), std::get<N>(px), std::get<N>(py), std::get<N>(pz));
     }
 };
 
@@ -295,16 +334,11 @@ struct A {
 struct B {
     ValueSigma_t a;
 
-    template<class Fitter>
-    void fitter_values(Fitter& f) {
-        cout << "B fitter_values called" << endl;
-        f(a.V);
-    }
-
-    template<class Fitter>
-    void fitter_sigmas(Fitter& f) {
-        cout << "B fitter_sigmas called" << endl;
-        f(a.S);
+    template<size_t N>
+    std::tuple<double&> link_fitter() noexcept {
+        cout << "B fitter called N=" << N << endl;
+        //f(std::get<N>(a));
+        return std::tie(std::get<N>(a));
     }
 };
 
@@ -312,7 +346,7 @@ struct B {
 int main()
 {
 
-    A a{{0,9},{0,8},{0,7},{0,6}};
+    A a{{1,9},{2,8},{3,7},{4,6}};
 
     vector<B> b{
         {{1,1}},
@@ -321,13 +355,13 @@ int main()
     };
 
     auto constraint1 = [] (const A& a) {
-        cout << "Vector was called: " << a.px.S << endl;
+        cout << "Vector was called: " << std::get<ValueIdx>(a.px) << endl;
         return std::vector<double>{6,7};
     };
 
     auto constraint2 = [] (const A& a, const vector<B>& b) {
-        cout << "Array was called: " << a.E.V << b.front().a.V << endl;
-        return std::array<double, 10>();
+        cout << "Array was called: " << std::get<ValueIdx>(a.E) << std::get<ValueIdx>(b.front().a) << endl;
+        return std::array<double, 8>();
     };
 
 
