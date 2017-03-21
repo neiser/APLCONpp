@@ -158,7 +158,6 @@ struct Fitter {
     using X_t = std::vector<double>;
     X_t X;
     X_t V;
-    X_t F;
 
     static constexpr auto Nt = sizeof...(Types);
     using idx_array_t = std::array<std::size_t, Nt>;
@@ -191,10 +190,9 @@ struct Fitter {
         constexpr auto nConstraints = add(getConstraintDim<Constraints>()...);
         cout << "Constraints: " << nConstraints  << endl;
 
-        {
-            F.resize(nConstraints);
+        std::array<double, nConstraints> F;
 
-        }
+
 
         for(auto x : X)
             cout << x << ' ';
