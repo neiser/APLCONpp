@@ -209,29 +209,29 @@ struct Fitter {
 
     /// applyto
 
-    template<size_t N, class Filler, class Func, class Type, class... Types_>
+    template<size_t N, class Linker, class Func, class Type, class... Types_>
     static constexpr void
-    applyto(Filler&& filler, Func&& f, Type&& type, Types_&&... types) noexcept {
-        applyto<N>(std::forward<Filler>(filler), std::forward<Func>(f),
+    applyto(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
+        applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f),
                    std::enable_if<is_stl_container_like<Type>::value>(), std::forward<Type>(type));
-        applyto<N>(std::forward<Filler>(filler), std::forward<Func>(f), std::forward<Types_>(types)...);
+        applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Types_>(types)...);
     }
 
-    template<size_t N, class Filler, class Func>
+    template<size_t N, class Linker, class Func>
     static constexpr void
-    applyto(Filler&&, Func&&) noexcept {}
+    applyto(Linker&&, Func&&) noexcept {}
 
-    template<size_t N, class Filler, class Func, class Type>
+    template<size_t N, class Linker, class Func, class Type>
     static constexpr void
-    applyto(Filler&& filler, Func&& f, std::enable_if<false>, Type&& type) noexcept {
-        std::forward<Filler>(filler)(std::forward<Func>(f), std::forward<Type>(type).template link_fitter<N>());
+    applyto(Linker&& linker, Func&& f, std::enable_if<false>, Type&& type) noexcept {
+        std::forward<Linker>(linker)(std::forward<Func>(f), std::forward<Type>(type).template link_fitter<N>());
     }
 
-    template<size_t N, class Filler, class Func, class Type>
+    template<size_t N, class Linker, class Func, class Type>
     static constexpr void
-    applyto(Filler&& filler, Func&& f, std::enable_if<true>, Type&& container) noexcept {
+    applyto(Linker&& linker, Func&& f, std::enable_if<true>, Type&& container) noexcept {
         for(auto& type : std::forward<Type>(container))
-            applyto<N>(std::forward<Filler>(filler), std::forward<Func>(f), std::enable_if<false>(), type);
+            applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::enable_if<false>(), type);
     }
 
     /// getNvars
