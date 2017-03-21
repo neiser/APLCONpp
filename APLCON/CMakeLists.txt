@@ -46,7 +46,7 @@ set(SRCS_LIB
   fpl.F
   )
 
-add_library(aplcon SHARED ${SRCS_LIB})
+add_library(aplcon ${SRCS_LIB})
 
 # build APLCON's test prgram only in standalone
 if(STANDALONE)

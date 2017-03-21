@@ -9,6 +9,10 @@
 
 #include <cxxabi.h>
 
+extern "C" {
+#include "wrapper/APLCON.h"
+}
+
 using namespace std;
 
 // general helpers
@@ -281,6 +285,8 @@ struct Fitter {
         callConstraints(F.begin(), types..., std::forward<Constraints>(constraints)...);
 
         cout << "F=" << F << endl;
+
+        c_aplcon_aplcon(X.size(), F.size());
 
     }
 
