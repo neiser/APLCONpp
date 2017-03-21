@@ -151,20 +151,25 @@ struct constraint_test<F(Args...)> {
 };
 
 
-
-
-struct linker_linear_t {
+struct linker_t {
 
     using it_t = std::vector<double>::iterator;
     it_t it;
 
-    constexpr linker_linear_t(const it_t& it_)
+    constexpr linker_t(const it_t& it_)
         : it(it_) {}
 
+    // empty recursion end over index I
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I == sizeof...(Tp), void>::type
     operator()(Func, const std::tuple<Tp...>&)
-    { }
+    {}
+};
+
+struct linker_linear_t : linker_t {
+
+    using linker_t::linker_t;
+    using linker_t::operator();
 
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I < sizeof...(Tp), void>::type
@@ -173,26 +178,20 @@ struct linker_linear_t {
         f(*it++, std::get<I>(t));
         this->operator()<Func, I + 1, Tp...>(f, t);
     }
-
 };
 
-struct linker_diagonal_t {
-    using it_t = std::vector<double>::iterator;
-    it_t it;
+struct linker_diagonal_t : linker_t {
+    using linker_t::linker_t;
+    using linker_t::operator();
+
     std::size_t n_row = 0;
-
-    constexpr linker_diagonal_t(it_t it_) : it(it_) {}
-
-    template<typename Func, std::size_t I = 0, typename... Tp>
-    typename std::enable_if<I == sizeof...(Tp), void>::type
-    operator()(Func, const std::tuple<Tp...>&)
-    { }
 
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I < sizeof...(Tp), void>::type
     operator()(Func f, const std::tuple<Tp...>& t)
     {
-        it = std::fill_n(it, n_row++, 0); // this skips the row and moves iterator to diagonal element
+        // this skips the row and moves iterator to diagonal element
+        it = std::fill_n(it, n_row++, 0);
         f(*it++, std::get<I>(t));
         this->operator()<Func, I + 1, Tp...>(f, t);
     }
