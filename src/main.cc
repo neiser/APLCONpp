@@ -100,12 +100,6 @@ constexpr bool compare_array(const std::array<T,N>& a, const std::array<U,N>& b)
     return compare_array_impl(a, b, build_indices<N>());
 }
 
-//template<typename... T>
-//std::tuple<const T&...> ctie(const T&... args)
-//{
-//    return std::tie( args... );
-//}
-
 template<class T = void>
 static constexpr size_t
 add() noexcept {
