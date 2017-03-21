@@ -7,7 +7,9 @@ extern "C" {
 
 // some template in extra header file
 #include "detail/APLCON_hpp.hpp"
-#include <cmath> // for sqrt
+#include <cmath>  // for sqrt
+#include <limits>
+#include <functional>
 
 // use those constants in your classes to
 // identify what is request in the call to "linkFitter"
@@ -17,6 +19,40 @@ namespace APLCON {
 static constexpr auto ValueIdx = 0;
 static constexpr auto SigmaIdx = 1;
 
+static constexpr auto Inf = std::numeric_limits<double>::infinity();
+static constexpr auto NaN = std::numeric_limits<double>::quiet_NaN();
+
+/**
+ * @brief The Distribution_t enum
+ * @see Variable_Settings_t
+ */
+enum class Distribution_t {
+    Gaussian, /**< Gaussian distributed variable (default) */
+    Poissonian, /**< Poissonian distributed variable */
+    LogNormal, /**< Ratios are lognormal distributed */
+    SquareRoot /**< SquareRoot transformation */
+};
+
+/**
+ * @brief The Limit_t struct defines upper and lower limits
+ */
+struct Limit_t {
+    double Low;
+    double High;
+};
+
+/**
+ * @brief The Variable_Settings_t struct contains settings per variable
+ */
+struct Variable_Settings_t {
+    Distribution_t Distribution = Distribution_t::Gaussian;
+    Limit_t Limit{-Inf, +Inf};
+    double StepSize{NaN};
+};
+
+/**
+ * @brief The Fitter carries out the fit with DoFit
+ */
 template<class ... Vars>
 struct Fitter {
 
@@ -25,12 +61,12 @@ struct Fitter {
 
         using namespace detail;
 
-        constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nt>());
+        constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nv>());
         {
-            constexpr auto innerDim_sigmas = getInnerDim<SigmaIdx>(build_indices<Nt>());
+            constexpr auto innerDim_sigmas = getInnerDim<SigmaIdx>(build_indices<Nv>());
             static_assert(compare_array(innerDim, innerDim_sigmas), "The implementation of link_fitter returns unequal number of values and sigmas.");
         }
-        const auto nVar = getNvars(innerDim, build_indices<Nt>(), vars...);
+        const auto nVar = getNvars(innerDim, build_indices<Nv>(), vars...);
 
         // fill the initial values
         {
@@ -50,7 +86,7 @@ struct Fitter {
 
         // dispatch via AllocF to ensure optimal constraint storage handling
         // (and then reach RunAPLCON)
-        constexpr auto isConstexpr = add(isConstraintsSizeConstexpr<Constraints>()...)==0;
+        constexpr auto isConstexpr = sum_of(isConstraintsSizeConstexpr<Constraints>()...)==0;
         AllocF(std::enable_if<isConstexpr>(), vars..., std::forward<Constraints>(constraints)...);
 
     }
@@ -62,13 +98,13 @@ private:
     std::vector<double> V;
     std::vector<double> F_dynamic; // only used if non-constexpr constraints size
 
-    static constexpr auto Nt = sizeof...(Vars);
-    using idx_array_t = std::array<std::size_t, Nt>;
+    static constexpr auto Nv = sizeof...(Vars);
+    using idx_array_t = std::array<std::size_t, Nv>;
 
     template<class ... Constraints>
     void AllocF(std::enable_if<true>, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
-        constexpr auto nConstraints = add(constraint_test<Constraints(Vars...)>().getN()...);
+        constexpr auto nConstraints = sum_of(constraint_test<Constraints(Vars...)>().getN()...);
         // alloc on stack
         std::array<double, nConstraints> F_static;
         RunAPLCON(F_static, vars..., std::forward<Constraints>(constraints)...);
@@ -77,7 +113,7 @@ private:
     template<class ... Constraints>
     void AllocF(std::enable_if<false>, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
-        const auto nConstraints = add(getConstraintDim<Constraints>(std::forward<Constraints>(constraints), vars...)...);
+        const auto nConstraints = sum_of(getConstraintDim<Constraints>(std::forward<Constraints>(constraints), vars...)...);
         // alloc on heap
         F_dynamic.resize(nConstraints);
         RunAPLCON(F_dynamic, vars..., std::forward<Constraints>(constraints)...);
@@ -115,6 +151,10 @@ private:
         callLinkFitter<SigmaIdx>(linker, [] (const double& v, double& t) { t = std::sqrt(v); }, vars...);
 
     }
+
+    /// checkVarSettings
+
+    //std::is_member_function_pointer<decltype(&A::member)>::value
 
     /// callConstraints
 
@@ -177,7 +217,7 @@ private:
     static size_t
     getNvars(const idx_array_t& innerDims, detail::indices<Idx...>, Vars_&&... vars) noexcept {
         using namespace detail;
-        return add(
+        return sum_of(
                     std::get<Idx>(innerDims)
                     * // multiply pairwise innerDims by outerDims
                     getOuterDim<Vars_>(

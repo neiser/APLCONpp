@@ -61,17 +61,17 @@ constexpr bool compare_array(const std::array<T,N>& a, const std::array<U,N>& b)
     return compare_array_impl(a, b, build_indices<N>());
 }
 
-// add just adds the given parameter pack together
+// sum_of just adds the given parameter pack together
 template<class T = void>
 static constexpr size_t
-add() noexcept {
+sum_of() noexcept {
     return 0;
 }
 
 template<class T, class... Ts>
 static constexpr size_t
-add(const T& t, const Ts&... ts) noexcept {
-    return t + add(ts...);
+sum_of(const T& t, const Ts&... ts) noexcept {
+    return t + sum_of(ts...);
 }
 
 } // end of anonymous namespace
@@ -99,7 +99,11 @@ struct constraint_test_impl<std::array<T, N_>> {
 };
 
 template<typename T, size_t Mask = c_is_nothing>
-struct constraint_test;
+struct constraint_test {
+    static_assert(
+            std::integral_constant<T, false>::value,
+            "Second template parameter needs to be of function type.");
+};
 
 template<typename F, typename... Args, size_t Mask>
 struct constraint_test<F(Args...), Mask> {
@@ -110,6 +114,26 @@ struct constraint_test<F(Args...), Mask> {
     }
 };
 
+//template<class C>
+//class has_settings_GreetMethod
+//{
+//    template <class T>
+//    static std::true_type testSignature(void (T::*)(const char*) const);
+
+//    template <class T>
+//    static decltype(testSignature(&T::greet)) test(std::nullptr_t);
+
+//    template <class T>
+//    static std::false_type test(...);
+
+//    using type = decltype(test<C>(nullptr));
+//public:
+//    static const bool value = type::value;
+//};
+
+//struct A { void greet(const char* name) const; };
+//struct Derived : A { };
+//static_assert(HasGreetMethod<Derived>::value, "");
 
 struct linker_t {
     using it_t = std::vector<double>::iterator;
