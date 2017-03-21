@@ -11,7 +11,6 @@ endif()
 
 set(BENCHMARK_ENABLE_TESTING OFF)
 
-
 if((CMAKE_CXX_COMPILER_ID MATCHES GNU) OR (CMAKE_CXX_COMPILER_ID MATCHES Clang))
    set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11")
    set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
@@ -22,3 +21,4 @@ include(ConfigGBench)
 
 add_subdirectory(APLCON)
 add_subdirectory(src)
+add_subdirectory(bench)

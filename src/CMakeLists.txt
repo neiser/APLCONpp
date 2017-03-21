@@ -1,7 +1,10 @@
-find_package(Threads REQUIRED)
+add_library(aplcon++
+    APLCON.hpp detail/APLCON_hpp.hpp
+    wrapper/APLCON.f90 wrapper/APLCON.h)
 
-add_executable(main main.cc wrapper/APLCON.f90 wrapper/APLCON.h)
-target_link_libraries(main
-  aplcon
-  benchmark ${CMAKE_THREAD_LIBS_INIT}
+add_library(aplcon++_interface INTERFACE)
+target_include_directories(aplcon++_interface INTERFACE .)
+
+target_link_libraries(aplcon++
+    aplcon aplcon++_interface
 )
