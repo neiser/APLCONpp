@@ -150,6 +150,9 @@ struct constraint_test<F(Args...)> {
     static constexpr auto N = constraint_test_impl<r_t>::N;
 };
 
+
+
+
 struct linker_linear_t {
 
     using it_t = std::vector<double>::iterator;
@@ -237,12 +240,16 @@ struct Fitter {
             callLinkFitter<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, types...);
         }
 
+        constexpr auto isConstexpr = add(isConstraintsSizeConstexpr<Constraints>()...)==0;
+
+        cout << "isConstexpr: " << isConstexpr << endl;
+
         constexpr auto nConstraints = add(getConstraintDim<Constraints>()...);
         cout << "Constraints: " << nConstraints  << endl;
 
         F_t<nConstraints> F;
 
-        callConstraints(F.begin(), std::forward<Constraints>(constraints)..., types...);
+        callConstraints(F.begin(), types..., std::forward<Constraints>(constraints)...);
 
 
         cout << "X=" << X << endl;
@@ -254,15 +261,13 @@ struct Fitter {
     /// callConstraints
 
     template<class It, class Constraint, class... Constraints>
-    static void callConstraints(It it, Constraint&& constraint, Constraints&&... constraints, const Types&... types) {
+    static void callConstraints(It it, const Types&... types, Constraint&& constraint, Constraints&&... constraints) noexcept {
         callConstraint(it, std::forward<Constraint>(constraint), types...);
-        callConstraints(it, std::forward<Constraints>(constraints)..., types...);
+        callConstraints(it, types..., std::forward<Constraints>(constraints)...);
     }
 
     template<class It>
-    static void callConstraints(It, const Types&...) {
-
-    }
+    static void callConstraints(It, const Types&...)  noexcept {}
 
     template<class It, class Constraint>
     static typename std::enable_if<constraint_test<Constraint(Types...)>::value == c_is_array, void>::type
@@ -368,6 +373,22 @@ struct Fitter {
     getConstraintDim() noexcept {
         return 1;
     }
+
+    /// isConstraintsSizeConstexpr
+
+    template<class Constraint>
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value == c_is_array, std::size_t>::type
+    isConstraintsSizeConstexpr() noexcept {
+        return 0;
+    }
+
+    template<class Constraint>
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value == c_is_arithmetic, std::size_t>::type
+    isConstraintsSizeConstexpr() noexcept {
+        return 0;
+    }
+
+
 };
 
 using VS_t = std::tuple<double,  double>;
@@ -416,6 +437,11 @@ int main()
         return 6;
     };
 
+    auto constraint3 = [] (const A& a, const vector<B>& b) {
+        cout << "Constraint3 was called: " << std::get<ValueIdx>(a.E) << std::get<ValueIdx>(b.front().a) << endl;
+        return std::array<double, 3>{10, 11, 12};
+    };
+
 
     Fitter<A> fitter1;
     cout << ">>>> Fitter1" << endl;
@@ -424,6 +450,6 @@ int main()
 
     cout << ">>>> Fitter2" << endl;
     Fitter<A, vector<B>> fitter2;
-    fitter2.DoFit(a, b, constraint2);
+    fitter2.DoFit(a, b, constraint2, constraint2, constraint3);
     cout << endl;
 }
