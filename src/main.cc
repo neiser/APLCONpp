@@ -321,12 +321,12 @@ int main()
     };
 
     auto constraint1 = [] (const A& a) {
-        cout << "Vector was called" << endl;
+        cout << "Vector was called: " << a.px.S << endl;
         return std::vector<double>{6,7};
     };
 
     auto constraint2 = [] (const A& a, const vector<B>& b) {
-        cout << "Array was called" << endl;
+        cout << "Array was called: " << a.E.V << b.front().a.V << endl;
         return std::array<double, 10>();
     };
 
