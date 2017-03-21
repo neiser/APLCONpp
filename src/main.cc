@@ -48,6 +48,39 @@ struct is_stl_container_like
 
 };
 
+// put this into std namespace, as we target T exactly to
+// those STL containers for ostream'ing (this is probably the only occasion
+// where it makes sense to pollute std namespace)
+// clang 3.9 otherwise complains when compiling test, btw
+// (gcc 6.1 is happy though even if it's in namespace ant)
+namespace std {
+
+template<class T>
+// use SFINAE to restrict this templated operator to STL containers such as vector,list,map,set
+typename std::enable_if<is_stl_container_like<T>::value, std::ostream&>::type
+operator<< (std::ostream& stream, const T& v)
+{
+    stream << "[";
+    for(auto it = std::begin(v); it != std::end(v); ++it)
+    {
+        stream << *it;
+        if(std::next(it) != std::end(v))
+            stream << ";";
+    }
+    stream << "]";
+    return stream;
+}
+
+// make std::pair printable for std::map support
+template<class U, class V>
+std::ostream&
+operator<< (std::ostream& stream, const std::pair<U, V>& p) {
+    return stream << p.first << "=" << p.second;
+}
+
+} // namespace std
+
+
 template <std::size_t... Is>
 struct indices {};
 
@@ -91,17 +124,30 @@ static constexpr size_t c_is_nothing    = 0;
 static constexpr size_t c_is_array      = 2;
 static constexpr size_t c_is_arithmetic = 3;
 
+
+
 template<typename T>
-struct constraint_test {
+struct constraint_test_impl {
     static constexpr size_t value = std::is_arithmetic<T>::value
                                     ? c_is_arithmetic
                                     : c_is_nothing;
+    static constexpr size_t N = 1;
 };
 
 template<typename T, std::size_t N_>
-struct constraint_test<std::array<T, N_>> {
+struct constraint_test_impl<std::array<T, N_>> {
     static constexpr size_t value = std::is_arithmetic<T>::value ? c_is_array : c_is_nothing;
     static constexpr size_t N = N_;
+};
+
+template<typename T>
+struct constraint_test;
+
+template<typename F, typename... Args>
+struct constraint_test<F(Args...)> {
+    using r_t = typename std::result_of<F(Args...)>::type;
+    static constexpr auto value = constraint_test_impl<r_t>::value;
+    static constexpr auto N = constraint_test_impl<r_t>::N;
 };
 
 struct linker_linear_t {
@@ -157,15 +203,17 @@ static constexpr auto SigmaIdx = 1;
 template<class ... Types>
 struct Fitter {
 
-    using X_t = std::vector<double>;
-    X_t X;
-    X_t V;
+    std::vector<double> X;
+    std::vector<double> V;
 
     static constexpr auto Nt = sizeof...(Types);
     using idx_array_t = std::array<std::size_t, Nt>;
 
+    template<size_t Nc>
+    using F_t = std::array<double, Nc>;
+
     template<class ... Constraints>
-    void DoFit(Types&... types, const Constraints&... constraints) {
+    void DoFit(Types&... types, Constraints&&... constraints) {
 
         constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nt>());
         {
@@ -180,53 +228,78 @@ struct Fitter {
             X.resize(nVar);
             linker_linear_t linker(X.begin());
             // sigmas are the sqrt's of the covariance diagonal
-            applyto<ValueIdx>(linker, [] (double& v, const double& t) { v = t; }, types...);
+            callLinkFitter<ValueIdx>(linker, [] (double& v, const double& t) { v = t; }, types...);
         }
 
         {
             V.resize((nVar*nVar+nVar)/2);
             linker_diagonal_t linker(V.begin());
-            applyto<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, types...);
+            callLinkFitter<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, types...);
         }
 
         constexpr auto nConstraints = add(getConstraintDim<Constraints>()...);
         cout << "Constraints: " << nConstraints  << endl;
 
-        std::array<double, nConstraints> F;
+        F_t<nConstraints> F;
+
+        callConstraints(F.begin(), std::forward<Constraints>(constraints)..., types...);
 
 
+        cout << "X=" << X << endl;
+        cout << "V=" << V << endl;
+        cout << "F=" << F << endl;
 
-        for(auto x : X)
-            cout << x << ' ';
-        cout << endl;
-
-        for(auto v : V) {
-            cout << v << ' ';
-        }
-        cout << endl;
     }
 
-    /// applyto
+    /// callConstraints
+
+    template<class It, class Constraint, class... Constraints>
+    static void callConstraints(It it, Constraint&& constraint, Constraints&&... constraints, const Types&... types) {
+        callConstraint(it, std::forward<Constraint>(constraint), types...);
+        callConstraints(it, std::forward<Constraints>(constraints)..., types...);
+    }
+
+    template<class It>
+    static void callConstraints(It, const Types&...) {
+
+    }
+
+    template<class It, class Constraint>
+    static typename std::enable_if<constraint_test<Constraint(Types...)>::value == c_is_array, void>::type
+    callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
+        // Making F_ constexpr is probably too limiting for constraints (think of TreeFitter with rather complex lambdas)
+        const auto& F_ = std::forward<Constraint>(constraint)(types...);
+        it = std::copy(F_.begin(), F_.end(), it);
+    }
+
+    template<class It, class Constraint>
+    static typename std::enable_if<constraint_test<Constraint(Types...)>::value == c_is_arithmetic, void>::type
+    callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
+        // single scalar is just copied to current position
+        *it++ = std::forward<Constraint>(constraint)(types...);
+    }
+
+    /// callLinkFitter
 
     template<size_t N, class Linker, class Func, class Type, class... Types_>
-    static void applyto(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
-        applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f),
+    static void callLinkFitter(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
+        callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f),
                    std::enable_if<is_stl_container_like<Type>::value>(), std::forward<Type>(type));
-        applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Types_>(types)...);
+        callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Types_>(types)...);
     }
 
     template<size_t N, class Linker, class Func>
-    static void applyto(Linker&&, Func&&) noexcept {}
+    static void callLinkFitter(Linker&&, Func&&) noexcept {}
 
     template<size_t N, class Linker, class Func, class Type>
-    static void applyto(Linker&& linker, Func&& f, std::enable_if<false>, Type&& type) noexcept {
-        std::forward<Linker>(linker)(std::forward<Func>(f), std::forward<Type>(type).template link_fitter<N>());
+    static void callLinkFitter(Linker&& linker, Func&& f, std::enable_if<false>, Type&& type) noexcept {
+        std::forward<Linker>(linker)(std::forward<Func>(f), std::forward<Type>(type).template linkFitter<N>());
     }
 
     template<size_t N, class Linker, class Func, class Type>
-    static void applyto(Linker&& linker, Func&& f, std::enable_if<true>, Type&& container) noexcept {
+    static void callLinkFitter(Linker&& linker, Func&& f, std::enable_if<true>, Type&& container) noexcept {
         for(auto& type : std::forward<Type>(container))
-            applyto<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::enable_if<false>(), type);
+            callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::enable_if<false>(), type);
     }
 
     /// getNvars
@@ -243,9 +316,12 @@ struct Fitter {
                    );
     }
 
+    /// getOuterDim
+
     template<class Type>
     static size_t
     getOuterDim(std::enable_if<true>, Type&& type) noexcept {
+        // no other way than calling non-constexpr .size()
         return std::forward<Type>(type).size();
     }
 
@@ -267,7 +343,7 @@ struct Fitter {
     static constexpr std::size_t
     getInnerDim(std::enable_if<false>) noexcept {
         // inspect the templated function
-        using f_t = decltype(&Type::template link_fitter<N>);
+        using f_t = decltype(&Type::template linkFitter<N>);
         using r_t = typename std::result_of<f_t(Type)>::type;
         return std::tuple_size<r_t>::value;
 
@@ -282,13 +358,13 @@ struct Fitter {
     /// getConstraintDim
 
     template<class Constraint>
-    static constexpr typename std::enable_if<constraint_test<typename std::result_of<Constraint(Types...)>::type>::value == c_is_array, std::size_t>::type
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value == c_is_array, std::size_t>::type
     getConstraintDim() noexcept {
-        return constraint_test<typename std::result_of<Constraint(Types...)>::type>::N;
+        return constraint_test<Constraint(Types...)>::N;
     }
 
     template<class Constraint>
-    static constexpr typename std::enable_if<constraint_test<typename std::result_of<Constraint(Types...)>::type>::value == c_is_arithmetic, std::size_t>::type
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value == c_is_arithmetic, std::size_t>::type
     getConstraintDim() noexcept {
         return 1;
     }
@@ -301,7 +377,7 @@ struct A {
     VS_t E, px, py, pz;
 
     template<size_t N>
-    std::tuple<double&,double&,double&,double&> link_fitter() noexcept {
+    std::tuple<double&,double&,double&,double&> linkFitter() noexcept {
         cout << "A fitter called N=" << N << endl;
         return std::tie(std::get<N>(E), std::get<N>(px), std::get<N>(py), std::get<N>(pz));
     }
@@ -312,7 +388,7 @@ struct B {
     VS_t a;
 
     template<size_t N>
-    std::tuple<double&> link_fitter() noexcept {
+    std::tuple<double&> linkFitter() noexcept {
         cout << "B fitter called N=" << N << endl;
         return std::tie(std::get<N>(a));
     }
@@ -331,13 +407,13 @@ int main()
     };
 
     auto constraint1 = [] (const A& a) {
-        cout << "Vector was called: " << std::get<ValueIdx>(a.px) << endl;
+        cout << "Constraint1 was called: " << std::get<ValueIdx>(a.px) << endl;
         return std::array<double, 2>{6,7};
     };
 
     auto constraint2 = [] (const A& a, const vector<B>& b) {
-        cout << "Array was called: " << std::get<ValueIdx>(a.E) << std::get<ValueIdx>(b.front().a) << endl;
-        return std::array<double, 8>();
+        cout << "Constraint2 was called: " << std::get<ValueIdx>(a.E) << std::get<ValueIdx>(b.front().a) << endl;
+        return 6;
     };
 
 
