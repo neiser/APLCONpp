@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
-project(APLCON++)
+project(APLCONpp)
 
 # check for in-source build, forbid it!
 if(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR AND NOT MSVC_IDE)
@@ -13,6 +13,7 @@ if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(third-party)
 add_subdirectory(src)
