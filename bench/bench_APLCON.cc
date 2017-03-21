@@ -17,8 +17,7 @@ struct X {
 
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
-        // can this be written easier?
-        return std::tie(std::get<N>(std::tie(Value, Sigma)));
+        return N == APLCON::ValueIdx ? Value : Sigma;
     }
 
     friend std::ostream& operator<<(std::ostream& s, const X& o) {
@@ -28,18 +27,16 @@ struct X {
 
 
 static void BM_ErrorPropagation(benchmark::State& state) {
-
     auto a_and_b_is_c = [] (const X& a, const X& b, const X& c) {
         return c.Value - a.Value - b.Value;
     };
-
     while (state.KeepRunning()) {
 
         X a{10, 0.3};
         X b{20, 0.4};
         X c{ 0, 0.0};
 
-        APLCON<X, X, X> fitter;
+        APLCON::Fitter<X, X, X> fitter;
         fitter.DoFit(a, b, c, a_and_b_is_c);
 
     }

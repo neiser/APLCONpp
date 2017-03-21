@@ -9,18 +9,21 @@ extern "C" {
 #include "detail/APLCON_hpp.hpp"
 #include <cmath> // for sqrt
 
-template<class ... Types>
-struct APLCON {
+// use those constants in your classes to
+// identify what is request in the call to "linkFitter"
 
-    // use those constants in your classes to
-    // identify what is request in the call to "linkFitter"
-    static constexpr auto ValueIdx = 0;
-    static constexpr auto SigmaIdx = 1;
+namespace APLCON {
+
+static constexpr auto ValueIdx = 0;
+static constexpr auto SigmaIdx = 1;
+
+template<class ... Types>
+struct Fitter {
 
     template<class ... Constraints>
     void DoFit(Types&... types, Constraints&&... constraints) {
 
-        using namespace APLCON_;
+        using namespace detail;
 
         constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nt>());
         {
@@ -64,7 +67,7 @@ private:
 
     template<class ... Constraints>
     void AllocF(std::enable_if<true>, Types&... types, Constraints&&... constraints) {
-        using namespace APLCON_;
+        using namespace detail;
         constexpr auto nConstraints = add(constraint_test<Constraints(Types...)>().getN()...);
         // alloc on stack
         std::array<double, nConstraints> F_static;
@@ -81,7 +84,7 @@ private:
 
     template<class F_t, class ... Constraints>
     void RunAPLCON(F_t& F, Types&... types, Constraints&&... constraints) {
-        using namespace APLCON_;
+        using namespace detail;
 
         c_aplcon_aplcon(X.size(), F.size());
 
@@ -126,7 +129,7 @@ private:
     template<class It, class Constraint>
     static typename
     std::enable_if<
-    APLCON_::constraint_test<Constraint(Types...), APLCON_::c_is_multi>::value,
+    detail::constraint_test<Constraint(Types...), detail::c_is_multi>::value,
     void>::type
     callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
         // Making F_ constexpr is probably too limiting for constraints (think of TreeFitter with rather complex lambdas)
@@ -137,7 +140,7 @@ private:
     template<class It, class Constraint>
     static typename
     std::enable_if<
-    APLCON_::constraint_test<Constraint(Types...), APLCON_::c_is_single>::value,
+    detail::constraint_test<Constraint(Types...), detail::c_is_single>::value,
     void>::type
     callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
         // single scalar is just copied to current position
@@ -149,7 +152,7 @@ private:
     template<size_t N, class Linker, class Func, class Type, class... Types_>
     static void callLinkFitter(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
         callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f),
-                          std::enable_if<APLCON_::is_stl_container_like<Type>::value>(), std::forward<Type>(type));
+                          std::enable_if<detail::is_stl_cont<Type>::value>(), std::forward<Type>(type));
         callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Types_>(types)...);
     }
 
@@ -171,13 +174,13 @@ private:
 
     template<size_t... Idx, class... Types_>
     static size_t
-    getNvars(const idx_array_t& innerDims, APLCON_::indices<Idx...>, Types_&&... types) noexcept {
-        using namespace APLCON_;
+    getNvars(const idx_array_t& innerDims, detail::indices<Idx...>, Types_&&... types) noexcept {
+        using namespace detail;
         return add(
                     std::get<Idx>(innerDims)
                     * // multiply pairwise innerDims by outerDims
                     getOuterDim<Types_>(
-                        std::enable_if<is_stl_container_like<Types>::value>(),
+                        std::enable_if<is_stl_cont<Types>::value>(),
                         std::forward<Types_>(types))...
                     );
     }
@@ -201,8 +204,12 @@ private:
 
     template<size_t N, size_t... Idx>
     static constexpr idx_array_t
-    getInnerDim(APLCON_::indices<Idx...>) noexcept {
-        return idx_array_t{getInnerDim<N, Types>(std::enable_if<APLCON_::is_stl_container_like<Types>::value>())...};
+    getInnerDim(detail::indices<Idx...>) noexcept {
+        return idx_array_t{
+            // dispatch depending if Type in parameter pack is container or not
+            // if yes, inspect value_type. if no, inspect inner type itself
+            getInnerDim<N, Types>(std::enable_if<detail::is_stl_cont<Types>::value>())...
+        };
     }
 
     template<size_t N, class Type>
@@ -227,19 +234,19 @@ private:
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    APLCON_::constraint_test<Constraint(Types...), APLCON_::c_is_constsize>::value,
+    detail::constraint_test<Constraint(Types...), detail::c_is_constsize>::value,
     std::size_t>::type
     getConstraintDim(Constraint&&, const Types&...) noexcept {
-        return APLCON_::constraint_test<Constraint(Types...)>().getN();
+        return detail::constraint_test<Constraint(Types...)>().getN();
     }
 
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    APLCON_::constraint_test<Constraint(Types...), APLCON_::c_is_container>::value,
+    detail::constraint_test<Constraint(Types...), detail::c_is_container>::value,
     std::size_t>::type
     getConstraintDim(Constraint&& constraint, const Types&... types) noexcept {
-        // call the constraint with the given types
+        // call the constraint with the given types (no other way to figure it out)
         return std::forward<Constraint>(constraint)(types...).size();
     }
 
@@ -248,7 +255,7 @@ private:
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    APLCON_::constraint_test<Constraint(Types...), APLCON_::c_is_constsize>::value,
+    detail::constraint_test<Constraint(Types...), detail::c_is_constsize>::value,
     std::size_t>::type
     isConstraintsSizeConstexpr() noexcept {
         return 0;
@@ -257,9 +264,11 @@ private:
     template<class Constraint>
     static constexpr typename
     std::enable_if<
-    APLCON_::constraint_test<Constraint(Types...), APLCON_::c_is_container>::value,
+    detail::constraint_test<Constraint(Types...), detail::c_is_container>::value,
     std::size_t>::type
     isConstraintsSizeConstexpr() noexcept {
         return 1;
     }
 };
+
+} // namespace APLCON

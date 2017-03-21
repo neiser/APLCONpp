@@ -4,12 +4,13 @@
 #include <tuple>
 #include <vector>
 
-namespace APLCON_ {
+namespace APLCON {
+namespace detail {
 
 namespace {
 
 template<typename T>
-struct is_stl_container_like
+struct is_stl_cont
 {
     template<typename A>
     static constexpr bool test(
@@ -83,7 +84,7 @@ static constexpr size_t c_is_single      = (1 << 2);
 template<typename T>
 struct constraint_test_impl {
     static constexpr size_t value =
-            is_stl_container_like<T>::value ? c_is_container
+            is_stl_cont<T>::value ? c_is_container
                                             : (std::is_arithmetic<T>::value
                                                ? c_is_single
                                                : c_is_nothing);
@@ -158,4 +159,4 @@ static constexpr size_t c_is_multi     = c_is_container | c_is_array;
 static_assert((c_is_constsize & c_is_container) == 0, "Logic error");
 static_assert((c_is_multi & c_is_single) == 0, "Logic error");
 
-} // namespace APLCON_
+}} // namespace APLCON::detail
