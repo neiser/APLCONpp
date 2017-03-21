@@ -141,13 +141,13 @@ struct constraint_test_impl<std::array<T, N_>> {
     static constexpr size_t N = N_;
 };
 
-template<typename T>
+template<typename T, size_t Mask = c_is_nothing>
 struct constraint_test;
 
-template<typename F, typename... Args>
-struct constraint_test<F(Args...)> {
+template<typename F, typename... Args, size_t Mask>
+struct constraint_test<F(Args...), Mask> {
     using r_t = typename std::result_of<F(Args...)>::type;
-    static constexpr auto value = constraint_test_impl<r_t>::value;
+    static constexpr bool value = static_cast<bool>(constraint_test_impl<r_t>::value & Mask);
     constexpr size_t getN() const noexcept {
         return constraint_test_impl<r_t>::N;
     }
@@ -155,7 +155,6 @@ struct constraint_test<F(Args...)> {
 
 
 struct linker_t {
-
     using it_t = std::vector<double>::iterator;
     it_t it;
 
@@ -170,22 +169,19 @@ struct linker_t {
 };
 
 struct linker_linear_t : linker_t {
-
     using linker_t::linker_t;
-    using linker_t::operator();
 
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I < sizeof...(Tp), void>::type
     operator()(Func f, const std::tuple<Tp...>& t)
     {
         f(*it++, std::get<I>(t));
-        this->operator()<Func, I + 1, Tp...>(f, t);
+        linker_t::operator()<Func, I + 1, Tp...>(f, t);
     }
 };
 
 struct linker_diagonal_t : linker_t {
     using linker_t::linker_t;
-    using linker_t::operator();
 
     std::size_t n_row = 0;
 
@@ -196,7 +192,7 @@ struct linker_diagonal_t : linker_t {
         // this skips the row and moves iterator to diagonal element
         it = std::fill_n(it, n_row++, 0);
         f(*it++, std::get<I>(t));
-        this->operator()<Func, I + 1, Tp...>(f, t);
+        linker_t::operator()<Func, I + 1, Tp...>(f, t);
     }
 };
 
@@ -306,7 +302,7 @@ struct Fitter {
 
     template<class It, class Constraint, class... Constraints>
     static void callConstraints(It it, const Types&... types, Constraint&& constraint, Constraints&&... constraints) noexcept {
-        callConstraint(it, std::forward<Constraint>(constraint), types...);
+        callConstraint<It>(it, std::forward<Constraint>(constraint), types...);
         callConstraints(it, types..., std::forward<Constraints>(constraints)...);
     }
 
@@ -314,7 +310,7 @@ struct Fitter {
     static void callConstraints(It, const Types&...)  noexcept {}
 
     template<class It, class Constraint>
-    static typename std::enable_if<constraint_test<Constraint(Types...)>::value & c_is_multi, void>::type
+    static typename std::enable_if<constraint_test<Constraint(Types...), c_is_multi>::value, void>::type
     callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
         // Making F_ constexpr is probably too limiting for constraints (think of TreeFitter with rather complex lambdas)
         const auto& F_ = std::forward<Constraint>(constraint)(types...);
@@ -322,7 +318,7 @@ struct Fitter {
     }
 
     template<class It, class Constraint>
-    static typename std::enable_if<constraint_test<Constraint(Types...)>::value & c_is_single, void>::type
+    static typename std::enable_if<constraint_test<Constraint(Types...), c_is_single>::value, void>::type
     callConstraint(It& it, Constraint&& constraint, const Types&... types) noexcept {
         // single scalar is just copied to current position
         *it++ = std::forward<Constraint>(constraint)(types...);
@@ -408,13 +404,13 @@ struct Fitter {
     /// getConstraintDim
 
     template<class Constraint>
-    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value & c_is_constsize, std::size_t>::type
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...), c_is_constsize>::value, std::size_t>::type
     getConstraintDim(Constraint&&, const Types&...) noexcept {
         return constraint_test<Constraint(Types...)>().getN();
     }
 
     template<class Constraint>
-    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value & c_is_container, std::size_t>::type
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...), c_is_container>::value, std::size_t>::type
     getConstraintDim(Constraint&& constraint, const Types&... types) noexcept {
         // call the constraint with the given types
         return std::forward<Constraint>(constraint)(types...).size();
@@ -423,13 +419,13 @@ struct Fitter {
     /// isConstraintsSizeConstexpr
 
     template<class Constraint>
-    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value & c_is_constsize, std::size_t>::type
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...), c_is_constsize>::value, std::size_t>::type
     isConstraintsSizeConstexpr() noexcept {
         return 0;
     }
 
     template<class Constraint>
-    static constexpr typename std::enable_if<constraint_test<Constraint(Types...)>::value & c_is_container, std::size_t>::type
+    static constexpr typename std::enable_if<constraint_test<Constraint(Types...), c_is_container>::value, std::size_t>::type
     isConstraintsSizeConstexpr() noexcept {
         return 1;
     }
@@ -449,7 +445,7 @@ struct X {
     }
 
     friend std::ostream& operator<<(std::ostream& s, const X& o) {
-        s << "(" << o.Value << "," << o.Sigma << ")";
+        return s << "(" << o.Value << "," << o.Sigma << ")";
     }
 };
 
