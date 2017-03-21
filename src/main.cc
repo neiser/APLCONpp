@@ -105,12 +105,12 @@ struct constraint_test<std::array<T, N_>> {
     static constexpr size_t N = N_;
 };
 
-struct fill_linear_t {
+struct linker_linear_t {
 
     using it_t = std::vector<double>::iterator;
     it_t it;
 
-    constexpr fill_linear_t(const it_t& it_)
+    constexpr linker_linear_t(const it_t& it_)
         : it(it_) {}
 
     template<typename Func, std::size_t I = 0, typename... Tp>
@@ -123,29 +123,32 @@ struct fill_linear_t {
     operator()(Func f, const std::tuple<Tp...>& t)
     {
         f(*it++, std::get<I>(t));
-//        *it++ = std::get<I>(t);
         this->operator()<Func, I + 1, Tp...>(f, t);
     }
 
 };
 
-//struct fill_diagonal_t {
-//    using it_t = std::vector<double>::iterator;
-//    it_t v;
-//    std::size_t n = 0;
+struct linker_diagonal_t {
+    using it_t = std::vector<double>::iterator;
+    it_t it;
+    std::size_t n = 0;
 
-//    constexpr fill_diagonal_t(it_t v_) : v(v_) {}
+    constexpr linker_diagonal_t(it_t it_) : it(it_) {}
 
+    template<typename Func, std::size_t I = 0, typename... Tp>
+    typename std::enable_if<I == sizeof...(Tp), void>::type
+    operator()(Func, const std::tuple<Tp...>&)
+    { }
 
-//    template<class... Types>
-//    void operator()(const Head& head, const Tail&... tail) noexcept {
-//        for(std::size_t i = 0; i<n ; i++)
-//            *v++ = 0;
-//        *v++ = head;
-//        n++;
-//        this->operator()(tail...);
-//    }
-//};
+    template<typename Func, std::size_t I = 0, typename... Tp>
+    typename std::enable_if<I < sizeof...(Tp), void>::type
+    operator()(Func f, const std::tuple<Tp...>& t)
+    {
+        it = std::fill_n(it, n++, 0);
+        f(*it++, std::get<I>(t));
+        this->operator()<Func, I + 1, Tp...>(f, t);
+    }
+};
 
 static constexpr auto ValueIdx = 0;
 static constexpr auto SigmaIdx = 1;
@@ -178,18 +181,19 @@ struct Fitter {
         cout << "Variables: " << nVar  << endl;
 
         const auto& set_vector = [] (double& v, const double& t) { v = t; };
+        const auto& set_types = [] (const double& v, double& t) { t = v; };
 
         {
             X.resize(nVar);
-            fill_linear_t filler(X.begin());
-            applyto<ValueIdx>(filler, set_vector, types...);
+            linker_linear_t linker(X.begin());
+            applyto<ValueIdx>(linker, set_vector, types...);
         }
 
-//        {
-//            V.resize((nVar*nVar+nVar)/2);
-//            fill_diagonal_t f(V.begin());
-//            fill<SigmaIdx>(f, types...);
-//        }
+        {
+            V.resize((nVar*nVar+nVar)/2);
+            linker_diagonal_t linker(V.begin());
+            applyto<SigmaIdx>(linker, set_vector, types...);
+        }
 
 //        {
 //            F.resize(nConstraints);
