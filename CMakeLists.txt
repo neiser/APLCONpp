@@ -1,19 +1,24 @@
 cmake_minimum_required (VERSION 3.0)
 project(APLCONpp CXX Fortran)
 
-# check for in-source build, forbid it!
-if(CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR AND NOT MSVC_IDE)
-  message(FATAL_ERROR "\nIn-source build attempt detected!\n"
-    "Please create a new directory (e.g. build) and run `cmake ..`.\n"
-    "Also don't forget to delete the created CMakeCache.txt and CMakeFiles dir"
-    )
-endif()
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/Modules)
+
+include(ConfigSafeGuards)
 
 if(NOT DEFINED CMAKE_RUNTIME_OUTPUT_DIRECTORY)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(BENCHMARK_ENABLE_TESTING OFF)
+
+
+if((CMAKE_CXX_COMPILER_ID MATCHES GNU) OR (CMAKE_CXX_COMPILER_ID MATCHES Clang))
+   set(CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11")
+   set(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g3")
+   set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+endif()
+
+include(ConfigGBench)
 
 add_subdirectory(APLCON)
 add_subdirectory(third-party)

@@ -453,23 +453,26 @@ struct X {
     }
 };
 
+#include "benchmark/benchmark_api.h"
 
-int main()
-{
-    {
+static void BM_ErrorPropagation(benchmark::State& state) {
+
+    auto a_and_b_is_c = [] (const X& a, const X& b, const X& c) {
+        return c.Value - a.Value - b.Value;
+    };
+
+    while (state.KeepRunning()) {
+
         X a{10, 0.3};
         X b{20, 0.4};
         X c{ 0, 0.0};
 
-        auto a_and_b_is_c = [] (const X& a, const X& b, const X& c) {
-            return c.Value - a.Value - b.Value;
-        };
-
-        cout << "Before: a=" << a << " b=" << b << " c=" << c << endl;
-
         Fitter<X, X, X> fitter;
         fitter.DoFit(a, b, c, a_and_b_is_c);
 
-        cout << "After:  a=" << a << " b=" << b << " c=" << c << endl;
     }
 }
+BENCHMARK(BM_ErrorPropagation);
+
+BENCHMARK_MAIN()
+
