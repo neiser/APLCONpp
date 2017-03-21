@@ -4,6 +4,8 @@
 #include <iomanip>
 #include <vector>
 #include <array>
+#include <tuple>
+#include <functional>
 
 #include <cxxabi.h>
 
@@ -57,7 +59,7 @@ struct build_indices<0, Is...> : indices<Is...> {};
 
 template<class T, size_t N, size_t... Idx>
 constexpr bool compare_array_impl(const std::array<T,N> a, const std::array<T,N> b, indices<Idx...>) noexcept {
-    return std::tie(a[Idx]...) == std::tie(b[Idx]...);
+    return std::make_tuple(a[Idx]...) == std::make_tuple(b[Idx]...);
 }
 
 template<class T, class U, size_t N>
@@ -292,11 +294,11 @@ struct Fitter {
     }
 };
 
-using ValueSigma_t = std::tuple<double,  double>;
+using VS_t = std::tuple<double,  double>;
 
 struct A {
 
-    ValueSigma_t E, px, py, pz;
+    VS_t E, px, py, pz;
 
     template<size_t N>
     std::tuple<double&,double&,double&,double&> link_fitter() noexcept {
@@ -307,12 +309,11 @@ struct A {
 
 
 struct B {
-    ValueSigma_t a;
+    VS_t a;
 
     template<size_t N>
     std::tuple<double&> link_fitter() noexcept {
         cout << "B fitter called N=" << N << endl;
-        //f(std::get<N>(a));
         return std::tie(std::get<N>(a));
     }
 };
@@ -321,12 +322,12 @@ struct B {
 int main()
 {
 
-    A a{{1,9},{2,8},{3,7},{4,6}};
+    A a{VS_t{1,9},VS_t{2,8},VS_t{3,7},VS_t{4,6}};
 
     vector<B> b{
-        {{1,1}},
-        {{5,2}},
-        {{8,3}}
+        {VS_t{1,1}},
+        {VS_t{5,2}},
+        {VS_t{8,3}}
     };
 
     auto constraint1 = [] (const A& a) {
