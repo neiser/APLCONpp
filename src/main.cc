@@ -131,7 +131,7 @@ struct linker_linear_t {
 struct linker_diagonal_t {
     using it_t = std::vector<double>::iterator;
     it_t it;
-    std::size_t n = 0;
+    std::size_t n_row = 0;
 
     constexpr linker_diagonal_t(it_t it_) : it(it_) {}
 
@@ -144,7 +144,7 @@ struct linker_diagonal_t {
     typename std::enable_if<I < sizeof...(Tp), void>::type
     operator()(Func f, const std::tuple<Tp...>& t)
     {
-        it = std::fill_n(it, n++, 0);
+        it = std::fill_n(it, n_row++, 0); // this skips the row and moves iterator to diagonal element
         f(*it++, std::get<I>(t));
         this->operator()<Func, I + 1, Tp...>(f, t);
     }
@@ -164,12 +164,11 @@ struct Fitter {
     static constexpr auto Nt = sizeof...(Types);
     using idx_array_t = std::array<std::size_t, Nt>;
 
-
     template<class ... Constraints>
     void DoFit(Types&... types, const Constraints&... constraints) {
+
         const auto nConstraints = getConstraintDim(types..., constraints...);
         cout << "Constraints: " << nConstraints  << endl;
-
 
         constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nt>());
         {
@@ -180,19 +179,17 @@ struct Fitter {
 
         cout << "Variables: " << nVar  << endl;
 
-        const auto& set_vector = [] (double& v, const double& t) { v = t; };
-        const auto& set_types = [] (const double& v, double& t) { t = v; };
-
         {
             X.resize(nVar);
             linker_linear_t linker(X.begin());
-            applyto<ValueIdx>(linker, set_vector, types...);
+            // sigmas are the sqrt's of the covariance diagonal
+            applyto<ValueIdx>(linker, [] (double& v, const double& t) { v = t; }, types...);
         }
 
         {
             V.resize((nVar*nVar+nVar)/2);
             linker_diagonal_t linker(V.begin());
-            applyto<SigmaIdx>(linker, set_vector, types...);
+            applyto<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, types...);
         }
 
 //        {
@@ -209,12 +206,6 @@ struct Fitter {
         }
         cout << endl;
     }
-
-
-
-
-    /// fillF
-
 
     /// applyto
 
