@@ -6,6 +6,7 @@
 #include <array>
 #include <tuple>
 #include <functional>
+#include <cmath>
 
 #include <cxxabi.h>
 
@@ -221,9 +222,6 @@ struct Fitter {
     static constexpr auto Nt = sizeof...(Types);
     using idx_array_t = std::array<std::size_t, Nt>;
 
-//    template<size_t Nc>
-//    using F_t = std::array<double, Nc>;
-
     template<class ... Constraints>
     void DoFit(Types&... types, Constraints&&... constraints) {
 
@@ -233,8 +231,6 @@ struct Fitter {
             static_assert(compare_array(innerDim, innerDim_sigmas), "The implementation of link_fitter returns unequal number of values and sigmas.");
         }
         const auto nVar = getNvars(innerDim, build_indices<Nt>(), types...);
-
-        cout << "Variables: " << nVar  << endl;
 
         {
             X.resize(nVar);
@@ -249,11 +245,6 @@ struct Fitter {
             callLinkFitter<SigmaIdx>(linker, [] (double& v, const double& t) { v = t*t; }, types...);
         }
 
-
-        cout << "X=" << X << endl;
-        cout << "V=" << V << endl;
-
-
         constexpr auto isConstexpr = add(isConstraintsSizeConstexpr<Constraints>()...)==0;
 
         // dispatch via AllocF
@@ -264,7 +255,6 @@ struct Fitter {
     template<class ... Constraints>
     void AllocF(std::enable_if<true>, Types&... types, Constraints&&... constraints) {
         constexpr auto nConstraints = add(constraint_test<Constraints(Types...)>().getN()...);
-        cout << "Constraints (constexpr): " << nConstraints  << endl;
         // alloc on stack
         std::array<double, nConstraints> F_static;
         RunAPLCON(F_static, types..., std::forward<Constraints>(constraints)...);
@@ -273,7 +263,6 @@ struct Fitter {
     template<class ... Constraints>
     void AllocF(std::enable_if<false>, Types&... types, Constraints&&... constraints) {
         const auto nConstraints = add(getConstraintDim<Constraints>(std::forward<Constraints>(constraints), types...)...);
-        cout << "Constraints (runtime): " << nConstraints  << endl;
         // alloc on heap
         F_dynamic.resize(nConstraints);
         RunAPLCON(F_dynamic, types..., std::forward<Constraints>(constraints)...);
@@ -282,11 +271,33 @@ struct Fitter {
     template<class F_t, class ... Constraints>
     void RunAPLCON(F_t& F, Types&... types, Constraints&&... constraints) {
 
-        callConstraints(F.begin(), types..., std::forward<Constraints>(constraints)...);
-
-        cout << "F=" << F << endl;
-
         c_aplcon_aplcon(X.size(), F.size());
+
+        c_aplcon_aprint(6, 0); // default output on LUNP 6 (STDOUT)
+
+        // the main convergence loop
+        int aplcon_ret = -1;
+        do {
+
+            // compute F from constraints
+            callConstraints(F.begin(), types..., std::forward<Constraints>(constraints)...);
+
+            // call APLCON iteration
+            c_aplcon_aploop(X.data(), V.data(), F.data(), &aplcon_ret);
+
+            // copy X into types, for constraint evaluation
+            linker_linear_t linker(X.begin());
+            // sigmas are the sqrt's of the covariance diagonal
+            callLinkFitter<ValueIdx>(linker, [] (const double& v, double& t) { t = v; }, types...);
+
+        }
+        while(aplcon_ret<0);
+
+        // copy back the sigmas
+        linker_diagonal_t linker(V.begin());
+        // sigmas are the sqrt's of the covariance diagonal
+        callLinkFitter<SigmaIdx>(linker, [] (const double& v, double& t) { t = std::sqrt(v); }, types...);
+
 
     }
 
@@ -322,7 +333,7 @@ struct Fitter {
     template<size_t N, class Linker, class Func, class Type, class... Types_>
     static void callLinkFitter(Linker&& linker, Func&& f, Type&& type, Types_&&... types) noexcept {
         callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f),
-                   std::enable_if<is_stl_container_like<Type>::value>(), std::forward<Type>(type));
+                          std::enable_if<is_stl_container_like<Type>::value>(), std::forward<Type>(type));
         callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::forward<Types_>(types)...);
     }
 
@@ -349,9 +360,9 @@ struct Fitter {
                     get<Idx>(innerDims)
                     * // multiply pairwise innerDims by outerDims
                     getOuterDim<Types_>(
-                       std::enable_if<is_stl_container_like<Types>::value>(),
-                       std::forward<Types_>(types))...
-                   );
+                        std::enable_if<is_stl_container_like<Types>::value>(),
+                        std::forward<Types_>(types))...
+                    );
     }
 
     /// getOuterDim
@@ -424,65 +435,41 @@ struct Fitter {
     }
 };
 
-using VS_t = std::tuple<double,  double>;
+struct X {
 
-struct A {
+    constexpr X(double v, double s) : Value(v), Sigma(s) {}
 
-    VS_t E, px, py, pz;
-
-    template<size_t N>
-    std::tuple<double&,double&,double&,double&> linkFitter() noexcept {
-        cout << "A fitter called N=" << N << endl;
-        return std::tie(std::get<N>(E), std::get<N>(px), std::get<N>(py), std::get<N>(pz));
-    }
-};
-
-
-struct B {
-    VS_t a;
+    double Value;
+    double Sigma;
 
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
-        cout << "B fitter called N=" << N << endl;
-        return std::tie(std::get<N>(a));
+        // can this be written easier?
+        return std::tie(std::get<N>(std::tie(Value, Sigma)));
+    }
+
+    friend std::ostream& operator<<(std::ostream& s, const X& o) {
+        s << "(" << o.Value << "," << o.Sigma << ")";
     }
 };
 
 
 int main()
 {
+    {
+        X a{10, 0.3};
+        X b{20, 0.4};
+        X c{ 0, 0.0};
 
-    A a{VS_t{1,9},VS_t{2,8},VS_t{3,7},VS_t{4,6}};
+        auto a_and_b_is_c = [] (const X& a, const X& b, const X& c) {
+            return c.Value - a.Value - b.Value;
+        };
 
-    vector<B> b{
-        {VS_t{1,1}},
-        {VS_t{5,2}},
-        {VS_t{8,3}}
-    };
+        cout << "Before: a=" << a << " b=" << b << " c=" << c << endl;
 
-    auto constraint1 = [] (const A& a) {
-        cout << "Constraint1 was called: " << std::get<ValueIdx>(a.px) << endl;
-        return std::array<double, 2>{6,7};
-    };
+        Fitter<X, X, X> fitter;
+        fitter.DoFit(a, b, c, a_and_b_is_c);
 
-    auto constraint2 = [] (const A& a, const vector<B>& b) {
-        cout << "Constraint2 was called: " << std::get<ValueIdx>(a.E) << std::get<ValueIdx>(b.front().a) << endl;
-        return 6;
-    };
-
-    auto constraint3 = [] (const A& a, const vector<B>& b) {
-        cout << "Constraint3 was called: " << std::get<ValueIdx>(a.E) << std::get<ValueIdx>(b.front().a) << endl;
-        return std::vector<double>{10, 11, 12};
-    };
-
-
-    Fitter<A> fitter1;
-    cout << ">>>> Fitter1" << endl;
-    fitter1.DoFit(a, constraint1);
-    cout << endl;
-
-    cout << ">>>> Fitter2" << endl;
-    Fitter<A, vector<B>> fitter2;
-    fitter2.DoFit(a, b, constraint2, constraint3);
-    cout << endl;
+        cout << "After:  a=" << a << " b=" << b << " c=" << c << endl;
+    }
 }
