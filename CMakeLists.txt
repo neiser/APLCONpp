@@ -21,5 +21,4 @@ endif()
 include(ConfigGBench)
 
 add_subdirectory(APLCON)
-add_subdirectory(third-party)
 add_subdirectory(src)
