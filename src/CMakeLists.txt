@@ -8,3 +8,6 @@ target_include_directories(aplcon++_interface INTERFACE .)
 target_link_libraries(aplcon++
     aplcon aplcon++_interface
 )
+
+add_executable(main main.cc)
+target_link_libraries(main aplcon++)
