@@ -13,7 +13,6 @@ TEST_CASE("Very Simple", "") {
 
     a.AddUnmeasuredVariable("C");
 
-
     auto equality_constraint = [] (double a, double b, double c) { return c - a - b; };
     a.AddConstraint("A+B=C", {"A", "B", "C"}, equality_constraint);
 

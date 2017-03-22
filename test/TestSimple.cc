@@ -37,16 +37,4 @@ TEST_CASE("Simple","") {
     CHECK(r.Variables.at("BF_tau_B").Sigma.After == Approx(0.0212132034));
     CHECK(r.Variables.at("BF_tau_B").Pull        == Approx(-1.0606601718));
 
-    CHECK(r.Variables.at("BF_e_A").Covariances.After.at("BF_e_A")   == Approx(9E-05));
-    CHECK(r.Variables.at("BF_e_A").Covariances.After.at("BF_e_B")   == Approx(9E-05));
-    CHECK(r.Variables.at("BF_e_A").Covariances.After.at("BF_tau_A") == Approx(-0.0));
-    CHECK(r.Variables.at("BF_e_A").Covariances.After.at("BF_tau_B") == Approx(-0.0));
-
-    CHECK(r.Variables.at("BF_e_B").Covariances.After.at("BF_e_B")   == Approx(9E-05));
-    CHECK(r.Variables.at("BF_e_B").Covariances.After.at("BF_tau_A") == Approx(-0.0));
-    CHECK(r.Variables.at("BF_e_B").Covariances.After.at("BF_tau_B") == Approx(-0.0));
-
-    CHECK(r.Variables.at("BF_tau_A").Covariances.After.at("BF_tau_A") == Approx(0.00045));
-    CHECK(r.Variables.at("BF_tau_A").Covariances.After.at("BF_tau_B") == Approx(0.00045));
-    CHECK(r.Variables.at("BF_tau_B").Covariances.After.at("BF_tau_B") == Approx(0.00045));
 }
