@@ -23,3 +23,12 @@ add_subdirectory(APLCON)
 add_subdirectory(src)
 add_subdirectory(src/old)
 add_subdirectory(bench)
+
+# enable testing here to make it available to CTest
+enable_testing()
+# use some concurrency for tests
+if(NOT CTEST_PARALLEL_JOBS)
+  set(CTEST_PARALLEL_JOBS 2)
+endif()
+
+add_subdirectory(test)
