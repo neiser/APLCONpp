@@ -53,7 +53,7 @@ struct decay_stl_cont<T, typename std::enable_if<is_stl_cont<T>::value>::type> {
 template<typename T, typename Ret>
 struct has_getFitterSettings
 {
-    template<typename U, Ret (U::*)() const> struct SFINAE {};
+    template<typename U, Ret (U::*)(size_t) const> struct SFINAE {};
     template<typename U> static char Test(SFINAE<U, &U::template getFitterSettings<0>>*);
     template<typename U> static int Test(...);
     static constexpr bool value = sizeof(Test<T>(0)) == sizeof(char);

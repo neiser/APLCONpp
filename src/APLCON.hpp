@@ -184,7 +184,7 @@ private:
     setVarSettings(const std::tuple<Vars...>& t) noexcept {
         using namespace detail;
         using Var = typename std::tuple_element<I, std::tuple<Vars...>>::type;
-        using uVar = typename decay_stl_cont<Var>::type; // look below stl container types
+        using uVar = typename decay_stl_cont<Var>::type; // look inside stl container types for its contained element type (=value_type)
         setVarSettings<Var, I>(std::enable_if<has_getFitterSettings<uVar, Variable_Settings_t>::value>(), // dispatch has method
                                std::get<I>(t));
         setVarSettings<I+1, Vars...>(t);
@@ -200,20 +200,23 @@ private:
     setVarSettings(std::enable_if<true>, const Var& var) noexcept {
         using namespace detail;
         constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nv>());
-        constexpr auto Ninner = std::get<I>(innerDim);
-        const auto Nouter = std::get<I>(OuterDim);
+        constexpr auto nInner = std::get<I>(innerDim);
+
+        // nOuter is one if Var is not stl_container
+        const auto nOuter = std::get<I>(OuterDim);
 
         // build_indices runs from 0...I-1, fits perfectly to sum up the offset
         const auto offset = sum_of_array(prod_of_array_impl(innerDim, OuterDim, build_indices<I>()));
 
-        // variables in the same container (vector) get identical settings
-        const auto& var_settings = getVarSettings(build_indices<Ninner>(), var);
 
-        for(auto i=0u;i<Nouter;i++) {
-            for(auto j=0;j<Ninner;j++) {
+        for(auto iOuter=0u;iOuter<nOuter;iOuter++) {
+            const auto& var_settings = getVarSettings(std::enable_if<is_stl_cont<Var>::value>(),
+                                                      build_indices<nInner>(), var, iOuter);
+
+            for(auto iInner=0;iInner<nInner;iInner++) {
                 // remember that FORTRAN/APLCON starts counting at 1
-                const auto varidx = offset + i*Ninner + j + 1;
-                const auto& s = var_settings[j];
+                const auto varidx = offset + iOuter*nInner + iInner + 1;
+                const auto& s = var_settings[iInner];
 
                 // setup APLCON variable specific things
                 switch (s.Distribution) {
@@ -245,8 +248,16 @@ private:
 
     template<size_t... Idx, class Var>
     static constexpr std::array<Variable_Settings_t, sizeof...(Idx)>
-    getVarSettings(detail::indices<Idx...>, const Var& var) {
-        return {  var.template getFitterSettings<Idx>()...  };
+    getVarSettings(std::enable_if<true>, detail::indices<Idx...>, const Var& var, size_t iOuter) {
+        // Var is STL container, so ask contained item for fitter settings
+        return {  std::next(var.begin(), iOuter)->template getFitterSettings<Idx>(iOuter)...  };
+    }
+
+    template<size_t... Idx, class Var>
+    static constexpr std::array<Variable_Settings_t, sizeof...(Idx)>
+    getVarSettings(std::enable_if<false>, detail::indices<Idx...>, const Var& var, size_t iOuter) {
+        // Var is not a container, just call getFitterSettings then
+        return {  var.template getFitterSettings<Idx>(iOuter)...  };
     }
 
     // do nothing if no getFitterSettings implemented
