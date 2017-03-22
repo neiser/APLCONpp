@@ -7,43 +7,45 @@
 
 using namespace std;
 
-//static void BM_ErrorPropagation(benchmark::State& state) {
+static void BM_ErrorPropagation(benchmark::State& state) {
 
-//    while(state.KeepRunning()) {
+    auto equality_constraint = [] (double a, double b, double c) { return c - a - b; };
 
-//        APLCON a("Error propagation");
+    while(state.KeepRunning()) {
 
-//        a.AddMeasuredVariable("A", 10, 0.3);
-//        a.AddMeasuredVariable("B", 20, 0.4);
+        {
+            APLCON a("Error propagation");
 
-//        a.AddUnmeasuredVariable("C");
+            a.AddMeasuredVariable("A", 10, 0.3);
+            a.AddMeasuredVariable("B", 20, 0.4);
 
-//        auto equality_constraint = [] (double a, double b, double c) { return c - a - b; };
-//        a.AddConstraint("A+B=C", {"A", "B", "C"}, equality_constraint);
+            a.AddUnmeasuredVariable("C");
 
-//        // do the fit, obtain ra structure
-//        const APLCON::Result_t& ra = a.DoFit();
-//        cout << ra << endl;
+            a.AddConstraint("A+B=C", {"A", "B", "C"}, equality_constraint);
 
-//        APLCON b("Poissonian error propagation");
+            benchmark::DoNotOptimize(a.DoFit());
+        }
 
-//        APLCON::Variable_Settings_t settings = APLCON::Variable_Settings_t::Default;
-//        settings.Distribution = APLCON::Distribution_t::Poissonian;
+        {
+            APLCON b("Poissonian error propagation");
 
-//        b.AddMeasuredVariable("A", 10, 1, settings);
-//        b.AddMeasuredVariable("B", 20, 2, settings);
+            APLCON::Variable_Settings_t settings = APLCON::Variable_Settings_t::Default;
+            settings.Distribution = APLCON::Distribution_t::Poissonian;
 
-//        b.AddUnmeasuredVariable("C");
+            b.AddMeasuredVariable("A", 10, 1, settings);
+            b.AddMeasuredVariable("B", 20, 2, settings);
 
-//        b.AddConstraint("A+B=C", {"A", "B", "C"}, equality_constraint);
+            b.AddUnmeasuredVariable("C");
 
-//        const APLCON::Result_t& rb = b.DoFit();
-//        cout << rb << endl;
+            b.AddConstraint("A+B=C", {"A", "B", "C"}, equality_constraint);
 
-//    }
-//}
+            benchmark::DoNotOptimize(b.DoFit());
+        }
 
-//BENCHMARK(BM_ErrorPropagation);
+    }
+}
+
+BENCHMARK(BM_ErrorPropagation);
 
 static void BM_LineFit(benchmark::State& state) {
 

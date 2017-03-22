@@ -12,11 +12,13 @@ using namespace std;
 
 struct Value_t {
 
-    constexpr Value_t(double v, double s, bool fixed = false) : Value(v), Sigma(s), Fixed(fixed) {}
+    constexpr Value_t(double v, double s) :
+        Value(v), Sigma(s), Fixed(false), Poisson(false) {}
 
     double Value;
     double Sigma;
     bool   Fixed;
+    bool   Poisson;
 
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
@@ -29,6 +31,8 @@ struct Value_t {
         APLCON::Variable_Settings_t settings;
         if(Fixed)
             settings.StepSize = 0;
+        if(Poisson)
+            settings.Distribution = APLCON::Distribution_t::Poissonian;
         return settings;
     }
 
@@ -48,13 +52,25 @@ static void BM_ErrorPropagation(benchmark::State& state) {
     };
     while (state.KeepRunning()) {
 
-        Value_t a{10, 0.3};
-        Value_t b{20, 0.4};
-        Value_t c{ 0, 0.0};
+        {
+            Value_t a{10, 0.3};
+            Value_t b{20, 0.4};
+            Value_t c{ 0, 0.0};
 
-        APLCON::Fitter<Value_t, Value_t, Value_t> fitter;
-        fitter.DoFit(a, b, c, a_and_b_is_c);
+            APLCON::Fitter<Value_t, Value_t, Value_t> fitter;
+            fitter.DoFit(a, b, c, a_and_b_is_c);
+        }
 
+        {
+            Value_t a{10, 1};
+            a.Poisson = true;
+            Value_t b{20, 2};
+            b.Poisson = true;
+            Value_t c{ 0, 0.0};
+
+            APLCON::Fitter<Value_t, Value_t, Value_t> fitter;
+            fitter.DoFit(a, b, c, a_and_b_is_c);
+        }
     }
 }
 BENCHMARK(BM_ErrorPropagation);
