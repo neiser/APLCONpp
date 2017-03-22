@@ -9,16 +9,16 @@ using namespace std;
 
 struct Value_t {
 
-    constexpr Value_t(double v, double s, bool fixed = false) : Value(v), Sigma(s), Fixed(fixed) {}
+    constexpr Value_t(double v, double s) : V_S_P{v, s, 0}{}
 
-    double Value;
-    double Sigma;
-    bool   Fixed;
+    std::tuple<double,double,double> V_S_P;
+
+    bool Fixed = false;
+    bool Poisson = false;
 
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
-        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
-//        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
+        return std::get<N>(V_S_P);
     }
 
     template<size_t innerIdx>
@@ -27,15 +27,20 @@ struct Value_t {
         APLCON::Variable_Settings_t settings;
         if(Fixed)
             settings.StepSize = 0;
+        if(Poisson)
+            settings.Distribution = APLCON::Distribution_t::Poissonian;
         return settings;
     }
 
     friend std::ostream& operator<<(std::ostream& s, const Value_t& o) {
-        return s << "(" << o.Value << "," << o.Sigma << ")";
+        return s << "(" << std::get<APLCON::ValueIdx>(o.V_S_P)
+                 << "," << std::get<APLCON::SigmaIdx>(o.V_S_P)
+                 << "," << std::get<APLCON::PullIdx>(o.V_S_P)
+                 << ")";
     }
 
     operator double() const {
-        return Value;
+        return std::get<APLCON::ValueIdx>(V_S_P);
     }
 };
 

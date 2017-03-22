@@ -17,6 +17,7 @@ namespace APLCON {
 // identify what is request in the call to "linkFitter"
 static constexpr auto ValueIdx = 0;
 static constexpr auto SigmaIdx = 1;
+static constexpr auto PullIdx  = 2;
 
 static constexpr auto Inf = std::numeric_limits<double>::infinity();
 static constexpr auto NaN = std::numeric_limits<double>::quiet_NaN();
@@ -64,6 +65,18 @@ enum class Result_Status_t : int {
 };
 
 /**
+ * @brief The Result_t struct contains after the fit all information about it.
+ */
+struct Result_t {
+    Result_Status_t Status{Result_Status_t::_Unknown};
+    double ChiSquare{NaN};
+    int NDoF{-1};
+    double Probability{NaN};
+    int NIterations{-1};
+    int NFunctionCalls{-1};
+};
+
+/**
 * @brief The Fit_Settings_t struct. See APLCON itself for details.
 */
 struct Fit_Settings_t {
@@ -86,7 +99,7 @@ struct Fitter {
         FitSettings(settings) {}
 
     template<class ... Constraints>
-    Result_Status_t DoFit(Vars&... vars, Constraints&&... constraints) {
+    Result_t DoFit(Vars&... vars, Constraints&&... constraints) {
 
         using namespace detail;
 
@@ -136,7 +149,7 @@ private:
     idx_array_t OuterDim;
 
     template<class ... Constraints>
-    Result_Status_t AllocF(std::enable_if<true>, Vars&... vars, Constraints&&... constraints) {
+    Result_t AllocF(std::enable_if<true>, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
         constexpr auto nConstraints = sum_of(constraint_test<Constraints(Vars...)>().getN()...);
         // alloc on stack
@@ -145,7 +158,7 @@ private:
     }
 
     template<class ... Constraints>
-    Result_Status_t AllocF(std::enable_if<false>, Vars&... vars, Constraints&&... constraints) {
+    Result_t AllocF(std::enable_if<false>, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
         const auto nConstraints = sum_of(getConstraintDim<Constraints>(std::forward<Constraints>(constraints), vars...)...);
         // alloc on heap
@@ -154,7 +167,7 @@ private:
     }
 
     template<class F_t, class ... Constraints>
-    Result_Status_t RunAPLCON(F_t& F, Vars&... vars, Constraints&&... constraints) {
+    Result_t RunAPLCON(F_t& F, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
 
         c_aplcon_aplcon(X.size(), F.size());
@@ -189,12 +202,44 @@ private:
         }
         while(aplcon_ret<0);
 
-        // copy back the sigmas
-        linker_diagonal_t linker(V.begin());
-        // sigmas are the sqrt's of the covariance diagonal
-        callLinkFitter<SigmaIdx>(linker, [] (const double& v, double& t) { t = std::sqrt(v); }, vars...);
+        {
+            // copy X into vars, one last time
+            linker_linear_t linker(X.begin());
+            // sigmas are the sqrt's of the covariance diagonal
+            callLinkFitter<ValueIdx>(linker, [] (const double& v, double& t) { t = v; }, vars...);
+        }
 
-        return static_cast<Result_Status_t>(aplcon_ret);
+        {
+            // copy back the sigmas
+            // don't forget that sigmas are the sqrt's of the covariance diagonal
+            linker_diagonal_t linker(V.begin());
+            callLinkFitter<SigmaIdx>(linker, [] (const double& v, double& t) { t = std::sqrt(v); }, vars...);
+        }
+
+        {
+            // get the pulls from APLCON
+            std::vector<double> pulls(X.size());
+            c_aplcon_appull(pulls.data());
+
+            // copy pulls into vars
+            linker_linear_t linker(pulls.begin());
+            // sigmas are the sqrt's of the covariance diagonal
+            callLinkFitter<PullIdx>(linker, [] (const double& v, double& t) { t = v; }, vars...);
+        }
+
+        // now retrieve "everything" from APLCON
+        Result_t result;
+        result.Status = static_cast<Result_Status_t>(aplcon_ret);
+
+        // retrieve some info about the fit (directly copy to struct field if possible)
+        // chndpv and apstat both return the resulting chi2,
+        // but the latter returns it with double precision
+        float chi2, pval;
+        c_aplcon_chndpv(&chi2,&result.NDoF,&pval);
+        result.Probability = pval;
+        c_aplcon_apstat(&result.ChiSquare, &result.NFunctionCalls, &result.NIterations);
+
+        return result;
     }
 
     /// setVarSettings
