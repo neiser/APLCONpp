@@ -50,8 +50,8 @@ c      WRITE(*,*) 'KNOTS CHSUP',KNOTS,CHSUP
          ILRM=MIN(MLR,ILRM)    ! max number of steps to zero   
       END IF 
       DO I=1,MLR ! prepare all points
-       CLR(+I)=+REDR*DFLOAT(I) ! unit of parab standard deviations
-       CLR(-I)=-REDL*DFLOAT(I) ! unit of parab standard deviations
+       CLR(+I)=+REDR*DBLE(I) ! unit of parab standard deviations
+       CLR(-I)=-REDL*DBLE(I) ! unit of parab standard deviations
        XLR(+I)=XLR(0)+CLR(+I)*SIGMAX ! value of variable
        XLR(-I)=XLR(0)+CLR(-I)*SIGMAX ! value of variable
       END DO
@@ -182,8 +182,8 @@ c      WRITE(*,*) 'DEVELL',SIGMAX,SIGMAY,CPHI,SPHI
       KNOTS=(2*NKNOTS+1)/2     ! make KNOTS even number
       CHSUP=SIGMAS**2          ! chi^2 limit
       NSTAR=12                 ! 15 degree steps
-      CRT= COS(PI/DFLOAT(NSTAR))  ! rotation cos
-      SRT=-SIN(PI/DFLOAT(NSTAR))  ! rotation sin
+      CRT= COS(PI/DBLE(NSTAR))  ! rotation cos
+      SRT=-SIN(PI/DBLE(NSTAR))  ! rotation sin
       CTH=1.0D0
       STH=0.0D0 
       ISTAR=0
@@ -209,8 +209,8 @@ c         WRITE(*,*) 'FAC,KNOTS,REDL,ILRM',FAC,KNOTS,REDL,ILRM
       END IF
 C      WRITE(*,*) 'REDR REDL',REDR,REDL
       DO I=1,MLR ! prepare all points
-       CLR(+I)=+REDR*DFLOAT(I)  ! unit of parab standard deviations
-       CLR(-I)=-REDL*DFLOAT(I)  ! unit of parab standard deviations
+       CLR(+I)=+REDR*DBLE(I)  ! unit of parab standard deviations
+       CLR(-I)=-REDL*DBLE(I)  ! unit of parab standard deviations
        XLR(+I)=XLR(0)+CLR(+I)*(CPHI*CTH*SIGMAX+SPHI*STH*SIGMAY)
        XLR(-I)=XLR(0)+CLR(-I)*(CPHI*CTH*SIGMAX+SPHI*STH*SIGMAY)
        YLR(+I)=YLR(0)+CLR(+I)*(-SPHI*CTH*SIGMAX+CPHI*STH*SIGMAY)
@@ -294,11 +294,11 @@ c          WRITE(*,*) NLR,XCD(NLR),YCD(NLR)
       CALL DCSPLN(XCD,YCD,CSP,NLR) ! spline definition
 c      CALL DCSPR (CSP,NLR)         ! print
       DO J=1,3                     ! find intersection points and store
-       FAC=DCSPN(0.0D0,DFLOAT(J*J),CSP,NLR,0,+1)
+       FAC=DCSPN(0.0D0,DBLE(J*J),CSP,NLR,0,+1)
 c       WRITE(*,*) 'J FAC ',J,FAC,REDR
        XCONT(ISTAR,J)=XLR(0)+FAC*(XLR(1)-XLR(0))/REDR
        YCONT(ISTAR,J)=YLR(0)+FAC*(YLR(1)-YLR(0))/REDR 
-       FAC=DCSPN(0.0D0,DFLOAT(J*J),CSP,NLR,0,-1)
+       FAC=DCSPN(0.0D0,DBLE(J*J),CSP,NLR,0,-1)
 c       WRITE(*,*) 'J FAC ',J,FAC,REDL
        XCONT(ISTAR+NSTAR,J)=XLR(0)-FAC*(XLR(0)-XLR(1))/REDL
        YCONT(ISTAR+NSTAR,J)=YLR(0)-FAC*(YLR(0)-YLR(1))/REDL 

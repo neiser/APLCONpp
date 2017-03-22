@@ -10,7 +10,7 @@
       IF(CHISQ.LE.0.0) THEN
          CHPROB=1.0D0
       ELSE
-         CHPROB=1.0D0-DGAMIN(0.5D0*DFLOAT(N),0.5D0*CHISQ)
+         CHPROB=1.0D0-DGAMIN(0.5D0*DBLE(N),0.5D0*CHISQ)
       END IF 
       END 
 
