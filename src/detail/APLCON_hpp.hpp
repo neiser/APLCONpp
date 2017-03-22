@@ -39,6 +39,31 @@ struct is_stl_cont
 
 };
 
+template<class T, typename Enable = void>
+struct decay_stl_cont {
+    using type = T;
+};
+
+template<class T>
+struct decay_stl_cont<T, typename std::enable_if<is_stl_cont<T>::value>::type> {
+    using type = typename T::value_type;
+};
+
+
+template<typename T, typename Ret>
+struct has_getFitterSettings
+{
+    template<typename U, Ret (U::*)() const> struct SFINAE {};
+    template<typename U> static char Test(SFINAE<U, &U::template getFitterSettings<0>>*);
+    template<typename U> static int Test(...);
+    static constexpr bool value = sizeof(Test<T>(0)) == sizeof(char);
+};
+
+template < typename... T >
+std::tuple<const T&...> ctie( const T&... args )
+{
+    return std::tie( args... );
+}
 
 // simple index_sequence, as it's not available in C++11
 template <std::size_t... Is>
@@ -52,12 +77,14 @@ struct build_indices<0, Is...> : indices<Is...> {};
 
 // compare two std::array contents at compile time
 template<class T, std::size_t N, std::size_t... Idx>
-constexpr bool compare_array_impl(const std::array<T,N> a, const std::array<T,N> b, indices<Idx...>) noexcept {
+constexpr bool
+compare_array_impl(const std::array<T,N> a, const std::array<T,N> b, indices<Idx...>) noexcept {
     return std::make_tuple(a[Idx]...) == std::make_tuple(b[Idx]...);
 }
 
 template<class T, class U, size_t N>
-constexpr bool compare_array(const std::array<T,N>& a, const std::array<U,N>& b) noexcept {
+constexpr bool
+compare_array(const std::array<T,N>& a, const std::array<U,N>& b) noexcept {
     return compare_array_impl(a, b, build_indices<N>());
 }
 
@@ -73,6 +100,31 @@ static constexpr size_t
 sum_of(const T& t, const Ts&... ts) noexcept {
     return t + sum_of(ts...);
 }
+
+template<class T, size_t N, size_t... Idx>
+static constexpr size_t
+sum_of_array_impl(const std::array<T,N>& arr, indices<Idx...>) noexcept {
+    return sum_of(std::get<Idx>(arr)...);
+}
+
+template<class T, size_t N>
+static constexpr size_t
+sum_of_array(const std::array<T,N>& arr) noexcept {
+    return sum_of_array_impl(arr, build_indices<N>());
+}
+
+template<class T, size_t N, size_t... Idx>
+static constexpr std::array<T,N>
+prod_of_array_impl(const std::array<T,N>& a, const std::array<T,N>& b, indices<Idx...>) noexcept {
+    return std::array<T,N>{std::get<Idx>(a)*std::get<Idx>(b)...};
+}
+
+template<class T, size_t N>
+static constexpr std::array<T,N>
+prod_of_array(const std::array<T,N>& a, const std::array<T,N>& b) noexcept {
+    return prod_of_array_impl(a, b, build_indices<N>());
+}
+
 
 } // end of anonymous namespace
 
@@ -114,35 +166,10 @@ struct constraint_test<F(Args...), Mask> {
     }
 };
 
-//template<class C>
-//class has_settings_GreetMethod
-//{
-//    template <class T>
-//    static std::true_type testSignature(void (T::*)(const char*) const);
-
-//    template <class T>
-//    static decltype(testSignature(&T::greet)) test(std::nullptr_t);
-
-//    template <class T>
-//    static std::false_type test(...);
-
-//    using type = decltype(test<C>(nullptr));
-//public:
-//    static const bool value = type::value;
-//};
-
-//struct A { void greet(const char* name) const; };
-//struct Derived : A { };
-//static_assert(HasGreetMethod<Derived>::value, "");
-
 struct linker_t {
     using it_t = std::vector<double>::iterator;
     it_t it;
-
-    constexpr linker_t(const it_t& it_)
-        : it(it_) {}
-
-
+    constexpr linker_t(const it_t& it_) : it(it_) {}
 };
 
 struct linker_linear_t : linker_t {
@@ -151,12 +178,12 @@ struct linker_linear_t : linker_t {
     // empty recursion end over index I
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I == sizeof...(Tp), void>::type
-    operator()(Func, const std::tuple<Tp...>&)
+    operator()(Func, const std::tuple<Tp...>&) noexcept
     {}
 
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I < sizeof...(Tp), void>::type
-    operator()(Func f, const std::tuple<Tp...>& t)
+    operator()(Func f, const std::tuple<Tp...>& t) noexcept
     {
         f(*it++, std::get<I>(t));
         operator()<Func, I + 1, Tp...>(f, t);
@@ -171,12 +198,12 @@ struct linker_diagonal_t : linker_t {
     // empty recursion end over index I
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I == sizeof...(Tp), void>::type
-    operator()(Func, const std::tuple<Tp...>&)
+    operator()(Func, const std::tuple<Tp...>&) noexcept
     {}
 
     template<typename Func, std::size_t I = 0, typename... Tp>
     typename std::enable_if<I < sizeof...(Tp), void>::type
-    operator()(Func f, const std::tuple<Tp...>& t)
+    operator()(Func f, const std::tuple<Tp...>& t) noexcept
     {
         // this skips the row and moves iterator to diagonal element
         it = std::fill_n(it, n_row++, 0);
