@@ -7,20 +7,29 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-#include <iostream>
 
 using namespace std;
 
 struct Value_t {
 
-    constexpr Value_t(double v, double s) : Value(v), Sigma(s) {}
+    constexpr Value_t(double v, double s, bool fixed = false) : Value(v), Sigma(s), Fixed(fixed) {}
 
     double Value;
     double Sigma;
+    bool   Fixed;
 
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
         return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
+    }
+
+    template<size_t innerIdx>
+    APLCON::Variable_Settings_t getFitterSettings(size_t outerIdx) const noexcept {
+        (void)outerIdx; // unused, provided to user struct for completeness
+        APLCON::Variable_Settings_t settings;
+        if(Fixed)
+            settings.StepSize = 0;
+        return settings;
     }
 
     friend std::ostream& operator<<(std::ostream& s, const Value_t& o) {
@@ -65,15 +74,37 @@ static void BM_LineFit(benchmark::State& state) {
 
     while (state.KeepRunning()) {
 
-        vector<Value_t> x{ {1,   0.2}, {2,   0.23}, {3,   0.16}, {4,   0.21} };
-        vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
-
-        // two unmeasured variables
-        Value_t a{0,0};
-        Value_t b{0,0};
-
         APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter;
-        fitter.DoFit(a, b, x, y, residuals);
+
+        {
+            vector<Value_t> x{ {1,  0.2},   {2,  0.23}, {3,   0.16}, {4,   0.21} };
+            vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
+
+            for(auto& i : x)
+                i.Fixed = true;
+
+            // two unmeasured variables
+            Value_t a{0,0};
+            Value_t b{0,0};
+
+            benchmark::DoNotOptimize(fitter.DoFit(a, b, x, y, residuals));
+
+        }
+
+        {
+            vector<Value_t> x{ {1,  0.2},   {2,  0.23}, {3,   0.16}, {4,   0.21} };
+            vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
+
+            for(auto& i : x)
+                i.Fixed = false;
+
+            // two unmeasured variables
+            Value_t a{0,0};
+            Value_t b{0,0};
+
+            benchmark::DoNotOptimize(fitter.DoFit(a, b, x, y, residuals));
+
+        }
     }
 }
 

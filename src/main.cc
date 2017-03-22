@@ -13,11 +13,11 @@ struct Value_t {
 
     double Value;
     double Sigma;
-    const bool Fixed;
+    bool   Fixed;
 
     template<size_t N>
-    std::tuple<double&,double&> linkFitter() noexcept {
-                return N == APLCON::ValueIdx ? std::tie(Value,Value) : std::tie(Sigma,Sigma);
+    std::tuple<double&> linkFitter() noexcept {
+        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
 //        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
     }
 
@@ -51,17 +51,41 @@ int main() {
         return residuals;
     };
 
-
-    vector<Value_t> x{ {1,   0.2}, {2,   0.23}, {3,   0.16}, {4,   0.21} };
-    vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
-
-    // two unmeasured variables
-    Value_t a{0,0};
-    Value_t b{0,0};
-
     APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter;
-    fitter.DoFit(a, b, x, y, residuals);
 
+    {
 
-    cout << "a=" << a << " b=" << b << endl;
+        vector<Value_t> x{ {1,  0.2},   {2,  0.23}, {3,   0.16}, {4,   0.21} };
+        vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
+
+        for(auto& i : x)
+            i.Fixed = true;
+
+        // two unmeasured variables
+        Value_t a{0,0};
+        Value_t b{0,0};
+
+        fitter.DoFit(a, b, x, y, residuals);
+
+        cout << "y-errors only: a=" << a << " b=" << b << endl;
+    }
+
+    cout << endl << endl << "<<<<<<<<<<<<<<<<<<<<<<<< " << endl << endl << endl;
+
+    {
+        vector<Value_t> x{ {1,  0.2},   {2,  0.23}, {3,   0.16}, {4,   0.21} };
+        vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
+
+        for(auto& i : x)
+            i.Fixed = false;
+
+        // two unmeasured variables
+        Value_t a{0,0};
+        Value_t b{0,0};
+
+        fitter.DoFit(a, b, x, y, residuals);
+
+        cout << "xy-errors:     a=" << a << " b=" << b << endl;
+
+    }
 }
