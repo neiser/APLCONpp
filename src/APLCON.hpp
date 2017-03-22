@@ -50,13 +50,27 @@ struct Variable_Settings_t {
 };
 
 /**
+ * @brief The Result_Status_t enum encodes APLCON's status after fit
+ * @note the order must correspond to APLCON's status number (see APLCON README)
+ */
+enum class Result_Status_t : int {
+  Success, /**< Fit was successful, result is meaningful */
+  NoConvergence, /**< No convergence reached */
+  TooManyIterations, /**< Too many iterations needed with no convergence */
+  UnphysicalValues, /**< Unphysical values encountered during fit */
+  NegativeDoF, /**< Negative degrees of freedom */
+  OutOfMemory, /**< Not sufficient memory for fit */
+  _Unknown // default in Result_t, also used to count items
+};
+
+/**
  * @brief The Fitter carries out the fit with DoFit
  */
 template<class ... Vars>
 struct Fitter {
 
     template<class ... Constraints>
-    void DoFit(Vars&... vars, Constraints&&... constraints) {
+    Result_Status_t DoFit(Vars&... vars, Constraints&&... constraints) {
 
         using namespace detail;
 
@@ -89,8 +103,7 @@ struct Fitter {
         // dispatch via AllocF to ensure optimal constraint storage handling
         // (and then reach RunAPLCON)
         constexpr auto isConstexpr = sum_of(isConstraintsSizeConstexpr<Constraints>()...)==0;
-        AllocF(std::enable_if<isConstexpr>(), vars..., std::forward<Constraints>(constraints)...);
-
+        return AllocF(std::enable_if<isConstexpr>(), vars..., std::forward<Constraints>(constraints)...);
     }
 
 private:
@@ -105,25 +118,25 @@ private:
     idx_array_t OuterDim;
 
     template<class ... Constraints>
-    void AllocF(std::enable_if<true>, Vars&... vars, Constraints&&... constraints) {
+    Result_Status_t AllocF(std::enable_if<true>, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
         constexpr auto nConstraints = sum_of(constraint_test<Constraints(Vars...)>().getN()...);
         // alloc on stack
         std::array<double, nConstraints> F_static;
-        RunAPLCON(F_static, vars..., std::forward<Constraints>(constraints)...);
+        return RunAPLCON(F_static, vars..., std::forward<Constraints>(constraints)...);
     }
 
     template<class ... Constraints>
-    void AllocF(std::enable_if<false>, Vars&... vars, Constraints&&... constraints) {
+    Result_Status_t AllocF(std::enable_if<false>, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
         const auto nConstraints = sum_of(getConstraintDim<Constraints>(std::forward<Constraints>(constraints), vars...)...);
         // alloc on heap
         F_dynamic.resize(nConstraints);
-        RunAPLCON(F_dynamic, vars..., std::forward<Constraints>(constraints)...);
+        return RunAPLCON(F_dynamic, vars..., std::forward<Constraints>(constraints)...);
     }
 
     template<class F_t, class ... Constraints>
-    void RunAPLCON(F_t& F, Vars&... vars, Constraints&&... constraints) {
+    Result_Status_t RunAPLCON(F_t& F, Vars&... vars, Constraints&&... constraints) {
         using namespace detail;
 
         c_aplcon_aplcon(X.size(), F.size());
@@ -157,6 +170,7 @@ private:
         // sigmas are the sqrt's of the covariance diagonal
         callLinkFitter<SigmaIdx>(linker, [] (const double& v, double& t) { t = std::sqrt(v); }, vars...);
 
+        return static_cast<Result_Status_t>(aplcon_ret);
     }
 
     /// setVarSettings

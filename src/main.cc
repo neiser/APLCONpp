@@ -2,7 +2,7 @@
 #include "APLCON.hpp"
 
 #include <ostream>
-
+#include <iostream>
 using namespace std;
 
 struct X {
@@ -13,16 +13,16 @@ struct X {
     double Sigma;
 
     template<size_t N>
-    std::tuple<double&, double&> linkFitter() noexcept {
-        return N == APLCON::ValueIdx ? std::tie(Value,Value) : std::tie(Sigma,Sigma);
-//        return N == APLCON::ValueIdx ? Value : Sigma;
+    std::tuple<double&> linkFitter() noexcept {
+//        return N == APLCON::ValueIdx ? std::tie(Value,Value) : std::tie(Sigma,Sigma);
+        return N == APLCON::ValueIdx ? Value : Sigma;
     }
 
     template<size_t N>
     APLCON::Variable_Settings_t getFitterSettings() const noexcept {
         APLCON::Variable_Settings_t settings;
-        settings.StepSize = 0;
-        settings.Limit = {-20,20};
+//        settings.StepSize = 0;
+//        settings.Limit = {-20,20};
 
         return settings;
     }
@@ -48,5 +48,6 @@ int main() {
     APLCON::Fitter<X, X, X> fitter;
     fitter.DoFit(a, b, c, a_and_b_is_c);
 
+    cout << c << endl;
 
 }
