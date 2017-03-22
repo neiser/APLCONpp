@@ -21,4 +21,5 @@ include(ConfigGBench)
 
 add_subdirectory(APLCON)
 add_subdirectory(src)
+add_subdirectory(src/old)
 add_subdirectory(bench)

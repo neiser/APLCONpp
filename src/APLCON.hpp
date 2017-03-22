@@ -63,6 +63,10 @@ enum class Result_Status_t : int {
   _Unknown // default in Result_t, also used to count items
 };
 
+struct DefaultFitSettings {
+
+};
+
 /**
  * @brief The Fitter carries out the fit with DoFit
  */
@@ -247,7 +251,7 @@ private:
 
     // do nothing if no getFitterSettings implemented
     template<class Var, size_t I>
-    static constexpr void
+    static void
     setVarSettings(std::enable_if<false>, const Var&) noexcept {}
 
     /// callConstraints
