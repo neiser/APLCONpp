@@ -3,6 +3,7 @@
 #include <type_traits>
 #include <tuple>
 #include <vector>
+#include <cmath>
 
 namespace APLCON {
 namespace detail {
@@ -98,7 +99,7 @@ sum_of() noexcept {
 template<class T, class... Ts>
 static constexpr size_t
 sum_of(const T& t, const Ts&... ts) noexcept {
-    return t + sum_of(ts...);
+    return static_cast<size_t>(t) + sum_of(ts...);
 }
 
 template<class T, size_t N, size_t... Idx>
@@ -123,6 +124,42 @@ template<class T, size_t N>
 static constexpr std::array<T,N>
 prod_of_array(const std::array<T,N>& a, const std::array<T,N>& b) noexcept {
     return prod_of_array_impl(a, b, build_indices<N>());
+}
+
+//template<typename Result, typename T, typename F, size_t... Is>
+//std::array<Result, sizeof... (Is)>
+//for_each(T&& t, F&& f, indices<Is...>)
+//{
+//    return { f(std::get<Is>(t))... };
+//}
+
+//template<typename... Ts, typename F,
+//         typename FirstType = typename std::tuple_element<0, std::tuple<Ts...>>::type,
+//         typename Result = typename std::result_of<F(FirstType)>::type>
+//std::array<Result, sizeof... (Ts)>
+//for_each_in_tuple(std::tuple<Ts...> const& t, F&& f)
+//{
+//    return detail::for_each<Result>(t, f, build_indices<sizeof...(Ts)>());
+//}
+
+template<typename Arg = void>
+bool check_args() {
+    return true;
+}
+
+template<typename Arg, typename... Args>
+bool check_args(Arg&& arg, Args&&... args) {
+    if(std::is_convertible<Arg, double>::value)
+        return std::isfinite(std::forward<Arg>(arg)) && check_args(std::forward<Args>(args)...);
+    if(std::is_convertible<Arg, int>::value)
+        return std::forward<Arg>(arg) >= 0 && check_args(std::forward<Args>(args)...);
+    return false;
+}
+
+template<typename Func, class... Args>
+void call_if_set(Func&& func, Args&&... args)  noexcept {
+    if(check_args(std::forward<Args>(args)...))
+        std::forward<Func>(func)(args...);
 }
 
 
@@ -152,9 +189,8 @@ struct constraint_test_impl<std::array<T, N_>> {
 
 template<typename T, size_t Mask = c_is_nothing>
 struct constraint_test {
-    static_assert(
-            std::integral_constant<T, false>::value,
-            "Second template parameter needs to be of function type.");
+    static_assert(std::integral_constant<T, false>::value,
+                  "First template parameter T needs to be of function type.");
 };
 
 template<typename F, typename... Args, size_t Mask>

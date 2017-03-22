@@ -54,17 +54,26 @@ struct Variable_Settings_t {
  * @note the order must correspond to APLCON's status number (see APLCON README)
  */
 enum class Result_Status_t : int {
-  Success, /**< Fit was successful, result is meaningful */
-  NoConvergence, /**< No convergence reached */
-  TooManyIterations, /**< Too many iterations needed with no convergence */
-  UnphysicalValues, /**< Unphysical values encountered during fit */
-  NegativeDoF, /**< Negative degrees of freedom */
-  OutOfMemory, /**< Not sufficient memory for fit */
-  _Unknown // default in Result_t, also used to count items
+    Success, /**< Fit was successful, result is meaningful */
+    NoConvergence, /**< No convergence reached */
+    TooManyIterations, /**< Too many iterations needed with no convergence */
+    UnphysicalValues, /**< Unphysical values encountered during fit */
+    NegativeDoF, /**< Negative degrees of freedom */
+    OutOfMemory, /**< Not sufficient memory for fit */
+    _Unknown // default in Result_t, also used to count items
 };
 
-struct DefaultFitSettings {
-
+/**
+* @brief The Fit_Settings_t struct. See APLCON itself for details.
+*/
+struct Fit_Settings_t {
+    int DebugLevel{0}; // no debug output
+    int MaxIterations{-1}; // default
+    double ConstraintAccuracy{NaN}; //
+    double Chi2Accuracy{NaN};
+    double MeasuredStepSizeFactor{NaN};
+    double UnmeasuredStepSizeFactor{NaN};
+    double MinimalStepSizeFactor{NaN};
 };
 
 /**
@@ -72,6 +81,9 @@ struct DefaultFitSettings {
  */
 template<class ... Vars>
 struct Fitter {
+
+    explicit Fitter(const Fit_Settings_t& settings = {}) :
+        FitSettings(settings) {}
 
     template<class ... Constraints>
     Result_Status_t DoFit(Vars&... vars, Constraints&&... constraints) {
@@ -111,6 +123,8 @@ struct Fitter {
     }
 
 private:
+    Fit_Settings_t FitSettings;
+
     static constexpr auto Nv = sizeof...(Vars);
     using idx_array_t = std::array<std::size_t, Nv>;
 
@@ -144,12 +158,18 @@ private:
         using namespace detail;
 
         c_aplcon_aplcon(X.size(), F.size());
+        c_aplcon_aprint(6, FitSettings.DebugLevel); // default output on LUNP 6 (STDOUT)
+
+        call_if_set(c_aplcon_apdeps,   FitSettings.ConstraintAccuracy);
+        call_if_set(c_aplcon_apepschi, FitSettings.Chi2Accuracy);
+        call_if_set(c_aplcon_apiter,   FitSettings.MaxIterations);
+        call_if_set(c_aplcon_apderf,   FitSettings.MeasuredStepSizeFactor);
+        call_if_set(c_aplcon_apderu,   FitSettings.UnmeasuredStepSizeFactor);
+        call_if_set(c_aplcon_apdlow,   FitSettings.MinimalStepSizeFactor);
 
         // still don't use simple loop,
         // as we can check at compile time if something to do
         setVarSettings(ctie(vars...));
-
-        c_aplcon_aprint(6, 0); // default output on LUNP 6 (STDOUT)
 
         // the main convergence loop
         int aplcon_ret = -1;
@@ -218,6 +238,8 @@ private:
                 const auto varidx = offset + iOuter*nInner + iInner + 1;
                 const auto& s = var_settings[iInner];
 
+                using namespace std::placeholders;
+
                 // setup APLCON variable specific things
                 switch (s.Distribution) {
                 case APLCON::Distribution_t::Gaussian:
@@ -238,10 +260,8 @@ private:
                     break;
                 }
 
-                if(std::isfinite(s.Limit.Low) && std::isfinite(s.Limit.High))
-                    c_aplcon_aplimt(varidx, s.Limit.Low, s.Limit.High);
-                if(std::isfinite(s.StepSize))
-                    c_aplcon_apstep(varidx, s.StepSize);
+                call_if_set(std::bind(c_aplcon_aplimt, varidx, _1, _2), s.Limit.Low, s.Limit.High);
+                call_if_set(std::bind(c_aplcon_apstep, varidx, _1), s.StepSize);
             }
         }
     }

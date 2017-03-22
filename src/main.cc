@@ -51,7 +51,11 @@ int main() {
         return residuals;
     };
 
-    APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter;
+    APLCON::Fit_Settings_t settings;
+    settings.DebugLevel = 5;
+    settings.MaxIterations = 10;
+
+    APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter{settings};
 
     {
 
