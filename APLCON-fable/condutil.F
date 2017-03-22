@@ -597,7 +597,7 @@ c      CALL CFCORR(LUP,V,N)
         EPS2=EPS2+VX(IJ)/(X(I)*X(J))
        END DO
       END DO
-      EPS2=EPS2/DFLOAT((NX*NX-NX)/2)
+      EPS2=EPS2/DBLE((NX*NX-NX)/2)
 
       X(NX+1)=1.0D0
       DO I=1,NX
