@@ -20,7 +20,7 @@ struct X {
 
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
-        return N == APLCON::ValueIdx ? Value : Sigma;
+        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
     }
 
     friend std::ostream& operator<<(std::ostream& s, const X& o) {

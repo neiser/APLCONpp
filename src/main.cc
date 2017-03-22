@@ -15,14 +15,12 @@ struct X {
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
 //        return N == APLCON::ValueIdx ? std::tie(Value,Value) : std::tie(Sigma,Sigma);
-        return N == APLCON::ValueIdx ? Value : Sigma;
+        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
     }
 
     template<size_t N>
     APLCON::Variable_Settings_t getFitterSettings() const noexcept {
         APLCON::Variable_Settings_t settings;
-//        settings.StepSize = 0;
-//        settings.Limit = {-20,20};
 
         return settings;
     }
