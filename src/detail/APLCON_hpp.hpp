@@ -114,9 +114,9 @@ sum_of_array(const std::array<T,N>& arr) noexcept {
 }
 
 template<class T, size_t N, size_t... Idx>
-static constexpr std::array<T,N>
+static constexpr std::array<T, sizeof...(Idx)>
 prod_of_array_impl(const std::array<T,N>& a, const std::array<T,N>& b, indices<Idx...>) noexcept {
-    return std::array<T,N>{std::get<Idx>(a)*std::get<Idx>(b)...};
+    return {std::get<Idx>(a)*std::get<Idx>(b)...};
 }
 
 template<class T, size_t N>

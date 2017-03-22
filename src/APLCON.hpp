@@ -11,22 +11,10 @@ extern "C" {
 #include <limits>
 #include <functional>
 
-// use those constants in your classes to
-// identify what is request in the call to "linkFitter"
-
-#include <cxxabi.h>
-
-
-#include <iostream>
-
-
-template<typename T>
-std::string getTypeAsString() {
-  return abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
-}
-
 namespace APLCON {
 
+// use those constants in your classes to
+// identify what is request in the call to "linkFitter"
 static constexpr auto ValueIdx = 0;
 static constexpr auto SigmaIdx = 1;
 
@@ -179,9 +167,8 @@ private:
         using namespace detail;
         using Var = typename std::tuple_element<I, std::tuple<Vars...>>::type;
         using uVar = typename decay_stl_cont<Var>::type; // look below stl container types
-        std::cout << getTypeAsString<uVar>() << " " << has_getFitterSettings<uVar, Variable_Settings_t>::value << std::endl;
         setVarSettings<Var, I>(std::enable_if<has_getFitterSettings<uVar, Variable_Settings_t>::value>(), // dispatch has method
-                            std::get<I>(t));
+                               std::get<I>(t));
         setVarSettings<I+1, Vars...>(t);
     }
 
@@ -193,11 +180,55 @@ private:
     template<class Var, size_t I>
     void
     setVarSettings(std::enable_if<true>, const Var& var) noexcept {
-        const auto& var_settings = var.template getFitterSettings<6>();
+        using namespace detail;
+        constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nv>());
+        constexpr auto Ninner = std::get<I>(innerDim);
         const auto Nouter = std::get<I>(OuterDim);
-//        std::cout << var_settings.StepSize << std::endl;
-        // no other way than calling non-constexpr .size()
-//        return std::forward<Var>(var).();
+
+        // build_indices runs from 0...I-1, fits perfectly to sum up the offset
+        const auto offset = sum_of_array(prod_of_array_impl(innerDim, OuterDim, build_indices<I>()));
+
+        // variables in the same container (vector) get identical settings
+        const auto& var_settings = getVarSettings(build_indices<Ninner>(), var);
+
+        for(auto i=0u;i<Nouter;i++) {
+            for(auto j=0;j<Ninner;j++) {
+                // remember that FORTRAN/APLCON starts counting at 1
+                const auto varidx = offset + i*Ninner + j + 1;
+                const auto& s = var_settings[j];
+
+                // setup APLCON variable specific things
+                switch (s.Distribution) {
+                case APLCON::Distribution_t::Gaussian:
+                    // thats the APLCON default, nothing must be called
+                    break;
+                case APLCON::Distribution_t::Poissonian:
+                    c_aplcon_apoiss(varidx);
+                    break;
+                case APLCON::Distribution_t::LogNormal:
+                    c_aplcon_aplogn(varidx);
+                    break;
+                case APLCON::Distribution_t::SquareRoot:
+                    c_aplcon_apsqrt(varidx);
+                    break;
+                    // APLCON exposes even more transformations (see wrapper),
+                    // but they're not mentioned in the README...
+                default:
+                    break;
+                }
+
+                if(std::isfinite(s.Limit.Low) && std::isfinite(s.Limit.High))
+                    c_aplcon_aplimt(varidx, s.Limit.Low, s.Limit.High);
+                if(std::isfinite(s.StepSize))
+                    c_aplcon_apstep(varidx, s.StepSize);
+            }
+        }
+    }
+
+    template<size_t... Idx, class Var>
+    static constexpr std::array<Variable_Settings_t, sizeof...(Idx)>
+    getVarSettings(detail::indices<Idx...>, const Var& var) {
+        return {  var.template getFitterSettings<Idx>()...  };
     }
 
     // do nothing if no getFitterSettings implemented
@@ -267,11 +298,10 @@ private:
     getOuterDim(Vars_&&... vars) noexcept {
         using namespace detail;
         // expand and dispatch
-        return idx_array_t{getOuterDim<Vars_>(
-                              std::enable_if<is_stl_cont<Vars>::value>(), // dispatch
-                              std::forward<Vars_>(vars)
-                            )... // expand Vars_
-                          };
+        return {getOuterDim<Vars_>(
+                        std::enable_if<is_stl_cont<Vars>::value>(), // dispatch
+                        std::forward<Vars_>(vars)
+                        )...}; // expand Vars_
     }
 
     template<class Var>
@@ -292,11 +322,9 @@ private:
     template<size_t N, size_t... Idx>
     static constexpr idx_array_t
     getInnerDim(detail::indices<Idx...>) noexcept {
-        return idx_array_t{
-            // dispatch depending if Var in parameter pack is container or not
-            // if yes, inspect value_type. if no, inspect inner Var itself
-            getInnerDim<N, Vars>(std::enable_if<detail::is_stl_cont<Vars>::value>())...
-        };
+        // dispatch depending if Var in parameter pack is container or not
+        // if yes, inspect value_type. if no, inspect inner Var itself
+        return {getInnerDim<N, Vars>(std::enable_if<detail::is_stl_cont<Vars>::value>())...};
     }
 
     template<size_t N, class Var>
