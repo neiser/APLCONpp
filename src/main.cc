@@ -5,9 +5,9 @@
 #include <iostream>
 using namespace std;
 
-struct X {
+struct Value_t {
 
-    constexpr X(double v, double s) : Value(v), Sigma(s) {}
+    constexpr Value_t(double v, double s) : Value(v), Sigma(s) {}
 
     double Value;
     double Sigma;
@@ -25,7 +25,7 @@ struct X {
         return settings;
     }
 
-    friend std::ostream& operator<<(std::ostream& s, const X& o) {
+    friend std::ostream& operator<<(std::ostream& s, const Value_t& o) {
         return s << "(" << o.Value << "," << o.Sigma << ")";
     }
 
@@ -35,15 +35,15 @@ struct X {
 };
 
 int main() {
-    auto a_and_b_is_c = [] (const X& a, const X& b, const X& c) {
+    auto a_and_b_is_c = [] (const Value_t& a, const Value_t& b, const Value_t& c) {
         return c.Value - a.Value - b.Value;
     };
 
-    X a{10, 0.3};
-    X b{20, 0.4};
-    X c{ 0, 0.0};
+    Value_t a{10, 0.3};
+    Value_t b{20, 0.4};
+    Value_t c{ 0, 0.0};
 
-    APLCON::Fitter<X, X, X> fitter;
+    APLCON::Fitter<Value_t, Value_t, Value_t> fitter;
     fitter.DoFit(a, b, c, a_and_b_is_c);
 
     cout << c << endl;
