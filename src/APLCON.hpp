@@ -14,6 +14,17 @@ extern "C" {
 // use those constants in your classes to
 // identify what is request in the call to "linkFitter"
 
+#include <cxxabi.h>
+
+
+#include <iostream>
+
+
+template<typename T>
+std::string getTypeAsString() {
+  return abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr, nullptr);
+}
+
 namespace APLCON {
 
 static constexpr auto ValueIdx = 0;
@@ -64,9 +75,12 @@ struct Fitter {
         constexpr auto innerDim = getInnerDim<ValueIdx>(build_indices<Nv>());
         {
             constexpr auto innerDim_sigmas = getInnerDim<SigmaIdx>(build_indices<Nv>());
-            static_assert(compare_array(innerDim, innerDim_sigmas), "The implementation of link_fitter returns unequal number of values and sigmas.");
+            static_assert(compare_array(innerDim, innerDim_sigmas), "Method linkFitter returns unequal number of values and sigmas.");
         }
-        const auto nVar = getNvars(innerDim, build_indices<Nv>(), vars...);
+
+        OuterDim = getOuterDim(vars...);
+
+        const auto nVar = sum_of_array(prod_of_array(OuterDim, innerDim));
 
         // fill the initial values
         {
@@ -92,14 +106,15 @@ struct Fitter {
     }
 
 private:
+    static constexpr auto Nv = sizeof...(Vars);
+    using idx_array_t = std::array<std::size_t, Nv>;
 
     // keep storage here to avoid re-allocations
     std::vector<double> X;
     std::vector<double> V;
     std::vector<double> F_dynamic; // only used if non-constexpr constraints size
 
-    static constexpr auto Nv = sizeof...(Vars);
-    using idx_array_t = std::array<std::size_t, Nv>;
+    idx_array_t OuterDim;
 
     template<class ... Constraints>
     void AllocF(std::enable_if<true>, Vars&... vars, Constraints&&... constraints) {
@@ -124,6 +139,10 @@ private:
         using namespace detail;
 
         c_aplcon_aplcon(X.size(), F.size());
+
+        // still don't use simple loop,
+        // as we can check at compile time if something to do
+        setVarSettings(ctie(vars...));
 
         c_aplcon_aprint(6, 0); // default output on LUNP 6 (STDOUT)
 
@@ -152,9 +171,39 @@ private:
 
     }
 
-    /// checkVarSettings
+    /// setVarSettings
 
-    //std::is_member_function_pointer<decltype(&A::member)>::value
+    template<std::size_t I = 0, class... Vars_>
+    typename std::enable_if<I < sizeof...(Vars), void>::type
+    setVarSettings(const std::tuple<Vars...>& t) noexcept {
+        using namespace detail;
+        using Var = typename std::tuple_element<I, std::tuple<Vars...>>::type;
+        using uVar = typename decay_stl_cont<Var>::type; // look below stl container types
+        std::cout << getTypeAsString<uVar>() << " " << has_getFitterSettings<uVar, Variable_Settings_t>::value << std::endl;
+        setVarSettings<Var, I>(std::enable_if<has_getFitterSettings<uVar, Variable_Settings_t>::value>(), // dispatch has method
+                            std::get<I>(t));
+        setVarSettings<I+1, Vars...>(t);
+    }
+
+    // index counting recursion end
+    template<std::size_t I = 0, class... Vars_>
+    typename std::enable_if<I == sizeof...(Vars), void>::type
+    setVarSettings(const std::tuple<Vars...>&) noexcept {}
+
+    template<class Var, size_t I>
+    void
+    setVarSettings(std::enable_if<true>, const Var& var) noexcept {
+        const auto& var_settings = var.template getFitterSettings<6>();
+        const auto Nouter = std::get<I>(OuterDim);
+//        std::cout << var_settings.StepSize << std::endl;
+        // no other way than calling non-constexpr .size()
+//        return std::forward<Var>(var).();
+    }
+
+    // do nothing if no getFitterSettings implemented
+    template<class Var, size_t I>
+    static constexpr void
+    setVarSettings(std::enable_if<false>, const Var&) noexcept {}
 
     /// callConstraints
 
@@ -211,22 +260,19 @@ private:
             callLinkFitter<N>(std::forward<Linker>(linker), std::forward<Func>(f), std::enable_if<false>(), var);
     }
 
-    /// getNvars
-
-    template<size_t... Idx, class... Vars_>
-    static size_t
-    getNvars(const idx_array_t& innerDims, detail::indices<Idx...>, Vars_&&... vars) noexcept {
-        using namespace detail;
-        return sum_of(
-                    std::get<Idx>(innerDims)
-                    * // multiply pairwise innerDims by outerDims
-                    getOuterDim<Vars_>(
-                        std::enable_if<is_stl_cont<Vars>::value>(),
-                        std::forward<Vars_>(vars))...
-                    );
-    }
-
     /// getOuterDim
+
+    template<class... Vars_>
+    static idx_array_t
+    getOuterDim(Vars_&&... vars) noexcept {
+        using namespace detail;
+        // expand and dispatch
+        return idx_array_t{getOuterDim<Vars_>(
+                              std::enable_if<is_stl_cont<Vars>::value>(), // dispatch
+                              std::forward<Vars_>(vars)
+                            )... // expand Vars_
+                          };
+    }
 
     template<class Var>
     static size_t
