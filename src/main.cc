@@ -3,25 +3,30 @@
 
 #include <ostream>
 #include <iostream>
+#include <algorithm>
+
 using namespace std;
 
 struct Value_t {
 
-    constexpr Value_t(double v, double s) : Value(v), Sigma(s) {}
+    constexpr Value_t(double v, double s, bool fixed = false) : Value(v), Sigma(s), Fixed(fixed) {}
 
     double Value;
     double Sigma;
+    const bool Fixed;
 
     template<size_t N>
-    std::tuple<double&> linkFitter() noexcept {
-//        return N == APLCON::ValueIdx ? std::tie(Value,Value) : std::tie(Sigma,Sigma);
-        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
+    std::tuple<double&,double&> linkFitter() noexcept {
+                return N == APLCON::ValueIdx ? std::tie(Value,Value) : std::tie(Sigma,Sigma);
+//        return N == APLCON::ValueIdx ? std::tie(Value) : std::tie(Sigma);
     }
 
-    template<size_t N>
-    APLCON::Variable_Settings_t getFitterSettings() const noexcept {
+    template<size_t innerIdx>
+    APLCON::Variable_Settings_t getFitterSettings(size_t outerIdx) const noexcept {
+        (void)outerIdx; // unused, provided to user struct for completeness
         APLCON::Variable_Settings_t settings;
-
+        if(Fixed)
+            settings.StepSize = 0;
         return settings;
     }
 
@@ -35,17 +40,28 @@ struct Value_t {
 };
 
 int main() {
-    auto a_and_b_is_c = [] (const Value_t& a, const Value_t& b, const Value_t& c) {
-        return c.Value - a.Value - b.Value;
+    auto residuals = [] (const Value_t& a, const Value_t& b, const vector<Value_t>& x, const vector<Value_t>& y) {
+
+        // we use again std::transform to calculate the residuals
+        vector<double> residuals(y.size());
+        transform(x.begin(), x.end(), y.begin(), residuals.begin(),
+                  [&a, &b] (const double& x_i, const double& y_i) {
+            return a + b*x_i - y_i;
+        });
+        return residuals;
     };
 
-    Value_t a{10, 0.3};
-    Value_t b{20, 0.4};
-    Value_t c{ 0, 0.0};
 
-    APLCON::Fitter<Value_t, Value_t, Value_t> fitter;
-    fitter.DoFit(a, b, c, a_and_b_is_c);
+    vector<Value_t> x{ {1,   0.2}, {2,   0.23}, {3,   0.16}, {4,   0.21} };
+    vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
 
-    cout << c << endl;
+    // two unmeasured variables
+    Value_t a{0,0};
+    Value_t b{0,0};
 
+    APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter;
+    fitter.DoFit(a, b, x, y, residuals);
+
+
+    cout << "a=" << a << " b=" << b << endl;
 }
