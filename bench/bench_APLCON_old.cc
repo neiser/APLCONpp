@@ -104,8 +104,10 @@ static void BM_LineFit(benchmark::State& state) {
         }
 
         {
+            APLCON::Fit_Settings_t settings;
+            settings.MaxIterations = 10; // needs some more iterations to converge
 
-            APLCON f2("StraightLineFitWithXYErrors");
+            APLCON f2("StraightLineFitWithXYErrors", settings);
 
             data_t data2 = data;
             f2.LinkVariable("x", linker(data2.x), linker(data2.sx));

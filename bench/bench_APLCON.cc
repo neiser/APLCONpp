@@ -57,9 +57,9 @@ static void BM_LineFit(benchmark::State& state) {
 
     while (state.KeepRunning()) {
 
-        APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter;
-
         {
+            APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter;
+
             vector<Value_t> x{ {1,  0.2},   {2,  0.23}, {3,   0.16}, {4,   0.21} };
             vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
 
@@ -75,11 +75,13 @@ static void BM_LineFit(benchmark::State& state) {
         }
 
         {
+            APLCON::Fit_Settings_t settings;
+            settings.MaxIterations = 10;
+
+            APLCON::Fitter<Value_t, Value_t, vector<Value_t>, vector<Value_t>> fitter(settings);
+
             vector<Value_t> x{ {1,  0.2},   {2,  0.23}, {3,   0.16}, {4,   0.21} };
             vector<Value_t> y{ {1.1,0.08}, {1.95,0.04}, {2.02,0.11}, {3.98,0.07} };
-
-            for(auto& i : x)
-                i.Fixed = false;
 
             // two unmeasured variables
             Value_t a{0,0};
