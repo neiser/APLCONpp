@@ -21,3 +21,4 @@ set(SRCS_LIB
   )
 
 add_library(aplcon OBJECT ${SRCS_LIB})
+set_target_properties(aplcon PROPERTIES COMPILE_FLAGS "-fPIC")

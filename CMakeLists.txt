@@ -29,7 +29,7 @@ message(STATUS "*** Compiler Flags (Fortran):  " ${DEFAULT_Fortran_COMPILE_FLAGS
 
 add_subdirectory(APLCON)
 
-add_library(aplcon++
+add_library(aplcon++ SHARED
     src/APLCON.hpp src/detail/APLCON_hpp.hpp
     src/wrapper/APLCON.f90 src/wrapper/APLCON.h
     $<TARGET_OBJECTS:aplcon>)

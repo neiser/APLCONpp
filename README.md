@@ -29,7 +29,7 @@ inside the projects directory:
     cmake ..
     make
 
-You'll find a library called `libaplcon++.a` inside the above created
+You'll find a library called `libaplcon++.so` inside the above created
 `build` directory, the corresponding header to include is
 `src/APLCON.hpp`.
 
