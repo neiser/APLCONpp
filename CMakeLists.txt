@@ -21,9 +21,9 @@ add_subdirectory(APLCON)
 add_subdirectory(src)
 add_subdirectory(src/old)
 
-option(BuildBenchmark "Build benchmark binaries" OFF)
+option(EnableBenchmark "Build benchmark binaries" OFF)
 
-if(BuildBenchmark)
+if(EnableBenchmark)
   set(BENCHMARK_ENABLE_TESTING OFF)
   include(ConfigGBench)
   add_subdirectory(bench)
