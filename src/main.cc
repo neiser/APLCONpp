@@ -18,7 +18,7 @@ struct Value_t {
 
     template<size_t N>
     std::tuple<double&> linkFitter() noexcept {
-        return std::get<N>(V_S_P);
+        return std::tie(std::get<N>(V_S_P));
     }
 
     template<size_t innerIdx>
