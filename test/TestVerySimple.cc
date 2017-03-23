@@ -20,10 +20,10 @@ TEST_CASE("Very Simple 1", "") {
 
     const auto& result =  fitter.DoFit(a, b, c, a_and_b_is_c);
 
-    REQUIRE(result.Status == APLCON::Result_Status_t::Success);
-
-    REQUIRE(std::get<APLCON::ValueIdx>(c.V_S_P) == Approx(30.0));
-    REQUIRE(std::get<APLCON::SigmaIdx>(c.V_S_P) == Approx(0.5));
+    CHECK(result.Status == APLCON::Result_Status_t::Success);
+    CHECK(c.Value() == Approx(30.0));
+    CHECK(c.Sigma() == Approx(0.5));
+    CHECK(c.Pull()  == Approx(0.0));
 }
 
 TEST_CASE("Very Simple 2", "") {
@@ -39,10 +39,9 @@ TEST_CASE("Very Simple 2", "") {
 
     const auto& result =  fitter.DoFit(a, b, c, a_and_b_is_c);
 
-    REQUIRE(result.Status == APLCON::Result_Status_t::Success);
-
-    REQUIRE(std::get<APLCON::ValueIdx>(c.V_S_P) == Approx(30.0));
-
-    REQUIRE(std::get<APLCON::SigmaIdx>(c.V_S_P) == Approx(sqrt(30.0)).epsilon(0.01));
+    CHECK(result.Status == APLCON::Result_Status_t::Success);
+    CHECK(c.Value() == Approx(30.0));
+    CHECK(c.Sigma() == Approx(sqrt(30.0)).epsilon(0.01)); // apparently some roundoff error?
+    CHECK(c.Pull()  == Approx(0.0));
 
 }
