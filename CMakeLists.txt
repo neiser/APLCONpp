@@ -3,6 +3,7 @@ project(APLCONpp CXX Fortran)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
+# set also default CMAKE_BUILD_TYPE to Release
 include(ConfigSafeGuards)
 
 if((CMAKE_CXX_COMPILER_ID MATCHES GNU) OR (CMAKE_CXX_COMPILER_ID MATCHES Clang)
@@ -16,6 +17,15 @@ if((CMAKE_CXX_COMPILER_ID MATCHES GNU) OR (CMAKE_CXX_COMPILER_ID MATCHES Clang)
 else()
   message(FATAL_ERROR "Only GNU/Clang CXX and GNU Fortran compiler supported")
 endif()
+
+# figure out compile flags
+string(TOUPPER ${CMAKE_BUILD_TYPE} BUILD_TYPE)
+set(DEFAULT_CXX_COMPILE_FLAGS ${CMAKE_CXX_FLAGS_${BUILD_TYPE}})
+set(DEFAULT_Fortran_COMPILE_FLAGS ${CMAKE_Fortran_FLAGS_${BUILD_TYPE}})
+
+message(STATUS "*** Build Type:                " ${CMAKE_BUILD_TYPE})
+message(STATUS "*** Compiler Flags (CXX):      " ${DEFAULT_CXX_COMPILE_FLAGS})
+message(STATUS "*** Compiler Flags (Fortran):  " ${DEFAULT_Fortran_COMPILE_FLAGS})
 
 add_subdirectory(APLCON)
 add_subdirectory(src)
