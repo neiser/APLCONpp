@@ -83,7 +83,7 @@ compare_array_impl(const std::array<T,N> a, const std::array<T,N> b, indices<Idx
     return std::make_tuple(a[Idx]...) == std::make_tuple(b[Idx]...);
 }
 
-template<class T, class U, size_t N>
+template<class T, class U, std::size_t N>
 constexpr bool
 compare_array(const std::array<T,N>& a, const std::array<U,N>& b) noexcept {
     return compare_array_impl(a, b, build_indices<N>());
@@ -91,42 +91,42 @@ compare_array(const std::array<T,N>& a, const std::array<U,N>& b) noexcept {
 
 // sum_of just adds the given parameter pack together
 template<class T = void>
-static constexpr size_t
+static constexpr std::size_t
 sum_of() noexcept {
     return 0;
 }
 
 template<class T, class... Ts>
-static constexpr size_t
+static constexpr std::size_t
 sum_of(const T& t, const Ts&... ts) noexcept {
     return static_cast<size_t>(t) + sum_of(ts...);
 }
 
-template<class T, size_t N, size_t... Idx>
-static constexpr size_t
+template<class T, std::size_t N, std::size_t... Idx>
+static constexpr std::size_t
 sum_of_array_impl(const std::array<T,N>& arr, indices<Idx...>) noexcept {
     return sum_of(std::get<Idx>(arr)...);
 }
 
-template<class T, size_t N>
-static constexpr size_t
+template<class T, std::size_t N>
+static constexpr std::size_t
 sum_of_array(const std::array<T,N>& arr) noexcept {
     return sum_of_array_impl(arr, build_indices<N>());
 }
 
-template<class T, size_t N, size_t... Idx>
+template<class T, std::size_t N, std::size_t... Idx>
 static constexpr std::array<T, sizeof...(Idx)>
 prod_of_array_impl(const std::array<T,N>& a, const std::array<T,N>& b, indices<Idx...>) noexcept {
-    return {std::get<Idx>(a)*std::get<Idx>(b)...};
+    return {{std::get<Idx>(a)*std::get<Idx>(b)...}};
 }
 
-template<class T, size_t N>
+template<class T, std::size_t N>
 static constexpr std::array<T,N>
 prod_of_array(const std::array<T,N>& a, const std::array<T,N>& b) noexcept {
     return prod_of_array_impl(a, b, build_indices<N>());
 }
 
-//template<typename Result, typename T, typename F, size_t... Is>
+//template<typename Result, typename T, typename F, std::size_t... Is>
 //std::array<Result, sizeof... (Is)>
 //for_each(T&& t, F&& f, indices<Is...>)
 //{
@@ -165,39 +165,39 @@ void call_if_set(Func&& func, Args&&... args)  noexcept {
 
 } // end of anonymous namespace
 
-static constexpr size_t c_is_nothing     = 0;
-static constexpr size_t c_is_container   = (1 << 0);
-static constexpr size_t c_is_array       = (1 << 1);
-static constexpr size_t c_is_single      = (1 << 2);
+static constexpr std::size_t c_is_nothing     = 0;
+static constexpr std::size_t c_is_container   = (1 << 0);
+static constexpr std::size_t c_is_array       = (1 << 1);
+static constexpr std::size_t c_is_single      = (1 << 2);
 
 template<typename T>
 struct constraint_test_impl {
-    static constexpr size_t value =
+    static constexpr std::size_t value =
             is_stl_cont<T>::value ? c_is_container
                                             : (std::is_arithmetic<T>::value
                                                ? c_is_single
                                                : c_is_nothing);
 
-    static constexpr size_t N = std::is_arithmetic<T>::value; // zero for non-constsize T
+    static constexpr std::size_t N = std::is_arithmetic<T>::value; // zero for non-constsize T
 };
 
 template<typename T, std::size_t N_>
 struct constraint_test_impl<std::array<T, N_>> {
-    static constexpr size_t value = std::is_arithmetic<T>::value ? c_is_array : c_is_nothing;
-    static constexpr size_t N = N_;
+    static constexpr std::size_t value = std::is_arithmetic<T>::value ? c_is_array : c_is_nothing;
+    static constexpr std::size_t N = N_;
 };
 
-template<typename T, size_t Mask = c_is_nothing>
+template<typename T, std::size_t Mask = c_is_nothing>
 struct constraint_test {
     static_assert(std::integral_constant<T, false>::value,
                   "First template parameter T needs to be of function type.");
 };
 
-template<typename F, typename... Args, size_t Mask>
+template<typename F, typename... Args, std::size_t Mask>
 struct constraint_test<F(Args...), Mask> {
     using r_t = typename std::result_of<F(Args...)>::type;
     static constexpr bool value = static_cast<bool>(constraint_test_impl<r_t>::value & Mask);
-    constexpr size_t getN() const noexcept {
+    constexpr std::size_t getN() const noexcept {
         return constraint_test_impl<r_t>::N;
     }
 };
@@ -248,8 +248,8 @@ struct linker_diagonal_t : linker_t {
     }
 };
 
-static constexpr size_t c_is_constsize = c_is_single    | c_is_array;
-static constexpr size_t c_is_multi     = c_is_container | c_is_array;
+static constexpr std::size_t c_is_constsize = c_is_single    | c_is_array;
+static constexpr std::size_t c_is_multi     = c_is_container | c_is_array;
 
 static_assert((c_is_constsize & c_is_container) == 0, "Logic error");
 static_assert((c_is_multi & c_is_single) == 0, "Logic error");

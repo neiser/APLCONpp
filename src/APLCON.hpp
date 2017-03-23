@@ -260,7 +260,7 @@ private:
     typename std::enable_if<I == sizeof...(Vars), void>::type
     setVarSettings(const std::tuple<Vars...>&) noexcept {}
 
-    template<class Var, size_t I>
+    template<class Var, std::size_t I>
     void
     setVarSettings(std::enable_if<true>, const Var& var) noexcept {
         using namespace detail;
@@ -278,7 +278,7 @@ private:
             const auto& var_settings = getVarSettings(std::enable_if<is_stl_cont<Var>::value>(),
                                                       build_indices<nInner>(), var, iOuter);
 
-            for(auto iInner=0;iInner<nInner;iInner++) {
+            for(auto iInner=0u;iInner<nInner;iInner++) {
                 // remember that FORTRAN/APLCON starts counting at 1
                 const auto varidx = offset + iOuter*nInner + iInner + 1;
                 const auto& s = var_settings[iInner];
@@ -313,20 +313,20 @@ private:
 
     template<size_t... Idx, class Var>
     static constexpr std::array<Variable_Settings_t, sizeof...(Idx)>
-    getVarSettings(std::enable_if<true>, detail::indices<Idx...>, const Var& var, size_t iOuter) {
+    getVarSettings(std::enable_if<true>, detail::indices<Idx...>, const Var& var, std::size_t iOuter) {
         // Var is STL container, so ask contained item for fitter settings
         return {  std::next(var.begin(), iOuter)->template getFitterSettings<Idx>(iOuter)...  };
     }
 
     template<size_t... Idx, class Var>
     static constexpr std::array<Variable_Settings_t, sizeof...(Idx)>
-    getVarSettings(std::enable_if<false>, detail::indices<Idx...>, const Var& var, size_t iOuter) {
+    getVarSettings(std::enable_if<false>, detail::indices<Idx...>, const Var& var, std::size_t iOuter) {
         // Var is not a container, just call getFitterSettings then
         return {  var.template getFitterSettings<Idx>(iOuter)...  };
     }
 
     // do nothing if no getFitterSettings implemented
-    template<class Var, size_t I>
+    template<class Var, std::size_t I>
     static void
     setVarSettings(std::enable_if<false>, const Var&) noexcept {}
 
@@ -399,21 +399,21 @@ private:
     }
 
     template<class Var>
-    static size_t
+    static std::size_t
     getOuterDim(std::enable_if<true>, Var&& var) noexcept {
         // no other way than calling non-constexpr .size()
         return std::forward<Var>(var).size();
     }
 
     template<class Var>
-    static constexpr size_t
+    static constexpr std::size_t
     getOuterDim(std::enable_if<false>, Var&&) noexcept {
         return 1;
     }
 
     /// getInnerDim
 
-    template<size_t N, size_t... Idx>
+    template<size_t N, std::size_t... Idx>
     static constexpr idx_array_t
     getInnerDim(detail::indices<Idx...>) noexcept {
         // dispatch depending if Var in parameter pack is container or not
@@ -421,7 +421,7 @@ private:
         return {getInnerDim<N, Vars>(std::enable_if<detail::is_stl_cont<Vars>::value>())...};
     }
 
-    template<size_t N, class Var>
+    template<std::size_t N, class Var>
     static constexpr std::size_t
     getInnerDim(std::enable_if<false>) noexcept {
         // inspect the templated function
@@ -432,7 +432,7 @@ private:
     }
 
     template<size_t N, class Var>
-    static constexpr size_t
+    static constexpr std::size_t
     getInnerDim(std::enable_if<true>) noexcept {
         return getInnerDim<N, typename Var::value_type>(std::enable_if<false>());
     }
