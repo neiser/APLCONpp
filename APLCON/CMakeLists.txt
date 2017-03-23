@@ -20,4 +20,4 @@ set(SRCS_LIB
   fpl.F
   )
 
-add_library(aplcon ${SRCS_LIB})
+add_library(aplcon OBJECT ${SRCS_LIB})

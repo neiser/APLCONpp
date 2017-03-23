@@ -28,17 +28,19 @@ message(STATUS "*** Compiler Flags (CXX):      " ${DEFAULT_CXX_COMPILE_FLAGS})
 message(STATUS "*** Compiler Flags (Fortran):  " ${DEFAULT_Fortran_COMPILE_FLAGS})
 
 add_subdirectory(APLCON)
-add_subdirectory(src)
-add_subdirectory(src/old)
 
+add_library(aplcon++
+    src/APLCON.hpp src/detail/APLCON_hpp.hpp
+    src/wrapper/APLCON.f90 src/wrapper/APLCON.h
+    $<TARGET_OBJECTS:aplcon>)
+  
+# Benchmarking business
 option(EnableBenchmark "Build benchmark binaries" OFF)
-
 if(EnableBenchmark)
   set(BENCHMARK_ENABLE_TESTING OFF)
   include(ConfigGBench)
   add_subdirectory(bench)
 endif()
-
 
 # enable testing at top-level to make it available to CTest
 enable_testing()
