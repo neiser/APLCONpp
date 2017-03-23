@@ -1,25 +1,48 @@
 #include "catch.hpp"
 
-#include <old/APLCON.hpp>
+#include <APLCON.hpp>
+
+#include "Value_t.h"
 
 using namespace std;
 
-TEST_CASE("Very Simple", "") {
+double a_and_b_is_c(const Value_t& a, const Value_t& b, const Value_t& c) {
+    return c - a - b;
+}
 
-    APLCON a("Error propagation");
+TEST_CASE("Very Simple 1", "") {
 
-    a.AddMeasuredVariable("A", 10, 0.3);
-    a.AddMeasuredVariable("B", 20, 0.4);
+    APLCON::Fitter<Value_t, Value_t, Value_t> fitter;
 
-    a.AddUnmeasuredVariable("C");
+    Value_t a{10, 0.3};
+    Value_t b{20, 0.4};
+    Value_t c{ 0, 0.0};
 
-    auto equality_constraint = [] (double a, double b, double c) { return c - a - b; };
-    a.AddConstraint("A+B=C", {"A", "B", "C"}, equality_constraint);
+    const auto& result =  fitter.DoFit(a, b, c, a_and_b_is_c);
 
-    const APLCON::Result_t& ra = a.DoFit();
+    REQUIRE(result.Status == APLCON::Result_Status_t::Success);
 
-    REQUIRE(ra.Variables.at("C").Value.After == Approx(30.0));
+    REQUIRE(std::get<APLCON::ValueIdx>(c.V_S_P) == Approx(30.0));
+    REQUIRE(std::get<APLCON::SigmaIdx>(c.V_S_P) == Approx(0.5));
+}
 
-    REQUIRE(ra.Variables.at("C").Sigma.After == Approx(0.5));
+TEST_CASE("Very Simple 2", "") {
+
+    APLCON::Fitter<Value_t, Value_t, Value_t> fitter;
+
+    // uncertainties don't matter obviously for Poisson
+    Value_t a{10, 0};
+    a.Poisson = true;
+    Value_t b{20, 0};
+    b.Poisson = true;
+    Value_t c{ 0, 0.0};
+
+    const auto& result =  fitter.DoFit(a, b, c, a_and_b_is_c);
+
+    REQUIRE(result.Status == APLCON::Result_Status_t::Success);
+
+    REQUIRE(std::get<APLCON::ValueIdx>(c.V_S_P) == Approx(30.0));
+
+    REQUIRE(std::get<APLCON::SigmaIdx>(c.V_S_P) == Approx(sqrt(30.0)).epsilon(0.01));
 
 }
