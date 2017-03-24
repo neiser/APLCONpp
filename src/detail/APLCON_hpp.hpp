@@ -179,6 +179,8 @@ struct constraint_test_impl {
                                                : c_is_nothing);
 
     static constexpr std::size_t N = std::is_arithmetic<T>::value; // zero for non-constsize T
+    // give some better error message in case of non-usable constraint
+    static_assert(value != c_is_nothing, "You probably passed a constraint with did not return a STL container or arithmetic type");
 };
 
 template<typename T, std::size_t N_>
