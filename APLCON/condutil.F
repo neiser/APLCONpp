@@ -191,6 +191,12 @@ C      ENTRY DUMINV(VX,A, W,B,NX,NF,MB, NRANK, AUX,QNEXT)
       NRANK=0 
       N=NX+NF                   ! dimension parameter 
 
+*     make sure AUX is zero, prevents uninit access
+*     in continued execution of DBMINV
+      DO I=1,N
+         AUX(I)=0.0D0
+      END DO
+
 *     -VX(NX-sym) is already inserted in W(NX+NF-sym) ------------------ 
 
 C*     insert -VX(NX-sym) and A(NX,NF) into W(NX+NF-sym) ----------------
