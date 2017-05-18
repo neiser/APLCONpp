@@ -196,7 +196,6 @@ private:
 
             // copy X into vars, for constraint evaluation
             linker_linear_t linker(X.begin());
-            // sigmas are the sqrt's of the covariance diagonal
             callLinkFitter<ValueIdx>(linker, [] (const double& v, double& t) { t = v; }, vars...);
 
         }
@@ -363,6 +362,12 @@ private:
     }
 
     /// callLinkFitter
+    /// The given Func determines if values are written from the linker to the given vars,
+    /// or if the linker is filled from the vars. For example:
+    /// Write to linker, read from Vars: [] (double& v, const double& t) { v = t; }
+    /// Read from linker, write to Vars: [] (const double& v, double& t) { t = v; }
+    /// A linker is the abstraction of the Vars into linearized (in case of values X)
+    /// or half-diagonal arrangement (in case of covariance V), including square/squarerooting
 
     template<size_t N, class Linker, class Func, class Var, class... Vars_>
     static void callLinkFitter(Linker&& linker, Func&& f, Var&& var, Vars_&&... vars) noexcept {

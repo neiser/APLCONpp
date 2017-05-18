@@ -126,22 +126,6 @@ prod_of_array(const std::array<T,N>& a, const std::array<T,N>& b) noexcept {
     return prod_of_array_impl(a, b, build_indices<N>());
 }
 
-//template<typename Result, typename T, typename F, std::size_t... Is>
-//std::array<Result, sizeof... (Is)>
-//for_each(T&& t, F&& f, indices<Is...>)
-//{
-//    return { f(std::get<Is>(t))... };
-//}
-
-//template<typename... Ts, typename F,
-//         typename FirstType = typename std::tuple_element<0, std::tuple<Ts...>>::type,
-//         typename Result = typename std::result_of<F(FirstType)>::type>
-//std::array<Result, sizeof... (Ts)>
-//for_each_in_tuple(std::tuple<Ts...> const& t, F&& f)
-//{
-//    return detail::for_each<Result>(t, f, build_indices<sizeof...(Ts)>());
-//}
-
 template<typename Arg = void>
 bool check_args() {
     return true;
