@@ -98,14 +98,7 @@ c      N=NARG
 *     common code for inversion and (M=1) solution of matrix equation  
 
  10   SOLVE=.TRUE. 
-
       IF(MB.EQ.0) SOLVE=.FALSE.  ! solution flag
-
-      WRITE(*,*) "DUMINV continued as DBMINV SOLVE=",SOLVE
-
-      WRITE(*,*) "QNEXT",(QNEXT(I),I=1,N)      
-      WRITE(*,*) "AUX",(AUX(I),I=1,N)      
-
 
 *     loop begin (loop on all remaining rows/cols)
 
@@ -116,9 +109,7 @@ c      N=NARG
        LAST=0
  20    IF(J.GT.0) THEN          ! test for linearity and zero matrix 
           JJ=(J*J+J)/2          ! diagonal index
-          WRITE(*,*) "DBMINV looked at AUX array",J,AUX(J)          
           IF(ABS(W(JJ)).GT.MAX(ABS(VKK),EPS*AUX(J))) THEN
-             WRITE(*,*) "Select pivot J",J
              VKK=W(JJ)          ! largest pivot candidate so far
              K=J                ! index of largest
              L=LAST
@@ -196,8 +187,6 @@ c      N=NARG
 C      ENTRY DUMINV(VX,A, W,B,NX,NF,MB, NRANK, AUX,QNEXT)
       ENTRY DUMINV(A, W,B,NX,NF,MB, NRANK, AUX,QNEXT)
 
-      WRITE(*,*) "DUMINV entered"
-
 *     ...  
       NRANK=0 
       N=NX+NF                   ! dimension parameter 
@@ -221,7 +210,6 @@ c      END DO
         W(IJ+I)=A(IA+I)         ! copy A(.) into W_12
        END DO
        DO I=1,J
-          WRITE(*,*) "DUMINV trace reset W_22"
         W(IJ+NX+I)=0.0          ! reset last submatrix W_22 of W(.)
        END DO
        IJ=IJ+NX+J 
@@ -251,7 +239,6 @@ c      IF(JLAST.EQ.0) RETURN     ! nothing to do
 *     apply exchange algorithm to sub-matrices -------------------------
 
       DO I=NX+1,N               ! loop I over constraint equations
-       WRITE(*,*) "DUMINV trace constraint"
 
        J=JFIRST                 ! first index of unmeasured variable
        DO M=1,NMEAS             ! already inverted element index J
@@ -262,7 +249,6 @@ c      IF(JLAST.EQ.0) RETURN     ! nothing to do
          IF(QNEXT(K).NE.0.0D0) SUM=SUM+W(JK)*W((I*I-I)/2+K)
          IF(K.GE.J) JK=JK+K     ! index in j row
         END DO
-        WRITE(*,*) "Setting AUX(J) from...to",J,AUX(J),SUM
         AUX(J)=SUM              ! = A-row * VX-row/col
         J=QNEXT(J)              ! next index of unmeasured variable
        END DO
@@ -271,7 +257,6 @@ c      IF(JLAST.EQ.0) RETURN     ! nothing to do
         SUM=0.0D0
         J=JFIRST                ! first index of unmeasured variable 
         DO M=1,NMEAS            ! already inverted element index J
-         WRITE(*,*) "1) Reading AUX(J) as",J,AUX(J)
          SUM=SUM+W((K*K-K)/2+J)*AUX(J) ! = A-row * H
          J=QNEXT(J)             ! next index of unmeasured variable
         END DO
@@ -280,7 +265,6 @@ c      IF(JLAST.EQ.0) RETURN     ! nothing to do
 
        J=JFIRST                 ! first index of unmeasured variable
        DO M=1,NMEAS
-        WRITE(*,*) "2) Reading AUX(J) as",J,AUX(J)          
         W((I*I-I)/2+J)=-AUX(J)  ! add to off-diagonal W_22
         J=QNEXT(J)              ! next index of unmeasured variable
        END DO

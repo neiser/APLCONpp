@@ -120,7 +120,6 @@ C         WRITE(*,*) 'NDTOTL,NAUX=',NDTOTL,NAUX
          WRITE(*,*) 'Printout of initial values and correlation coeffs:' 
          CALL CIPRV (LUNSIM,X,VX,NX) 
          CALL CFCORR(LUNSIM,VX,NX)
-         CALL AIPRIN(X,VX,2,IRET)
       END IF 
 *     __________________________________________________________________
 *     internal APLOOP    
@@ -231,9 +230,9 @@ c      IF(NFIT.GT.1) WRITE(*,*) 'ISTATU=',ISTATU
        FTEST=FTEST+ABS(FJ)               ! sum absolute values
        FRMS =FRMS +FJ**2                 ! sum squares
       END DO
-      IF(IPR.GT.1) WRITE(*,*) 'ISTATU=',ISTATU
-      IF(IPR.GT.1) WRITE(*,*) 'X    ',(X    (J),J=1,NX)
-      IF(IPR.GT.1) WRITE(*,*) 'FCOPY',(FCOPY(J),J=1,NF)
+c      WRITE(*,*) 'ISTATU=',ISTATU
+c      WRITE(*,321) 'X    ',(X    (J),J=1,NX)
+c      WRITE(*,321) 'FCOPY',(FCOPY(J),J=1,NF)
 c321  FORMAT(A/(4F15.6)) 
       FTEST=MAX(1.0D-16,FTEST/FLOAT(NF)) ! average |F|
       FRMS=SQRT(FRMS/FLOAT(NF)+1.0D-32)  ! LS mean 
@@ -275,7 +274,7 @@ c      IF(NFIT.GT.1) WRITE(*,*) 'do num',JRET
 *     next iteration
       CALL ANITER(X,VX,FCOPY,
      +            AUX,XP,RH,AUX(INDWM+1),DX)
-c      IF(IPR.GT.1) WRITE(*,*) 'ANITER ',(AUX(J),J=1,NDTOT)
+c      WRITE(*,*) 'ANITER ',(AUX(INDST+J),J=1,NX)
       GOTO 70  
 *     __________________________________________________________________
 *     test cutsteps
@@ -500,14 +499,13 @@ C       CALL ATETOI  ! transform external to internal variables
       LOGICAL LIMDEF,TINUE
       DATA TINUE/.FALSE./       ! entry flag
 *     ...
-      IF(IPR.GT.1) WRITE(*,*) 'NUMDE entered',TINUE
+c      WRITE(*,*) 'NUMDE entered',TINUE
       JRET=-1                   ! ...means continue at return
       IF(TINUE) GOTO 30         ! continue
       TINUE=.TRUE.
       I=0                       ! initialize derivative loop
  10   IF(I.GE.NX) THEN          ! finished
          JRET=0                 ! ... means differentation finished
-         IF(IPR.GT.1) WRITE(*,*) 'NUMDE left',TINUE         
          TINUE=.FALSE.          ! Jacobian ready
          RETURN
       END IF
@@ -662,7 +660,7 @@ c 246      FORMAT('der I J',2I3,5F10.4)
 
 c      A(2)=1.0D0
 c      A(3)=-1.0D0
-      WRITE(*,*) 'Jacobian',(A(I),I=1,NX*NF) 
+c      WRITE(*,321) 'Jacobian',(A(I),I=1,NX*NF) 
 c321  FORMAT(A/(4F15.6))
 *     __________________________________________________________________
 *     right-hand side of equation
@@ -680,7 +678,7 @@ c321  FORMAT(A/(4F15.6))
        IA=IA+NX
        AUX(INDHH+J)=RH(NX+J)       ! right hand side for chi**2
       END DO
-      WRITE(*,*) 'RHS',(RH(I),I=1,NX+NF) 
+c      WRITE(*,*) 'RHS',(RH(I),I=1,NX+NF) 
 *     __________________________________________________________________
 *     form matrix and solve
       DO I=1,(NX*NX+NX)/2
@@ -691,22 +689,13 @@ c321  FORMAT(A/(4F15.6))
        II=II+I
        IPAK=I
 #include "unpackfl.inc"
-       WRITE(*,*) 'NTVAR=2 II',II,X(I),NTVAR
+c       WRITE(*,*) 'NTVAR=2 II',II,X(I),NTVAR
        IF(NTVAR.EQ.2) THEN ! Poisson
           WM(II)=-SQRT(1.0+X(I)**2)! -MAX(ABS(X(I)),1.0D0)
        END IF
       END DO
-c     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! BEFORE DUMINV 
-      WRITE(*,*) 'Before DUMINV'
-      WRITE(*,*) NRANK,' is rank. NX NF ',NX,NF
-      WRITE(*,*) 'Calling DUMINV...'
-      WRITE(*,*) 'A=',(A(I),I=1,NX*NF)
-      WRITE(*,*) 'WM=',(WM(I),I=1,NX*NX+NX)
-      WRITE(*,*) 'RH=',(RH(I),I=1,NX+NF) 
-      WRITE(*,*) 'DIAG=',(DIAG(I),I=1,NX+NF) 
       CALL DUMINV(A, WM,RH,NX,NF, 1, NRANK, DIAG,QNEXT)
-c     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! AFTER DUMINV 
-      WRITE(*,*) NRANK,' is rank. NX NF ',NX,NF 
+c      WRITE(*,*) NRANK,' is rank. NX NF ',NX,NF 
       CHISQ=-SCALXY(AUX(INDHH+1),RH(NX+1),NF)  ! next chi^2
       IF(CHISQ.LT.0.0D0) CHISQ=0.0D0
 *     __________________________________________________________________
