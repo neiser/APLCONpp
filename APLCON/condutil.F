@@ -516,43 +516,6 @@
 #endif
 
 
-      SUBROUTINE CFPRV(LUP,X,V,N) ! print X and uncertainties from V
-*     Prints the n-vector X and uncertainties from V
-*
-      IMPLICIT NONE
-      INTEGER LUP,N,II,I,JS
-      DOUBLE PRECISION X(*),V(*),P(*),ERR
-      LOGICAL NP
-      CHARACTER*16 PANAME,TEXT*17
-*     ...
-      NP=.TRUE.
-      WRITE(LUP,*)  ' '
-      WRITE(LUP,101)' '
-      GOTO 10
-
-      ENTRY CFPRVP(LUP,X,V,P,N) ! print X, pulls and uncertainties from V 
-      NP=.FALSE.
-      WRITE(LUP,*) ' ' 
-      WRITE(LUP,101) 'pull'
-      WRITE(LUP,103)
- 10   DO I=1,N
-       II=(I*I+I)/2
-       ERR=0.0
-       IF(V(II).GT.0.0) ERR=SQRT(V(II))
-       CALL APNAME(-I,PANAME)
-       IF(NP) THEN 
-          WRITE(LUP,102) PANAME,I,X(I),ERR
-       ELSE 
-          CALL APERTY(I,TEXT,JS)
-          WRITE(LUP,102) PANAME,I,X(I),ERR,P(I),TEXT
-       END IF
-      END DO
- 101  FORMAT(21X,'i     value        std.dev',7X,A)
- 102  FORMAT(1X,A16,I5,2G14.6,F8.2,2X,A17)  
- 103  FORMAT(18X,'----  ------------  ------------','    ----')
-      END 
-
-
       SUBROUTINE SIMSEL(X,VX,NY,LIST,Y,VY)
 *     Copy subset of X,VX ---(list)--> Y,VY 
       IMPLICIT NONE
