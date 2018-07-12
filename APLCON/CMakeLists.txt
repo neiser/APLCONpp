@@ -14,8 +14,6 @@ set(SRCS_LIB
   aplusopt.F
   chprob.F
   condutil.F
-  dcsplines.F
-  fpl.F
   )
 
 add_library(aplcon OBJECT ${SRCS_LIB})
