@@ -398,7 +398,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
              ST(I)=0.5D0*ST(I)/SQRT(X(I)) ! change step to sqrt step 
           END IF 
        END IF
-C       CALL ATETOI  ! transform external to internal variables
 
 *     __________________________________________________________________
 *     transform covariance matrix for transformed variables
@@ -758,55 +757,7 @@ C       CALL ATETOI  ! transform external to internal variables
       END DO
 *     __________________________________________________________________
 *     apply transformation to covariance matrix
-      CALL ATITOE(X,VX)
       END 
-
-      SUBROUTINE ATETOI(X,VX)  ! transform external to internal variables
-      IMPLICIT NONE
-      DOUBLE PRECISION X(*),VX(*)
-      INTEGER J,IJSYM 
-#include "comcfit.inc"
-#include "nauxfit.inc"
-#include "declarefl.inc"
-*     ...
-      DO I=1,NX                 ! transformation back
-       IPAK=I
-#include "unpackfl.inc"
-*      transform covariance matrix for transformed variables
-       IF(NTVAR.EQ.4) THEN ! transform covariance matrix for logn
-          WRITE(*,*) 'lognormal variable',I,X(I)
-          DO J=1,NX
-           VX(IJSYM(I,J))=VX(IJSYM(I,J))/X(I)
-           IF(I.EQ.J) VX(IJSYM(I,J))=VX(IJSYM(I,J))/X(I)
-          END DO 
-       ELSE IF(NTVAR.EQ.5) THEN ! ... and for sqrt
-          WRITE(*,*) 'sqrt variable',I,X(I)
-          DO J=1,NX
-           VX(IJSYM(I,J))=VX(IJSYM(I,J))*0.5D0/SQRT(X(I))
-           IF(I.EQ.J) VX(IJSYM(I,J))=VX(IJSYM(I,J))*0.5D0/SQRT(X(I))
-          END DO
-       END IF
-      END DO
-      RETURN                                            
-
-      ENTRY      ATITOE(X,VX)  ! transform internal to external variables
-      DO I=1,NX                 ! transformation back
-       IPAK=I
-#include "unpackfl.inc"
-       IF(NTVAR.EQ.4) THEN
-          WRITE(*,*) 'cov matrix back with ',X(I)
-          DO J=1,NX ! log-normal
-           VX(IJSYM(I,J))=VX(IJSYM(I,J))*X(I)
-           IF(I.EQ.J) VX(IJSYM(I,J))=VX(IJSYM(I,J))*X(I)
-          END DO
-       ELSE IF(NTVAR.EQ.5) THEN
-          DO J=1,NX ! sqrt
-           VX(IJSYM(I,J))=VX(IJSYM(I,J))*2.0D0*SQRT(X(I))
-           IF(I.EQ.J) VX(IJSYM(I,J))=VX(IJSYM(I,J))*2.0D0*SQRT(X(I))
-          END DO
-       END IF
-      END DO
-      END
 
       SUBROUTINE AIPRIN(X,VX,IARG,IRET)
       DOUBLE PRECISION X(*),VX(*),CHP,CHPROB,DINGAU
