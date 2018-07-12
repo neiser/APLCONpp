@@ -31,7 +31,6 @@
       NFPRIM=NF           ! primary value of NF 
       NDPDIM=NAUX         ! dimension of AUX array
       LUNSIM=6            ! printout unit (default)
-c     IPR=5               ! default print flag is 5
       DERFAC=1.0D-3       ! derivative factor
       DERUFC=1.0D-5       ! factor or unmeasured variable
       DERLOW=1.0D-2       ! factor for lower limit
@@ -75,7 +74,6 @@ c     IPR=5               ! default print flag is 5
       NCALLS=0            ! reset number of calls
 
       CALL APRINI(0)      ! initial print without X, VX  
-c      CALL APNAME(0,' ')  ! reset parameter names
       END 
 
       SUBROUTINE APLOOP(X,VX,F, IRET)        ! steering routine for loop
@@ -90,7 +88,6 @@ c      CALL APNAME(0,' ')  ! reset parameter names
 *     indices/pointer etc at first APLOOP entry 
       NFF=NF+NFADD               ! max. number of constraints
       NXF=NX+NFF                 ! total number of fit equations
-C      WRITE(*,*) 'NFF,NXF=',NFF,NXF
       MXF=(NXF*NXF+NXF)/2        ! number elements symmetric matrix
       INDFC=INDLM+2*NX           ! pointer to FC(NF) = copy of F(NF)
       INDCF=INDFC+NFF            ! pointer to FCOPY 
@@ -106,9 +103,7 @@ C      WRITE(*,*) 'NFF,NXF=',NFF,NXF
       INDPU=INDAS+NX             ! pulls, solution X and Vx
       NDTOT=INDPU+NX             ! total number of words (so far)  
       NDTOTL=NDTOT
-C      WRITE(*,*) 'NDTOTL,NAUX=',NDTOTL,NAUX
       IF(NDTOTL.GT.NAUX) THEN
-C         WRITE(*,*) 'NDTOTL,NAUX=',NDTOTL,NAUX
          CALL AIPRIN(X,VX,1,IRET) ! error printout
          STOP
       END IF
@@ -148,9 +143,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
 #include "comcfit.inc" 
 #include "nauxfit.inc"
 #include "cprofil.inc"
-C#include "declarefl.inc"
-c      REAL XRP,YRP
-c      DOUBLE PRECISION DCSPN
 *     __________________________________________________________________
       INTEGER ISTATU
 *                    = -1  numerical derivatives
@@ -177,25 +169,13 @@ c      DOUBLE PRECISION DCSPN
 *     __________________________________________________________________
 *     start/restart 
  10   NFIT=NFIT+1                        ! count fits
-c      IF(NFIT.GE.10) STOP
       ITER=0                        
       NCST=0
       CHISQ=0.0D0 
-c      WRITE(*,*) 'Start/restart fit NFIT ISTATU ',NFIT,ISTATU
-c      WRITE(*,*) 'NF NX NADFS ',NF,NX,NADFS
-c      WRITE(*,321) 'Vx',(VX(J),J=1,6)
-c      WRITE(*,321) 'X ',(X(J),J=1,3) 
-c      WRITE(*,321) 'XS',(XS(J),J=1,3)
-c      WRITE(*,321) 'DX',(DX(J),J=1,3)  
-c      WRITE(*,*)   'CONSTR IPF',CONSTR,IPF
-c      WRITE(*,321) 'F',(F(J),J=1,NF) 
-c      WRITE(*,*) 'INDST ',INDST
-c      WRITE(*,321) 'ST',(AUX(INDST+J),J=1,3)
 *     __________________________________________________________________
 *     add constraints for profile analysis
  20   IF(NADFS.EQ.1) THEN                ! add constraints for profiles
          FADD(1)=CONSTR-X(IPF)             ! 1-parameter constraint
-c         WRITE(*,*) 'Extra constraint',FADD(1),CONSTR,X(IPF),IPF
       ELSE IF(NADFS.EQ.2) THEN 
          FADD(1)=CONSTX-X(IPFX)          ! 2-parameter constraint
          FADD(2)=CONSTY-X(IPFY)
@@ -212,7 +192,6 @@ c         WRITE(*,*) 'Extra constraint',FADD(1),CONSTR,X(IPF),IPF
       END DO 
 *     __________________________________________________________________
 *     constraint test summary
-c      IF(NFIT.GT.1) WRITE(*,*) 'ISTATU=',ISTATU
       IF(ISTATU.LT.0) GOTO 40
       FTESTP=FTEST                       ! save previous value
       FTEST=0.0D0                        ! reset constraint tests 
@@ -230,19 +209,13 @@ c      IF(NFIT.GT.1) WRITE(*,*) 'ISTATU=',ISTATU
        FTEST=FTEST+ABS(FJ)               ! sum absolute values
        FRMS =FRMS +FJ**2                 ! sum squares
       END DO
-c      WRITE(*,*) 'ISTATU=',ISTATU
-c      WRITE(*,321) 'X    ',(X    (J),J=1,NX)
-c      WRITE(*,321) 'FCOPY',(FCOPY(J),J=1,NF)
-c321  FORMAT(A/(4F15.6)) 
       FTEST=MAX(1.0D-16,FTEST/FLOAT(NF)) ! average |F|
       FRMS=SQRT(FRMS/FLOAT(NF)+1.0D-32)  ! LS mean 
       IF(ITER.EQ.0) CALL AIPRIN(X,VX,3,IRET)
-c      IF(NFIT.GT.1) WRITE(*,*) 'ISTATU=',ISTATU,FTEST
       IF(ISTATU.EQ.1) GOTO 60
 *     __________________________________________________________________
 *     start numerical derivatives
  30   ISTATU=-1                                                      !!!
-c      IF(NFIT.GT.1) WRITE(*,*) 'start num'
 *     __________________________________________________________________
 *     derivative calculation
  40   IF(ISTATU+1.NE.0) GOTO 50          ! ISTATU=-1 
@@ -252,7 +225,6 @@ c      IF(NFIT.GT.1) WRITE(*,*) 'start num'
      +                    AUX(1+INDFC),     ! copy FC(.) central F(.)
      +                    AUX(1+INDHH),     ! copy HH(.) shifted F(.)
      +                    JRET)
-c      IF(NFIT.GT.1) WRITE(*,*) 'do num',JRET
       IRET=-1
       IF(JRET.LT.0) RETURN            !...for constraint calculation
 *     __________________________________________________________________
@@ -274,7 +246,6 @@ c      IF(NFIT.GT.1) WRITE(*,*) 'do num',JRET
 *     next iteration
       CALL ANITER(X,VX,FCOPY,
      +            AUX,XP,RH,AUX(INDWM+1),DX)
-c      WRITE(*,*) 'ANITER ',(AUX(INDST+J),J=1,NX)
       GOTO 70  
 *     __________________________________________________________________
 *     test cutsteps
@@ -289,14 +260,10 @@ c      WRITE(*,*) 'ANITER ',(AUX(INDST+J),J=1,NX)
 *     __________________________________________________________________
 *     end-of-primary-fit (NFIT=1)
  80   ISTATU=2
-c      WRITE(*,*) 'statement 80 in IPLOOP, NFIT=',NFIT
       IF(NFIT.NE.1) GOTO 82
-c      WRITE(*,*) 'INDDX,INDAS,INDWM,INDPU',INDDX,INDAS,INDWM,INDPU
       CALL ACOPXV(X,VX,AUX(INDDX+1),AUX(INDAS+1),
      +                 AUX(INDWM+1),AUX(INDPU+1))
-c      WRITE(*,*) 'vor AIPRIN'
       CALL AIPRIN(X,VX,4,IRET)                        ! final print
-c      WRITE(*,*) '>>>NSECA = ',NSECA
       IF(NSECA.EQ.0) RETURN
 *     __________________________________________________________________
 *     start of profile analysis
@@ -310,10 +277,6 @@ c      WRITE(*,*) '>>>NSECA = ',NSECA
       END DO
       CHIREF=CHISQ
       IPRSAV=IPR 
-c      WRITE(*,*) 'Original VX '
-c      WRITE(*,*) (VX(J),J=1,6)
-c      WRITE(*,*) 'Copy INDVS ',INDVS,' fitted matrix'
-c      WRITE(*,*) (AUX(INDVS+J),J=1,6)
 *     prepare storage for secondary fits
 *     __________________________________________________________________
 *     start next profile analysis
@@ -322,13 +285,10 @@ c      WRITE(*,*) (AUX(INDVS+J),J=1,6)
       IF(NPSEC(2,ISECA).EQ.0) THEN
          NADFS=1 ! 1-parameter profile analysis
          NF=NFPRIM+NADFS
-c         WRITE(*,*) 'Calling A1PROF'
-c         CALL A1PROF(X,VX,KRET)
          CALL A1PROF(KRET)
       ELSE
          NADFS=2 ! 2-parameter profile analysis
          NF=NFPRIM+NADFS
-c        CALL A2PROF(X,VX,KRET)
          CALL A2PROF(KRET)
       END IF 
       ISTATU=0
@@ -336,12 +296,8 @@ c        CALL A2PROF(X,VX,KRET)
 *     __________________________________________________________________
 *     secondary fit for profile analysis ended, store result
  82   IF(NADFS.EQ.1) THEN
-c      WRITE(*,321) 'ST B1PROF V',(AUX(INDST+J),J=1,3)
-c        CALL B1PROF(X,VX,KRET)          ! 1-parameter profile analysis
          CALL B1PROF(KRET)          ! 1-parameter profile analysis
-c          WRITE(*,321) 'ST B1PROF N',(AUX(INDST+J),J=1,3) 
       ELSE 
-c        CALL B2PROF(X,VX,KRET)         ! 2-parameter profile analysis
          CALL B2PROF(KRET)         ! 2-parameter profile analysis
       END IF
       ISTATU=0 
@@ -499,7 +455,6 @@ C       CALL ATETOI  ! transform external to internal variables
       LOGICAL LIMDEF,TINUE
       DATA TINUE/.FALSE./       ! entry flag
 *     ...
-c      WRITE(*,*) 'NUMDE entered',TINUE
       JRET=-1                   ! ...means continue at return
       IF(TINUE) GOTO 30         ! continue
       TINUE=.TRUE.
@@ -510,11 +465,9 @@ c      WRITE(*,*) 'NUMDE entered',TINUE
          RETURN
       END IF
       I=I+1                     ! next variable
-c      WRITE(*,*) 'I ST(I)',I,ST(I)
       IF(ST(I).EQ.0.0) GOTO 10  ! skip fixed variable
       IPAK=I        
 #include "unpackfl.inc"
-c      WRITE(*,*) 'I NTDER',I,NTDER 
       IF(NTDER.GE.4) GOTO 10    ! skip repeated derivative calculation
       XSAVE=X(I)                ! save current value of variable
       ILR=0                     ! define steps
@@ -608,10 +561,7 @@ c      WRITE(*,*) 'I NTDER',I,NTDER
       DERZER=0.0D0              ! abs of nonzero-derivative
       DO J=1,NF                 ! loop on all constraint functions
        IF(ILR.EQ.0) THEN        ! symmetric formula
-c         DER=0.5D0*(HH(J)-F(J))/ST(I) ! numerical 1. derivative
           DER=(HH(J)-F(J))/(XT(1)-XT(2))  !!! internal variable
-c          WRITE(*,246) I,J,HH(J),F(J),XT(1),XT(2),DER
-c 246      FORMAT('der I J',2I3,5F10.4) 
        ELSE                     ! asymmetric formula
           DER=0.5D0*(3.0D0*FC(J)+F(J)-4.0D0*HH(J))/ST(I)
           IF(ILR.EQ.2) DER=-DER ! sign
@@ -658,10 +608,6 @@ c 246      FORMAT('der I J',2I3,5F10.4)
       ITER=ITER+1                 ! start next iteration
       CHSQP=CHISQ                 ! save current chi^2
 
-c      A(2)=1.0D0
-c      A(3)=-1.0D0
-c      WRITE(*,321) 'Jacobian',(A(I),I=1,NX*NF) 
-c321  FORMAT(A/(4F15.6))
 *     __________________________________________________________________
 *     right-hand side of equation
       NCST=0
@@ -678,7 +624,6 @@ c321  FORMAT(A/(4F15.6))
        IA=IA+NX
        AUX(INDHH+J)=RH(NX+J)       ! right hand side for chi**2
       END DO
-c      WRITE(*,*) 'RHS',(RH(I),I=1,NX+NF) 
 *     __________________________________________________________________
 *     form matrix and solve
       DO I=1,(NX*NX+NX)/2
@@ -689,13 +634,11 @@ c      WRITE(*,*) 'RHS',(RH(I),I=1,NX+NF)
        II=II+I
        IPAK=I
 #include "unpackfl.inc"
-c       WRITE(*,*) 'NTVAR=2 II',II,X(I),NTVAR
        IF(NTVAR.EQ.2) THEN ! Poisson
           WM(II)=-SQRT(1.0+X(I)**2)! -MAX(ABS(X(I)),1.0D0)
        END IF
       END DO
       CALL DUMINV(A, WM,RH,NX,NF, 1, NRANK, DIAG,QNEXT)
-c      WRITE(*,*) NRANK,' is rank. NX NF ',NX,NF 
       CHISQ=-SCALXY(AUX(INDHH+1),RH(NX+1),NF)  ! next chi^2
       IF(CHISQ.LT.0.0D0) CHISQ=0.0D0
 *     __________________________________________________________________
@@ -708,9 +651,6 @@ c      WRITE(*,*) NRANK,' is rank. NX NF ',NX,NF
        XP(I)=DX(I)                ! save previous corrections       
        DX(I)=RH(I)                 ! store new corrections
       END DO
-c      WRITE(*,*) 'Prev corrections',(XP(I),I=1,NX)
-c      WRITE(*,*) 'Curr corrections',(DX(I),I=1,NX)
-c      WRITE(*,*) 'Weight=',WEIGHT
       END 
 
 
@@ -743,7 +683,6 @@ c      WRITE(*,*) 'Weight=',WEIGHT
       IUNPH=0   
 *     __________________________________________________________________
 *     combined measure?
-c      WRITE(*,*) 'ITER,NCST',ITER,NCST,CHISQ,FRMS,CHSQP,FRMSP
       IF(ITER.EQ.1.AND.NCST.EQ.0) THEN
          FACTOR=CHISQ/(ABS(FTESTP-FTEST)+EPSF)
          DO I=1,14 
@@ -766,57 +705,26 @@ c      WRITE(*,*) 'ITER,NCST',ITER,NCST,CHISQ,FRMS,CHSQP,FRMSP
          CALL LESFCM(CM)            ! fit
          CM(14)=CM(13) 
          CM(13)=CM(6)-CM(7)*FRMS**2 ! combined penalty
-c         WRITE(*,*) 'Penalty',CM(6),CM(7),CM(13)
       END IF   
-c      WRITE(*,*) 'ANTEST:',CHISQ,FTEST,CHISQ+FACTOR*FTEST
       PENALT=CM(13)
       CALL AIPRIN(X,VX,3,IRET)
 *     __________________________________________________________________ 
 *     cutstep
-c      WRITE(*,*) 'Test cutstep:',FTEST,FTESTP,EPSF,2.0D0*FTESTP+EPSF
       IF(NCST.LT.2.AND.
      +  (IUNPH.NE.0.OR.(ITER.GT.1.AND.FTEST.GT.2.0D0*FTESTP+EPSF))) THEN
          NCST=NCST+1
          WEIGHT=0.25D0
          WEIGHT=0.50D0  
-c         IF(FTEST/FTESTP.GT. 5.0D0) WEIGHT=0.10D0
-c         IF(FTEST/FTESTP.GT.10.0D0) WEIGHT=0.05D0
          IRET=-2                  ! cutstep - add corrections 
          RETURN                   
       END IF   
-
-c      IF(NCST.EQ.0.AND.PENALT.LT.0.0D0) THEN
-c         WEIGHT=0.1D0
-c         NCST=NCST+1
-c         IRET=-2                  ! cutstep - add corrections
-c         WRITE(*,*) 'Penalty!'
-c         RETURN
-c      END IF 
-
-c      IF(NCST.EQ.0.AND.CM(13).GT.CM(14)) THEN
-c         WEIGHT=0.1D0
-c         NCST=NCST+1 
-c         IRET=-2                  ! cutstep - add corrections
-c         WRITE(*,*) 'Penalty increasing!'
-c         RETURN
-c      END IF
-
-c      IF(ITER.EQ.1.AND.NCST.EQ.0) THEN
-c         WEIGHT=0.1 
-c         NCST=NCST+1
-c         IRET=-2                  ! cutstep - add corrections
-c         RETURN
-c      END IF 
 
 *     __________________________________________________________________
 *     convergent
       IF(ITER.GE.2.AND.NCST.EQ.0) THEN
          DCHISQ=CHISQ-CHSQP
          IF(ABS(DCHISQ).LE.EPSCHI.AND.FTEST.LT.EPSF) THEN
-            IRET=0                ! convergence
-
-C            WRITE(*,*) '>>>> convergence'
- 
+            IRET=0                ! convergence 
             RETURN
          END IF 
       END IF                                                  
@@ -903,7 +811,6 @@ C            WRITE(*,*) '>>>> convergence'
       SUBROUTINE AIPRIN(X,VX,IARG,IRET)
       DOUBLE PRECISION X(*),VX(*),CHP,CHPROB,DINGAU
       INTEGER IARG,J
-C      INTEGER NDTOTL  
 #include "comcfit.inc"
 #include "nauxfit.inc"
 #include "cprofil.inc"
@@ -914,7 +821,6 @@ C      INTEGER NDTOTL
      +                     'NDF less or equal 0',
      +                     'AUX dimension small'/
 *     ...
-C      NDTOTL=120
       IF(IARG.EQ.1) GOTO 10
       IF(IARG.EQ.2) GOTO 20
       IF(IARG.EQ.3) GOTO 30
@@ -1001,12 +907,8 @@ C      NDTOTL=120
 *     __________________________________________________________________
 *     final return with IRET = 0,1,2,3,4,5
  40   IF(IPR.GE.1) THEN      ! print 
-C         WRITE(*,*) 'Printing result IPR, IRET=',IPR,IRET
-C         IF(IRET.GT.5) IRET=0 !!!!!!!!!!!!!!!
          IF(IRET.EQ.0) THEN             ! convergence (IRET=0)
-C            WRITE(*,*) 'Printing result IPR, IRET=',IPR,IRET
             IF(IPR.GE.3) THEN
-C               WRITE(*,*) 'before print ITER ... IPR=',IPR
                WRITE(LUNSIM,*) ' '
                WRITE(LUNSIM,119) ITER,CHISQ,NDF
                IF(NDF.GT.0) THEN
@@ -1064,7 +966,6 @@ C               WRITE(*,*) 'before print ITER ... IPR=',IPR
       C(12)= C(1)/C(8)           ! V_22
       C(6)=C(4)*C(10)+C(5)*C(11) ! 1. parameter
       C(7)=C(4)*C(11)+C(5)*C(12) ! 2. parameter
-C      WRITE(*,*) 'Solution ',C(6),C(7)
       END  
 
       SUBROUTINE CHNDPV(CHI2,ND,PVAL)
