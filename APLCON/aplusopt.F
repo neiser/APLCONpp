@@ -146,53 +146,5 @@ c      WRITE(*,*) 'APOISS I,IPAK,NTVAR,NTLIM ',I,IPAK,NTVAR,NTLIM
       END 
 
 
-      SUBROUTINE SDEFIN(X,V,I,VALUE,ERROR,XPLAIN)
-      DOUBLE PRECISION X(*),V(*),RHOCOP,RHOMAX
-      CHARACTER*(*) XPLAIN
-*     ...
-      IF(I.LT.1.OR.I.GT.NVAR) RETURN
-      X(I)=VALUE  
-      V((I*I+I)/2)=ERROR*ERROR
-      IF(XPLAIN.EQ.' ') RETURN
-      CALL APNAME(I,XPLAIN)
-      RETURN
-
-      ENTRY SCORRC(X,V,I1,I2,RHO)
-      IF(I1.LT.1.OR.I2.GT.NVAR) RETURN
-      IF(I2.LT.1.OR.I2.GT.NVAR) RETURN
-      RHOCOP=RHO
-      RHOMAX=RHOCOP
-      IF(RHO.GT.0.0D0) THEN
-         RHOMAX=SQRT(V(IJSYM(I1,I1))/V(IJSYM(I2,I2)))
-         IF(V(IJSYM(I1,I1)).GT.V(IJSYM(I2,I2))) RHOMAX=1.0D0/RHOMAX
-         RHOMAX=MIN(RHOMAX,RHOCOP)
-         IF(RHOMAX.NE.RHOCOP) THEN
-            WRITE(*,101) ' Correlation coefficient between',I1,I2,
-     +      ' changed from',RHOCOP,' to',RHOMAX
-         END IF
-      END IF
-      V(IJSYM(I1,I2))=RHOMAX*SQRT(V(IJSYM(I1,I1))*V(IJSYM(I2,I2)))
-      WRITE(*,*) V(IJSYM(I1,I1)),V(IJSYM(I1,I2)),V(IJSYM(I2,I2))
-      RETURN
-
-      ENTRY SCORRF(X,V,I1,I2,RHO)
-      IF(I1.LT.1.OR.I2.GT.NVAR) RETURN
-      IF(I2.LT.1.OR.I2.GT.NVAR) RETURN
-      V(IJSYM(I1,I2))=RHO*SQRT(V(IJSYM(I1,I1))*V(IJSYM(I2,I2)))
-      RETURN
-
-      ENTRY SRESET(X,V,N)
-      NVAR=N
-      DO J=1,NVAR 
-       X(J)=0.0D0 
-      END DO
-      DO J=1,(NVAR*NVAR+NVAR)/2
-       V(J)=0.0D0 
-      END DO
-
- 101  FORMAT(A,I3,',',I3,A,F8.5,A,F8.5)
-      END
-
-
 
 
