@@ -6,7 +6,6 @@
       INTEGER IT,LUNP,JPR,NBINOM,I1,I2
 #include "comcfit.inc"
 #include "nauxfit.inc"
-#include "cprofil.inc"   
 #include "declarefl.inc"
 *     __________________________________________________________________
 *
@@ -41,36 +40,7 @@
       ENTRY APITER(IT)                  ! iteration limit
       ITERMX=MAX(3,IT)  ! max number of iterations
       RETURN
-*     __________________________________________________________________
-*
-*     measured/unmeasured variables
-*     __________________________________________________________________
-*
-      ENTRY APROFL(I1,I2)
-      IF(NSECA.GE.MSECA) RETURN
-      IF(I1.LT.1.OR.I1.GT.NX) RETURN
-      IF(I2.LT.0.OR.I2.GT.NX) RETURN
-      NSECA=NSECA+1
-      NPSEC(1,NSECA)=I1           ! index for profile analysis
-      NPSEC(2,NSECA)=I2
-      IF(I2.EQ.0) THEN   ! 1-parameter profil
-         NFADD=MAX(1,NFADD)
-         IPAK=I1
-#include "unpackfl.inc"           
-         IF(MOD(NTPRF,2).EQ.0) NTPRF=NTPRF+1
-#include "packfl.inc"
-      ELSE               ! 2-parameter profile
-         NFADD=2
-         IPAK=I1
-#include "unpackfl.inc"
-         IF(NTPRF.LE.1) NTPRF=NTPRF+2
-#include "packfl.inc"
-         IPAK=I2
-#include "unpackfl.inc"
-         IF(NTPRF.LE.1) NTPRF=NTPRF+2
-#include "packfl.inc"
-      END IF
-      RETURN
+    
 *     __________________________________________________________________      
       ENTRY APSTEP(I,STEP)              ! step size for numdif
       IF(I.LT.1.OR.I.GT.NX) RETURN 

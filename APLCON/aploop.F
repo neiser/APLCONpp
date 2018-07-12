@@ -10,7 +10,6 @@
       INTEGER NVAR,MCST,IJ  ! ,I1,I2,NFF,I
 #include "comcfit.inc"
 #include "nauxfit.inc"
-#include "cprofil.inc"
       LOGICAL START
       DATA START/.TRUE./
 *     ...
@@ -20,8 +19,6 @@
       END IF 
       NCASE=NCASE+1       ! count cases
 
-      NSECA=0             ! reset number of profile searches
-      NFADD=0             ! reset number of additional constraints
       NADFS=0             ! primary fit initialization
                           ! using space for NF+2 instead of NF
 
@@ -78,7 +75,6 @@
       DOUBLE PRECISION X(*),VX(*),F(*)
 #include "nauxfit.inc"
 #include "comcfit.inc"
-#include "cprofil.inc"
 
       IF(NCALLS.NE.0) GOTO 10
 *     __________________________________________________________________
@@ -133,7 +129,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       DOUBLE PRECISION FJ,FADD(2)        ! constraint values
 #include "comcfit.inc" 
 #include "nauxfit.inc"
-#include "cprofil.inc"
 *     __________________________________________________________________
       INTEGER ISTATU
 *                    = -1  numerical derivatives
@@ -151,7 +146,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       NFIT=0                             ! reset fit count
       ITER=0
       NADFS=0                            ! no additional constraints
-      ISECA=0                            ! index of profile analysis 
       DO J=1,NX
        XS(J)=X(J)                        ! save initial X values
        DX(J)=0.0D0                       ! reset correction DX
@@ -162,15 +156,7 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       ITER=0                        
       NCST=0
       CHISQ=0.0D0 
-*     __________________________________________________________________
-*     add constraints for profile analysis
- 20   IF(NADFS.EQ.1) THEN                ! add constraints for profiles
-         FADD(1)=CONSTR-X(IPF)             ! 1-parameter constraint
-      ELSE IF(NADFS.EQ.2) THEN 
-         FADD(1)=CONSTX-X(IPFX)          ! 2-parameter constraint
-         FADD(2)=CONSTY-X(IPFY)
-      END IF
-      DO J=1,NF
+ 20   DO J=1,NF
        IF(NADFS.EQ.1.AND.J.EQ.NF) THEN
           FJ=FADD(1)
        ELSE IF(NADFS.EQ.2.AND.J+1.GE.NF) THEN
@@ -218,22 +204,10 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       IF(JRET.LT.0) RETURN            !...for constraint calculation
 *     __________________________________________________________________
 *     add elements of Jacobian for profile analysis
- 50   IF(NADFS.EQ.1) THEN                ! 1-parameter derivative matrix
-         DO J=1,NX
-          AUX(J+NX*(NF-1))=0.0D0
-         END DO
-         AUX(IPF+NX*(NF-1))=-1.0D0
-      ELSE IF(NADFS.EQ.2) THEN           ! 2-parameter derivative matrix
-         DO J=1,NX
-          AUX(J+NX*(NF-2))=0.0D0
-          AUX(J+NX*(NF-1))=0.0D0
-         END DO
-         AUX(IPFX+NX*(NF-2))=-1.0D0
-         AUX(IPFY+NX*(NF-1))=-1.0D0
-      END IF
+    
 *     __________________________________________________________________
 *     next iteration
-      CALL ANITER(X,VX,FCOPY,
+ 50   CALL ANITER(X,VX,FCOPY,
      +            AUX,XP,RH,AUX(INDWM+1),DX)
       GOTO 70  
 *     __________________________________________________________________
