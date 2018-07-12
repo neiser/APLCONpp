@@ -10,14 +10,6 @@
       INTEGER NVAR,MCST,IJ  ! ,I1,I2,NFF,I
 #include "comcfit.inc"
 #include "nauxfit.inc"
-      LOGICAL START
-      DATA START/.TRUE./
-*     ...
-      IF(START) THEN
-         START=.FALSE.
-         NCASE=0          ! reset counter
-      END IF 
-      NCASE=NCASE+1       ! count cases
 
       NADFS=0             ! primary fit initialization
                           ! using space for NF+2 instead of NF
@@ -26,16 +18,12 @@
       NF    =MCST         ! number of constraint equations
       NFPRIM=NF           ! primary value of NF 
       NDPDIM=NAUX         ! dimension of AUX array
-      LUNSIM=6            ! printout unit (default)
       DERFAC=1.0D-3       ! derivative factor
       DERUFC=1.0D-5       ! factor or unmeasured variable
       DERLOW=1.0D-2       ! factor for lower limit
       EPSF  =1.0D-6       ! accuracy limit
       EPSCHI=0.1D-4       ! chi2 accuracy limit      
-      ITERMX=100          ! max number of iterations
-      ITERMX=50
-      ITERMX=20
-      ITERMX=10 
+      ITERMX=10           ! max number of iterations
       NAUXC=NAUX          ! copy AUX dimension
 
       INIT  =0

@@ -3,7 +3,7 @@
       INTEGER NADFS,NX,NF,NUM,IFLG,INIT,LUNSIM,IPR,IPAK,NFPRIM,
      +        ISTAT,INDST,INDLM,  NDENDA,NDENDE,NDACTL,
      +        INDTR,INDFC,INDHH,INDXS,INDDX,INDXP,INDRH,INDWM,
-     +        INDIA,NDTOT,INDQN,NAUXC,NCASE,INDCF,INDPU,INDAS,INDVS,
+     +        INDIA,NDTOT,INDQN,NAUXC,INDCF,INDPU,INDAS,INDVS,
      +        ICNT,NXF,MXF,NDF,IUNPH,NCST,ITER,NCALLS,NDPDIM,ITERMX,
      +        NDTOTL 
 *     Definition of common for APLCON/ERRPRP/SIM... subroutines
@@ -12,7 +12,7 @@
       REAL TAB
       COMMON/SIMCOM/EPSF,EPSCHI,CHISQ,FTEST,FTESTP,CHSQP,FRMS,FRMSP,
      +      DERFAC,DECXP,DERUFC,DERLOW,WEIGHT,PENALT,
-     +      NADFS,NX,NF,NUM,IFLG,INIT,LUNSIM,IPR,NCASE,IPAK,INDCF,
+     +      NADFS,NX,NF,NUM,IFLG,INIT,LUNSIM,IPR,IPAK,INDCF,
      +      ISTAT,INDST,INDLM,    NDENDA,NDENDE,NDACTL,INDAS,INDVS,
      +      INDTR,INDFC,INDHH,INDXS,INDDX,INDXP,INDRH,INDWM,INDIA,
      +      NDTOT,ICNT,NXF,MXF,NDF,IUNPH,NCST,ITER,NCALLS,NDPDIM,INDQN,
@@ -34,11 +34,6 @@
 *     INIT     = flag 
 *                = 1  deriving
 *                = 0  else
-*     LUNSIM   = printout unit (see parameter statement)
-*     IDEBUG   = debug flag value
-*                = 0   no printout
-*                = 1   only warnings are printed (default)
-*                = 2,3 more and more printout
 *
 *     EPSF     = required |F| accuracy
 *     ISTAT    = status flag
