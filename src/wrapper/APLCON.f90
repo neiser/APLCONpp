@@ -41,12 +41,6 @@ contains
     CALL SIMSEL(X,VX,NY,LIST,Y,VY)
   end subroutine C_APLCON_SIMSEL
 
-  subroutine C_APLCON_SIMTRN(X,VX,NX) bind(c)
-    real(c_double), dimension(*), intent(inout) :: X,VX
-    integer(c_int), value, intent(in) :: NX
-    CALL SIMTRN(X,VX,NX)
-  end subroutine C_APLCON_SIMTRN
-
   ! printout related routines (useful for debugging)
   subroutine C_APLCON_CIPRV(LUP,X,VX,N) bind(c)
     integer(c_int), value, intent(in) :: LUP, N

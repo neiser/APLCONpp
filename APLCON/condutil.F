@@ -571,32 +571,6 @@
       END 
 
 
-      SUBROUTINE SIMTRN(X,VX,NX) ! extract normalization factor from V
-*     extract normalization error
-      DOUBLE PRECISION X(*),VX(*),EPS2
-*     ...
-      EPS2=0.0D0
-      DO I=1,NX
-       DO J=1,I-1
-        IJ=IJSYM(I,J)
-        EPS2=EPS2+VX(IJ)/(X(I)*X(J))
-       END DO
-      END DO
-      EPS2=EPS2/DFLOAT((NX*NX-NX)/2)
-
-      X(NX+1)=1.0D0
-      DO I=1,NX
-       VX(IJSYM(I,NX+1))=0.0D0
-      END DO
-      DO I=1,NX
-       DO J=1,I
-        IJ=IJSYM(I,J)
-        VX(IJ)=VX(IJ)-EPS2*(X(I)*X(J))
-       END DO
-      END DO
-      VX(IJSYM(NX+1,NX+1))=EPS2
-      END
-
       SUBROUTINE DVELLP(APP,APQ,AQQ,   R1,R2,CPHI,SPHI) 
 *     parameters of covariance ellipse
 *     input:  APP,APQ,AQQ = matrix elements

@@ -260,60 +260,9 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
 *     __________________________________________________________________
 *     end-of-primary-fit (NFIT=1)
  80   ISTATU=2
-      IF(NFIT.NE.1) GOTO 82
       CALL ACOPXV(X,VX,AUX(INDDX+1),AUX(INDAS+1),
      +                 AUX(INDWM+1),AUX(INDPU+1))
       CALL AIPRIN(X,VX,4,IRET)                        ! final print
-      IF(NSECA.EQ.0) RETURN
-*     __________________________________________________________________
-*     start of profile analysis
-      INDVS=INDPU+NX                ! index of save Vx result
-      NDTOT=INDVS+(NX*NX+NX)/2      ! total number of words (so far)
-      NDENDE=NDTOT
-      NDENDA=NDENDE
-      DO J=1,(NX*NX+NX)/2
-       AUX(INDVS+J)=VX(J)    ! saved primary cov. matrix
-       VX(J)=AUX(INDWM+J)        ! store back original VX
-      END DO
-      CHIREF=CHISQ
-      IPRSAV=IPR 
-*     prepare storage for secondary fits
-*     __________________________________________________________________
-*     start next profile analysis
- 81   IF(ISECA.GE.NSECA) GOTO 99
-      ISECA=ISECA+1           ! next profile analysis
-      IF(NPSEC(2,ISECA).EQ.0) THEN
-         NADFS=1 ! 1-parameter profile analysis
-         NF=NFPRIM+NADFS
-         CALL A1PROF(KRET)
-      ELSE
-         NADFS=2 ! 2-parameter profile analysis
-         NF=NFPRIM+NADFS
-         CALL A2PROF(KRET)
-      END IF 
-      ISTATU=0
-      GOTO 10 ! restart fit
-*     __________________________________________________________________
-*     secondary fit for profile analysis ended, store result
- 82   IF(NADFS.EQ.1) THEN
-         CALL B1PROF(KRET)          ! 1-parameter profile analysis
-      ELSE 
-         CALL B2PROF(KRET)         ! 2-parameter profile analysis
-      END IF
-      ISTATU=0 
-      IF(KRET.LT.0) GOTO 10              ! next fit
-      GOTO 81 
- 99   CHISQ=CHIREF                       ! store primary fit results
-      IPR=IPRSAV                         ! printflag
-      DO J=1,NX
-       X(J)=AUX(INDAS+J)
-      END DO
-      DO J=1,(NX*NX+NX)/2
-       VX(J)=AUX(INDVS+J)
-      END DO  
-      CALL AIPRIN(X,VX,4,IRET)                ! final print
-      WRITE(*,*) ('_',J=1,71)
-      WRITE(*,*) ('_',J=1,71)
       IRET=0
       END 
 

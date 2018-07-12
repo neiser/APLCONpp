@@ -9,7 +9,6 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fno-automatic -fno-backslash")
 
 # build the library
 set(SRCS_LIB
-  a12prof.F
   aplist.F
   aploop.F
   aplprint.F
