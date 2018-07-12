@@ -33,19 +33,6 @@ contains
     CALL APPULL(PULLS)
   end subroutine C_APLCON_APPULL
 
-  ! variable reduction
-  subroutine C_APLCON_SIMSEL(X,VX,NY,LIST,Y,VY) bind(c)
-    real(c_double), dimension(*), intent(in) :: X,VX,LIST
-    integer(c_int), value, intent(in) :: NY
-    real(c_double), dimension(*), intent(out) :: Y,VY
-    CALL SIMSEL(X,VX,NY,LIST,Y,VY)
-  end subroutine C_APLCON_SIMSEL
-
-  subroutine C_APLCON_CFCORR(LUP,V,N) bind(c)
-    integer(c_int), value, intent(in) :: LUP, N
-    real(c_double), dimension(*), intent(in) :: V
-    CALL CFCORR(LUP,V,N)
-  end subroutine C_APLCON_CFCORR
 
   ! ENTRY points in aplusopt.F
   ! mainly setup/config routines
