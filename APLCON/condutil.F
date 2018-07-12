@@ -9,7 +9,7 @@
       END IF
       END
 
-      SUBROUTINE DBMINV(W,B,NARG,MB, NRANK, AUX,QNEXT) ! matrix inversion
+      SUBROUTINE DUMINV(A, W,B,NX,NF,MB, NRANK, AUX,QNEXT) ! matrix inversion
 *     Obtain solution of a system of linear equations V *  X  =  B  with
 *     symmetric matrix V and inverse (for M =  1)  or  matrix  inversion
 *     only (for M = 0).
@@ -43,108 +43,8 @@
       LOGICAL SOLVE
        
       DATA EPS/1.0D-6/
-*     ...
-*     normal inversion entry 
-      N=NARG                     ! dimension parameter 
-
-      JFIRST=1                  
-      DO I=1,N
-       QNEXT(I)=I+1               ! set all "next" pointer
-       AUX(I)=ABS(W((I*I+I)/2))  ! save abs of diagonal elements
-      END DO
-      QNEXT(N)=-1                 ! end flag
-      NRANK=0
-      
-*     common code for inversion and (M=1) solution of matrix equation  
-
- 10   SOLVE=.TRUE. 
-      IF(MB.EQ.0) SOLVE=.FALSE.  ! solution flag
-
-*     loop begin (loop on all remaining rows/cols)
-
-      DO I=1,N                  ! loop on all remaining elements
-       VKK=0.0D0                ! search for pivot element
-       K=0                      ! pivot index
-       J=JFIRST                 ! first candidate index
-       LAST=0
- 20    IF(J.GT.0) THEN          ! test for linearity and zero matrix 
-          JJ=(J*J+J)/2          ! diagonal index
-          IF(ABS(W(JJ)).GT.MAX(ABS(VKK),EPS*AUX(J))) THEN
-             VKK=W(JJ)          ! largest pivot candidate so far
-             K=J                ! index of largest
-             L=LAST
-          END IF
-          LAST=J
-          J=QNEXT(J)             ! index of next candidate
-          GOTO 20
-       END IF
-       IF(K.NE.0) THEN          ! pivot element found - proceed
-          NRANK=NRANK+1         ! increase rank counter
-          KK=(K*K+K)/2
-          IF(L.EQ.0) THEN
-             JFIRST=QNEXT(K)    ! new first index
-          ELSE
-             QNEXT(L)=QNEXT(K)  ! bridge used index
-          END IF
-          QNEXT(K)=0.0D0        ! reset used index
-          NRANK=NRANK+1         ! increase rank
-
-          VKK    =1.0/VKK       ! invert pivot 
-          W(KK)  =-VKK          
-          IF(SOLVE) B(K)=B(K)*VKK
-          JK     =KK-K
-          JL     =0
-          DO J=1,N              ! elimination
-           IF(J.EQ.K) THEN
-              JK=KK
-              JL=JL+J
-           ELSE
-              IF(J.LT.K) THEN
-                 JK=JK+1
-              ELSE
-                 JK=JK+J-1
-              END IF
-              VJK  =W(JK)
-              W(JK)=VKK*VJK
-              IF(SOLVE) B(J) =B(J)-B(K)*VJK
-              LK   =KK-K
-              DO L=1,J
-               JL=JL+1
-               IF(L.EQ.K) THEN
-                  LK=KK
-               ELSE
-                  IF(L.LT.K) THEN
-                     LK=LK+1
-                  ELSE
-                     LK=LK+L-1
-                  END IF
-                  W(JL)=W(JL)-W(LK)*VJK
-               END IF
-              END DO
-           END IF
-          END DO
-       ELSE                     ! no pivot candadate found - reset
-          DO K=1,N
-           IF(QNEXT(K).NE.0.0D0) THEN   ! undefined variable
-              IF(SOLVE) B(K)=0.0D0 ! clear undefined vector element
-              DO J=1,K
-               IF(QNEXT(J).NE.0.0D0) W((K*K-K)/2+J)=0.0D0  ! clear matrix row/col
-              END DO
-           END IF
-          END DO
-          GOTO 30
-       END IF
-
-      END DO                    ! end of inversion loop
-
- 30   DO I=1,(N*N+N)/2
-       W(I)=-W(I)               ! finally reverse sign
-      END DO
-      RETURN 
 
 *     special entry for partial inversion ******************************
-
-      ENTRY DUMINV(A, W,B,NX,NF,MB, NRANK, AUX,QNEXT)
 
 *     ...  
       NRANK=0 
@@ -249,6 +149,95 @@
       END DO
       IF(JLAST.EQ.0) GOTO 10    ! no unmeasured variable
       QNEXT(JLAST)=-1           ! end flag
+
+      
+*     common code for inversion and (M=1) solution of matrix equation  
+
+ 10   SOLVE=.TRUE. 
+      IF(MB.EQ.0) SOLVE=.FALSE.  ! solution flag
+
+*     loop begin (loop on all remaining rows/cols)
+
+      DO I=1,N                  ! loop on all remaining elements
+       VKK=0.0D0                ! search for pivot element
+       K=0                      ! pivot index
+       J=JFIRST                 ! first candidate index
+       LAST=0
+ 20    IF(J.GT.0) THEN          ! test for linearity and zero matrix 
+          JJ=(J*J+J)/2          ! diagonal index
+          IF(ABS(W(JJ)).GT.MAX(ABS(VKK),EPS*AUX(J))) THEN
+             VKK=W(JJ)          ! largest pivot candidate so far
+             K=J                ! index of largest
+             L=LAST
+          END IF
+          LAST=J
+          J=QNEXT(J)             ! index of next candidate
+          GOTO 20
+       END IF
+       IF(K.NE.0) THEN          ! pivot element found - proceed
+          NRANK=NRANK+1         ! increase rank counter
+          KK=(K*K+K)/2
+          IF(L.EQ.0) THEN
+             JFIRST=QNEXT(K)    ! new first index
+          ELSE
+             QNEXT(L)=QNEXT(K)  ! bridge used index
+          END IF
+          QNEXT(K)=0.0D0        ! reset used index
+          NRANK=NRANK+1         ! increase rank
+
+          VKK    =1.0/VKK       ! invert pivot 
+          W(KK)  =-VKK          
+          IF(SOLVE) B(K)=B(K)*VKK
+          JK     =KK-K
+          JL     =0
+          DO J=1,N              ! elimination
+           IF(J.EQ.K) THEN
+              JK=KK
+              JL=JL+J
+           ELSE
+              IF(J.LT.K) THEN
+                 JK=JK+1
+              ELSE
+                 JK=JK+J-1
+              END IF
+              VJK  =W(JK)
+              W(JK)=VKK*VJK
+              IF(SOLVE) B(J) =B(J)-B(K)*VJK
+              LK   =KK-K
+              DO L=1,J
+               JL=JL+1
+               IF(L.EQ.K) THEN
+                  LK=KK
+               ELSE
+                  IF(L.LT.K) THEN
+                     LK=LK+1
+                  ELSE
+                     LK=LK+L-1
+                  END IF
+                  W(JL)=W(JL)-W(LK)*VJK
+               END IF
+              END DO
+           END IF
+          END DO
+       ELSE                     ! no pivot candadate found - reset
+          DO K=1,N
+           IF(QNEXT(K).NE.0.0D0) THEN   ! undefined variable
+              IF(SOLVE) B(K)=0.0D0 ! clear undefined vector element
+              DO J=1,K
+               IF(QNEXT(J).NE.0.0D0) W((K*K-K)/2+J)=0.0D0  ! clear matrix row/col
+              END DO
+           END IF
+          END DO
+          GOTO 30
+       END IF
+
+      END DO                    ! end of inversion loop
+
+ 30   DO I=1,(N*N+N)/2
+       W(I)=-W(I)               ! finally reverse sign
+      END DO
+      RETURN 
+
       GOTO 10                   ! go to invert remaining parts  
       END 
 
