@@ -33,14 +33,11 @@
       INTEGER FUNCTION IJSYM(I,J) ! index (I,J)=(J,I) in symmetric matrix
       IMPLICIT NONE
       INTEGER I,J !,NCOUNT
-c      DATA NCOUNT/0/
       IF(I.LE.J) THEN
          IJSYM=(J*J-J)/2+I
       ELSE
          IJSYM=(I*I-I)/2+J
       END IF
-c      NCOUNT=NCOUNT+1
-c      WRITE(*,*) 'IJSYM ',NCOUNT
       END
 
       SUBROUTINE DBMINV(W,B,NARG,MB, NRANK, AUX,QNEXT) ! matrix inversion
@@ -68,8 +65,6 @@ c      WRITE(*,*) 'IJSYM ',NCOUNT
 *
       IMPLICIT NONE
       DOUBLE PRECISION VKK 
-C      INTEGER NEXT(*)
-C      DOUBLE PRECISION W(*),B(*),VX(*),A(*),AUX(*),QNEXT(*)
       DOUBLE PRECISION W(*),B(*),A(*),AUX(*),QNEXT(*)
       DOUBLE PRECISION SUM,EPS,VJK
       INTEGER NX,NF
@@ -90,10 +85,6 @@ C      DOUBLE PRECISION W(*),B(*),VX(*),A(*),AUX(*),QNEXT(*)
       END DO
       QNEXT(N)=-1                 ! end flag
       NRANK=0
-c      GOTO 10
-c
-c      ENTRY DCMINV(W,B,NARG,MB, NRANK, AUX,QNEXT)
-c      N=NARG 
       
 *     common code for inversion and (M=1) solution of matrix equation  
 
@@ -184,7 +175,6 @@ c      N=NARG
 
 *     special entry for partial inversion ******************************
 
-C      ENTRY DUMINV(VX,A, W,B,NX,NF,MB, NRANK, AUX,QNEXT)
       ENTRY DUMINV(A, W,B,NX,NF,MB, NRANK, AUX,QNEXT)
 
 *     ...  
@@ -199,12 +189,8 @@ C      ENTRY DUMINV(VX,A, W,B,NX,NF,MB, NRANK, AUX,QNEXT)
 
 *     -VX(NX-sym) is already inserted in W(NX+NF-sym) ------------------ 
 
-C*     insert -VX(NX-sym) and A(NX,NF) into W(NX+NF-sym) ----------------
 
       IJ=(NX*NX+NX)/2           ! number of elements of V(.) 
-c      DO I=1,IJ
-c       W(I)=-VX(I)              ! copy -VX(.) into W_11
-c      END DO
 
       DO I=1,N
        QNEXT(I)=0.0D0           ! reset pointer
@@ -237,7 +223,6 @@ c      END DO
           NMEAS=NMEAS+1
        END IF
       END DO
-c      IF(JLAST.EQ.0) RETURN     ! nothing to do
       IF(JLAST.EQ.0) GOTO 10    ! nothing to do
       QNEXT(JLAST)=-1           ! stop index for last measured variable 
 
@@ -293,10 +278,8 @@ c      IF(JLAST.EQ.0) RETURN     ! nothing to do
           QNEXT(I)=0.0D0        ! reset index for measured variable
        END IF 
       END DO
-c      IF(JLAST.EQ.0) RETURN    ! no unmeasured variable
       IF(JLAST.EQ.0) GOTO 10    ! no unmeasured variable
       QNEXT(JLAST)=-1           ! end flag
-c      RETURN                   ! go to invert remaining parts  
       GOTO 10                   ! go to invert remaining parts  
       END 
 
@@ -448,7 +431,6 @@ c      RETURN                   ! go to invert remaining parts
       MODTX='    i    '
       IF(N.GT.15) MODTX='mod(i,15)' 
       WRITE(LUP,103) MODTX,(MC(K),K=1,MIN(N,15))
-c      WRITE(LUP,*) '   i'
       DO I=1,N
        L=0
        DO J=1,I
@@ -499,7 +481,6 @@ c      WRITE(LUP,*) '   i'
       MODTX='    i    '
       IF(N.GT.15) MODTX='mod(i,15)' 
       WRITE(LUP,103) MODTX,(MC(K),K=1,MIN(N,15))
-c      WRITE(LUP,*) '   i'
       DO I=1,N
        L=0
        DO J=1,I
@@ -566,8 +547,6 @@ c      WRITE(LUP,*) '   i'
           WRITE(LUP,102) PANAME,I,X(I),ERR,P(I),TEXT
        END IF
       END DO
-c      WRITE(LUP,*) ' '
-c      CALL CFCORR(LUP,V,N)
  101  FORMAT(21X,'i     value        std.dev',7X,A)
  102  FORMAT(1X,A16,I5,2G14.6,F8.2,2X,A17)  
  103  FORMAT(18X,'----  ------------  ------------','    ----')
