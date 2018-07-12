@@ -11,7 +11,6 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fno-automatic -fno-backslash")
 set(SRCS_LIB
   aplist.F
   aploop.F
-  aplprint.F
   aplusopt.F
   chprob.F
   condutil.F
