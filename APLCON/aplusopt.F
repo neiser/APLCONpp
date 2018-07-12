@@ -3,7 +3,7 @@
 *     __________________________________________________________________
       IMPLICIT NONE
       DOUBLE PRECISION STEP,XLOW,XHIG,POW,ARG
-      INTEGER IT,LUNP,JPR,NBINOM,I1,I2
+      INTEGER IT,LUNP,JPR,NBINOM
 #include "comcfit.inc"
 #include "nauxfit.inc"
 #include "declarefl.inc"
