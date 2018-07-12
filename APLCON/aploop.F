@@ -17,7 +17,6 @@
       IF(START) THEN
          START=.FALSE.
          NCASE=0          ! reset counter
-         IPR=5
       END IF 
       NCASE=NCASE+1       ! count cases
 
@@ -108,11 +107,6 @@
        AUX(I)=0.0D0          ! reset part of aux, unused so far
       END DO
       CALL ASTEPS(X,VX, AUX(1+INDST)) ! initial steps ST(.)
-      IF(IPR.NE.0) THEN
-         WRITE(*,*) 'Printout of initial values and correlation coeffs:' 
-         CALL CIPRV (LUNSIM,X,VX,NX) 
-         CALL CFCORR(LUNSIM,VX,NX)
-      END IF 
 *     __________________________________________________________________
 *     internal APLOOP    
  10   IRET=-1                ! default status is -1 = continue
@@ -130,7 +124,7 @@
 *        profile analysis   
 *     ==================================================================
       IMPLICIT NONE
-      INTEGER J,IRET,JRET,NFIT,KRET,IPRSAV
+      INTEGER J,IRET,JRET,NFIT,KRET
 c      INTEGER NITER,NFIT
 c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       DOUBLE PRECISION X(*),VX(*),F(*) ! ,FOPT,FAC
@@ -292,19 +286,11 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
 *      _________________________________________________________________
 *      check transformed variables
        IF(NTVAR.EQ.4) THEN   ! logarithmic transformation - check
-          IF(X(I).LE.0.0) THEN
-             IF(IPR.GE.2) THEN ! error condition
-                WRITE(LUNSIM,*)
-     +          'Variable',I,' is',X(I),' reset to normal'
-             END IF 
+          IF(X(I).LE.0.0) THEN 
              NTVAR=0        ! reset: X(i) has to be positive
           END IF
        ELSE IF(NTVAR.EQ.5) THEN ! sqrt transformation - check   
           IF(X(I).LE.0.0) THEN
-             IF(IPR.GE.2) THEN ! error condition
-                WRITE(LUNSIM,*)
-     +          'Variable',I,' is',X(I),' reset to normal'
-             END IF
              NTVAR=0        ! reset: X(i) has to be positive
           END IF
        END IF
@@ -457,8 +443,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
          ELSE IF(NTVAR.EQ.5) THEN ! sqrt
             IF(ST(I)**2.GE.XSAVE) THEN
                IF(XSAVE.LE.0.0D0) THEN
-                  IF(IPR.GT.1) WRITE(LUNSIM,*)
-     +            'Variable',I,' is',X(I),' reset to normal'
                   NTVAR=0 
 #include "packfl.inc"
                   GOTO 20
