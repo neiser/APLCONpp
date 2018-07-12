@@ -102,7 +102,7 @@
 *     call IPLCON
 *     ==================================================================
       IMPLICIT NONE
-      INTEGER J,IRET,JRET,NFIT,KRET
+      INTEGER J,IRET,JRET,NFIT
       DOUBLE PRECISION X(*),VX(*),F(*) ! ,FOPT,FAC
       DOUBLE PRECISION XS(*),DX(*),FCOPY(*),XP(*),RH(*),FEX(100)
 *     local variables

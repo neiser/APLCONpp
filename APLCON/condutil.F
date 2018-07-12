@@ -37,7 +37,7 @@
       DOUBLE PRECISION W(*),B(*),A(*),AUX(*),QNEXT(*)
       DOUBLE PRECISION SUM,EPS,VJK
       INTEGER NX,NF
-      INTEGER I,J,IJ,IA,JFIRST,JLAST,NARG,MB,NRANK,
+      INTEGER I,J,IJ,IA,JFIRST,JLAST,MB,NRANK,
      +        K,LAST,JK,NMEAS,N,JJ,L,KK,M,JL,LK  
 
       LOGICAL SOLVE
@@ -236,9 +236,6 @@
  30   DO I=1,(N*N+N)/2
        W(I)=-W(I)               ! finally reverse sign
       END DO
-      RETURN 
-
-      GOTO 10                   ! go to invert remaining parts  
       END 
 
 
