@@ -1,6 +1,6 @@
 *     =========================== MACRO ================================
 *     Parameter statement for basic dimensions
-      INTEGER NADFS,NX,NF,NUM,IFLG,INIT,LUNSIM,IPR,IPAK,NFPRIM,
+      INTEGER NX,NF,NUM,IFLG,INIT,IPAK,NFPRIM,
      +        ISTAT,INDST,INDLM,  NDENDA,NDENDE,NDACTL,
      +        INDTR,INDFC,INDHH,INDXS,INDDX,INDXP,INDRH,INDWM,
      +        INDIA,NDTOT,INDQN,NAUXC,INDCF,INDPU,INDAS,INDVS,
@@ -8,20 +8,16 @@
      +        NDTOTL 
 *     Definition of common for APLCON/ERRPRP/SIM... subroutines
       DOUBLE PRECISION EPSF,EPSCHI,CHISQ,FTEST,FTESTP,CHSQP,FRMS,FRMSP
-      DOUBLE PRECISION DERFAC,DECXP,DERUFC,DERLOW,WEIGHT,PENALT
+      DOUBLE PRECISION DERFAC,DECXP,DERUFC,DERLOW,WEIGHT
       REAL TAB
       COMMON/SIMCOM/EPSF,EPSCHI,CHISQ,FTEST,FTESTP,CHSQP,FRMS,FRMSP,
-     +      DERFAC,DECXP,DERUFC,DERLOW,WEIGHT,PENALT,
-     +      NADFS,NX,NF,NUM,IFLG,INIT,LUNSIM,IPR,IPAK,INDCF,
+     +      DERFAC,DECXP,DERUFC,DERLOW,WEIGHT,
+     +      NX,NF,NUM,IFLG,INIT,IPAK,INDCF,
      +      ISTAT,INDST,INDLM,    NDENDA,NDENDE,NDACTL,INDAS,INDVS,
      +      INDTR,INDFC,INDHH,INDXS,INDDX,INDXP,INDRH,INDWM,INDIA,
      +      NDTOT,ICNT,NXF,MXF,NDF,IUNPH,NCST,ITER,NCALLS,NDPDIM,INDQN,
      +      ITERMX,NAUXC,INDPU,NFPRIM,NDTOTL,  
      +      TAB(1000,10) 
-
-*     NADFS  = 0   initial (primary) fit (set by APLCON)
-*            = 1   1-parameter analysis  (set by BPLCON)
-*            = 2   2-parameter analysis      "..."
 
 *     
 *     NX       = number of parameters

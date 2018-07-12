@@ -11,9 +11,6 @@
 #include "comcfit.inc"
 #include "nauxfit.inc"
 
-      NADFS=0             ! primary fit initialization
-                          ! using space for NF+2 instead of NF
-
       NX    =NVAR         ! number of variables
       NF    =MCST         ! number of constraint equations
       NFPRIM=NF           ! primary value of NF 
@@ -67,7 +64,7 @@
       IF(NCALLS.NE.0) GOTO 10
 *     __________________________________________________________________
 *     indices/pointer etc at first APLOOP entry 
-      NFF=NF+NFADD               ! max. number of constraints
+      NFF=NF                     ! max. number of constraints
       NXF=NX+NFF                 ! total number of fit equations
       MXF=(NXF*NXF+NXF)/2        ! number elements symmetric matrix
       INDFC=INDLM+2*NX           ! pointer to FC(NF) = copy of F(NF)
@@ -101,20 +98,15 @@
       SUBROUTINE IPLOOP(X,VX,F, XS,DX,FCOPY,XP,RH, IRET)
      +                                       ! steering routine for loop
 *     ==================================================================
-*     initial print
-*        add 1/2 constraints for profile analysis
 *     call IPLDER
 *     call IPLCON
-*        profile analysis   
 *     ==================================================================
       IMPLICIT NONE
       INTEGER J,IRET,JRET,NFIT,KRET
-c      INTEGER NITER,NFIT
-c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       DOUBLE PRECISION X(*),VX(*),F(*) ! ,FOPT,FAC
       DOUBLE PRECISION XS(*),DX(*),FCOPY(*),XP(*),RH(*),FEX(100)
 *     local variables
-      DOUBLE PRECISION FJ,FADD(2)        ! constraint values
+      DOUBLE PRECISION FJ        ! constraint values
 #include "comcfit.inc" 
 #include "nauxfit.inc"
 *     __________________________________________________________________
@@ -133,7 +125,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       ISTATU=0                                                       !!!
       NFIT=0                             ! reset fit count
       ITER=0
-      NADFS=0                            ! no additional constraints
       DO J=1,NX
        XS(J)=X(J)                        ! save initial X values
        DX(J)=0.0D0                       ! reset correction DX
@@ -145,13 +136,7 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       NCST=0
       CHISQ=0.0D0 
  20   DO J=1,NF
-       IF(NADFS.EQ.1.AND.J.EQ.NF) THEN
-          FJ=FADD(1)
-       ELSE IF(NADFS.EQ.2.AND.J+1.GE.NF) THEN
-          FJ=FADD(J-NF+2)
-       ELSE
-          FJ=F(J)
-       END IF
+       FJ=F(J)
        FEX(J)=FJ   ! extended F
       END DO 
 *     __________________________________________________________________
@@ -162,13 +147,7 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       FRMSP=FRMS
       FRMS =0.0D0                                          
       DO J=1,NF
-       IF(NADFS.EQ.1.AND.J.EQ.NF) THEN
-          FJ=FADD(1)
-       ELSE IF(NADFS.EQ.2.AND.J+1.GE.NF) THEN
-          FJ=FADD(J-NF+2)
-       ELSE
-          FJ=F(J)
-       END IF
+       FJ=F(J)
        FCOPY(J)=FJ                       ! copy constraint vector
        FTEST=FTEST+ABS(FJ)               ! sum absolute values
        FRMS =FRMS +FJ**2                 ! sum squares
@@ -190,8 +169,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
      +                    JRET)
       IRET=-1
       IF(JRET.LT.0) RETURN            !...for constraint calculation
-*     __________________________________________________________________
-*     add elements of Jacobian for profile analysis
     
 *     __________________________________________________________________
 *     next iteration
@@ -594,7 +571,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
          CM(14)=CM(13) 
          CM(13)=CM(6)-CM(7)*FRMS**2 ! combined penalty
       END IF   
-      PENALT=CM(13)
 *     __________________________________________________________________ 
 *     cutstep
       IF(NCST.LT.2.AND.
@@ -643,8 +619,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
         VX(I)=WM(I)              ! copy fitted covariance matrix
         WM(I)=SCOPY              ! ... and save input matrix
       END DO
-*     __________________________________________________________________
-*     apply transformation to covariance matrix
       END 
 
       SUBROUTINE LESFCM(C)

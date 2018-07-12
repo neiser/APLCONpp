@@ -12,9 +12,7 @@
 *     parameters for fit method
 *     __________________________________________________________________
       ENTRY APRINT(LUNP,JPR)
-      LUNSIM=LUNP       ! print unit
-      IF(LUNSIM.LE.0)     LUNSIM=6
-      IPR=JPR           ! print flag
+*     Do nothing...no printing anymore
       RETURN
 *     __________________________________________________________________
       ENTRY APDEPS(ARG)                 ! constraint accuracy
