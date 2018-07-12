@@ -56,7 +56,6 @@
       INDLM=INDTR+NX      ! 2*limits for variables
       NDTOT=INDLM+2*NX    ! space used so far
       IF(NDTOT.GT.NAUX) THEN
-         CALL APRINI(1)   ! error print
          STOP
       END IF
 *     __________________________________________________________________
@@ -73,7 +72,6 @@
       NDF   =NF           ! reset n d f
       NCALLS=0            ! reset number of calls
 
-      CALL APRINI(0)      ! initial print without X, VX  
       END 
 
       SUBROUTINE APLOOP(X,VX,F, IRET)        ! steering routine for loop
@@ -104,7 +102,6 @@
       NDTOT=INDPU+NX             ! total number of words (so far)  
       NDTOTL=NDTOT
       IF(NDTOTL.GT.NAUX) THEN
-         CALL AIPRIN(X,VX,1,IRET) ! error printout
          STOP
       END IF
       DO I=INDLM+2*NX+1,NDTOT
@@ -161,7 +158,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       ITER=0
       NADFS=0                            ! no additional constraints
       ISECA=0                            ! index of profile analysis 
-      IF(IPR.GE.3) CALL AIPRIN(X,VX,1,IRET)   ! initial printout
       DO J=1,NX
        XS(J)=X(J)                        ! save initial X values
        DX(J)=0.0D0                       ! reset correction DX
@@ -211,7 +207,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       END DO
       FTEST=MAX(1.0D-16,FTEST/FLOAT(NF)) ! average |F|
       FRMS=SQRT(FRMS/FLOAT(NF)+1.0D-32)  ! LS mean 
-      IF(ITER.EQ.0) CALL AIPRIN(X,VX,3,IRET)
       IF(ISTATU.EQ.1) GOTO 60
 *     __________________________________________________________________
 *     start numerical derivatives
@@ -262,7 +257,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
  80   ISTATU=2
       CALL ACOPXV(X,VX,AUX(INDDX+1),AUX(INDAS+1),
      +                 AUX(INDWM+1),AUX(INDPU+1))
-      CALL AIPRIN(X,VX,4,IRET)                        ! final print
       IRET=0
       END 
 
@@ -655,7 +649,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
          CM(13)=CM(6)-CM(7)*FRMS**2 ! combined penalty
       END IF   
       PENALT=CM(13)
-      CALL AIPRIN(X,VX,3,IRET)
 *     __________________________________________________________________ 
 *     cutstep
       IF(NCST.LT.2.AND.
@@ -706,155 +699,6 @@ c      INTEGER J,IRET,JRET,NSECAS,IJSYM,ILRP,ILR1,ILR2,NFUN ,NN,NTLIMP
       END DO
 *     __________________________________________________________________
 *     apply transformation to covariance matrix
-      END 
-
-      SUBROUTINE AIPRIN(X,VX,IARG,IRET)
-      DOUBLE PRECISION X(*),VX(*),CHP,CHPROB,DINGAU
-      INTEGER IARG,J
-#include "comcfit.inc"
-#include "nauxfit.inc"
-#include "cprofil.inc"
-      CHARACTER*19 TEXT(5)
-      DATA         TEXT   /'Chisquare too high ',
-     +                     'Too many iterations',
-     +                     'Unphysical region  ',
-     +                     'NDF less or equal 0',
-     +                     'AUX dimension small'/
-*     ...
-      IF(IARG.EQ.1) GOTO 10
-      IF(IARG.EQ.2) GOTO 20
-      IF(IARG.EQ.3) GOTO 30
-      IF(IARG.EQ.4) GOTO 40
-      IF(IARG.EQ.5) GOTO 50
-*     __________________________________________________________________
-*     APLCON Titel print
-      IF(IPR.GE.3) THEN  ! print
-         WRITE(LUNSIM,*) ' '
-         WRITE(LUNSIM,*) 'APLCON - constrained least squares',
-     +   '              Version  01/10/2011'
-         WRITE(LUNSIM,*) ' '
-         IF(IPR.GE.5.AND.NX.LE.128) THEN
-            CALL CFPRV(LUNSIM,X,VX,NX)
-         END IF
-      END IF
-      RETURN
-*     __________________________________________________________________      
-*     APLCON memory space error
- 10   IF(NDTOTL.GT.NAUX) THEN
-         WRITE(*,*) ' '
-         WRITE(*,*) 'APLCON  - constrained least squares'
-         WRITE(*,*) '          Case ',NCASE
-         WRITE(*,*) 'Insufficient space in internal array AUX(',NAUX,')'
-         WRITE(*,*) 'Required:',NDTOTL,' elements (at least)'
-         WRITE(*,*) '-> stop'
-         WRITE(*,*) ' '
-         STOP
-      END IF
-      RETURN
-*     __________________________________________________________________
-*     initial printout normal start
- 20   IF(IPR.GE.3) THEN
-         WRITE(LUNSIM,*) ' '
-         WRITE(LUNSIM,101) ' Constrained least squares fit:'
-         WRITE(LUNSIM,101) '                         case',NCASE 
-         WRITE(LUNSIM,101) '              nr of variables',NX
-         WRITE(LUNSIM,101) '            nr of constraints',NF
-         WRITE(LUNSIM,101) '           degrees of freedom',NDF     
-         WRITE(LUNSIM,102) '                      epsilon',EPSF
-         WRITE(LUNSIM,102) '     factors for numer. diff.',DERFAC,
-     +                     DERUFC,DERLOW
-         WRITE(LUNSIM,101) '          used array elements',NDTOT
-         WRITE(LUNSIM,101) '         total array elements',NDPDIM     
-      END IF
-
-      IF(IPR.GE.6.AND.NX.LE.32) THEN ! print
-         CALL CFPRV(LUNSIM,X,VX,NX)  ! initial parameter values
-      END IF
- 101  FORMAT(3X,A30,I7)
- 102  FORMAT(3X,A30,5X,1P,3E8.1)
- 109  FORMAT(3X,5G12.5)
- 105  FORMAT(' No convergence (',I3,' ITER, IRET =',I2,')  ',A)
- 119  FORMAT('Convergence after',I7,' iterations with chi^2=',G15.8,
-     +       '  ndf=',I4)
- 120  FORMAT(22X,'corresponding to P-value=',F11.6)
- 121  FORMAT(16X,'1-,2-sided standard deviations=',F11.6,',',F13.6)
- 122  FORMAT('P-value converted to number of standard deviations:')
- 110  FORMAT(/'Iteration    calls        chi^2  Frms       |F| ',
-     +     6X,'dchi^2',2X,'chi^2&Frms')
- 111  FORMAT(1X,I5,2X,I10,13X,E10.2,E10.2)
-      RETURN
-*     __________________________________________________________________
-*     iteration printout
- 30   IF(IPR.GE.4.AND.ITER.EQ.0) THEN 
-         WRITE(LUNSIM,110)
-         WRITE(LUNSIM,111) ITER,NCALLS,FRMS,FTEST
-      END IF 
-      IF(IPR.GE.4.AND.ITER.GE.1) THEN  
-         IF(NCST.EQ.0) THEN
-            WRITE(LUNSIM,211) ITER,NCALLS,CHISQ,FRMS,FTEST,
-     +      CHISQ-CHSQP,PENALT
-         ELSE
-            WRITE(LUNSIM,212) ITER,NCST,NCALLS,FRMS,FTEST 
-         END IF 
-      END IF
-      IF(IPR.GE.7.AND.NCST.EQ.0) THEN
-         CALL CFGMPR(LUNSIM,X,NX,1,'of X-values')
-         CALL CFGMPR(LUNSIM,F,NF,1,' of constraint function values')
-      END IF
-  211 FORMAT(1X,I5,    2X,I10,F13.3,E10.2,E10.2,E11.2,F10.3) 
-  212 FORMAT(1X,I5,'.',I1,I10,13X,E10.2,E10.2)
-      RETURN
-*     __________________________________________________________________
-*     final return with IRET = 0,1,2,3,4,5
- 40   IF(IPR.GE.1) THEN      ! print 
-         IF(IRET.EQ.0) THEN             ! convergence (IRET=0)
-            IF(IPR.GE.3) THEN
-               WRITE(LUNSIM,*) ' '
-               WRITE(LUNSIM,119) ITER,CHISQ,NDF
-               IF(NDF.GT.0) THEN
-                  CHP=CHPROB(CHISQ,NDF)   ! p-value  
-                  WRITE(LUNSIM,120) CHP
-                  IF(CHP.LT.0.05D0) THEN 
-                     WRITE(LUNSIM,122)
-                     WRITE(LUNSIM,121) DINGAU(1.0D0-0.5D0*CHP),
-     +                                 DINGAU(1.0D0-CHP)
-                  END IF
-               END IF
-            END IF     
-            IF(IPR.GE.4) THEN
-               IF(NX.LE.128) THEN
-                  CALL CFPRVP(LUNSIM,X,VX,AUX(INDPU+1),NX)
-                  IF(IPR.GE.5) THEN
-                     WRITE(LUNSIM,*) ' '
-                     CALL CFCORR(LUNSIM,VX,NX)
-                  END IF 
-               ELSE 
-                  WRITE(LUNSIM,*) '  x-vector (fitted):'
-                  WRITE(LUNSIM,109) (X(I),I=1,NX)
-               END IF
-               WRITE(LUNSIM,*) ' '
-            END IF              
-         ELSE IF(IPR.GE.3) THEN         ! non-convergence (IRET > 0)
-            WRITE(LUNSIM,105) ITER,IRET,TEXT(IRET)
-            WRITE(LUNSIM,*) ' ' 
-         END IF
-      END IF 
-      RETURN
-*     __________________________________________________________________
-*     
- 50   CONTINUE
-      RETURN
-*     __________________________________________________________________
-*     
-      ENTRY APRINI(IARG)
-      IF(IPR.GE.3) THEN  ! print
-         WRITE(LUNSIM,*) ('_',J=1,71)
-         WRITE(LUNSIM,*) ' '
-         WRITE(LUNSIM,*) 'APLCON - constrained least squares',
-     +   '                  Version  01/10/2011'
-         WRITE(LUNSIM,*) ('_',J=1,71)
-         WRITE(LUNSIM,*) ' '
-      END IF
       END 
 
       SUBROUTINE LESFCM(C)
