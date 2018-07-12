@@ -41,19 +41,6 @@ contains
     CALL SIMSEL(X,VX,NY,LIST,Y,VY)
   end subroutine C_APLCON_SIMSEL
 
-  ! printout related routines (useful for debugging)
-  subroutine C_APLCON_CIPRV(LUP,X,VX,N) bind(c)
-    integer(c_int), value, intent(in) :: LUP, N
-    real(c_double), dimension(*), intent(in) :: X, VX
-    CALL CIPRV(LUP,X,VX,N)
-  end subroutine C_APLCON_CIPRV
-
-  subroutine C_APLCON_CFPRV(LUP,X,VX,N) bind(c)
-    integer(c_int), value, intent(in) :: LUP, N
-    real(c_double), dimension(*), intent(in) :: X, VX
-    CALL CFPRV(LUP,X,VX,N)
-  end subroutine C_APLCON_CFPRV
-
   subroutine C_APLCON_CFCORR(LUP,V,N) bind(c)
     integer(c_int), value, intent(in) :: LUP, N
     real(c_double), dimension(*), intent(in) :: V
@@ -97,11 +84,6 @@ contains
     integer(c_int), value, intent(in) :: ITERMX
     CALL APITER(ITERMX)
   end subroutine C_APLCON_APITER
-
-  subroutine C_APLCON_APROFL(I1,I2) bind(c)
-    integer(c_int), value, intent(in) :: I1, I2
-    CALL APROFL(I1,I2)
-  end subroutine C_APLCON_APROFL
 
   subroutine C_APLCON_APSTEP(I,STEP) bind(c)
     integer(c_int), value, intent(in) :: I
