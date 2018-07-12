@@ -260,7 +260,6 @@
           NTINE=1                   ! fixed by user
        ELSE                         !
           IF(NTVAR.EQ.3) THEN       ! lognormal variable
-             WRITE(*,*) 'Step from to ',ST(I),ST(I)/X(I)
              ST(I)=ST(I)/X(I)       ! change step to log step
           ELSE IF(NTVAR.EQ.4) THEN  ! sqrt variable
              ST(I)=0.5D0*ST(I)/SQRT(X(I)) ! change step to sqrt step 
@@ -270,13 +269,11 @@
 *     __________________________________________________________________
 *     transform covariance matrix for transformed variables
        IF(NTVAR.EQ.4) THEN ! transform covariance matrix for logn
-          WRITE(*,*) 'lognormal variable',I,X(I)
           DO J=1,NX
            VX(IJSYM(I,J))=VX(IJSYM(I,J))/X(I)
            IF(I.EQ.J) VX(IJSYM(I,J))=VX(IJSYM(I,J))/X(I)
           END DO
        ELSE IF(NTVAR.EQ.5) THEN ! ... and for sqrt
-          WRITE(*,*) 'sqrt variable',I,X(I)
           DO J=1,NX
            VX(IJSYM(I,J))=VX(IJSYM(I,J))*0.5D0/SQRT(X(I))
            IF(I.EQ.J) VX(IJSYM(I,J))=VX(IJSYM(I,J))*0.5D0/SQRT(X(I))
