@@ -155,13 +155,10 @@ c      WRITE(*,*) 'APOISS I,IPAK,NTVAR,NTLIM ',I,IPAK,NTVAR,NTLIM
       IPAK=I
 #include "unpackfl.inc"
       NTLIM=1    ! positive
-c      WRITE(*,*) 'APOSIT I,IPAK, NTLIM=',I,IPAK,NTLIM
       GOTO 100
 *     __________________________________________________________________
  100  CONTINUE
 #include "packfl.inc"
-C#include "unpackfl.inc"
-C      WRITE(*,*) 'NTVAR =',NTVAR,I
       END 
 
       SUBROUTINE APSTAT(FOPT,NFUN,NITER)          ! return Fopt and Nfun      

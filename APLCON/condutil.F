@@ -339,31 +339,6 @@
       END DO
       END
 
-#ifdef mmm 
-      DOUBLE PRECISION FUNCTION SCALXY(X,Y,N) ! scalar vector product
-*     Scalar product of two vectors
-*                - - -                 T
-*        S = VXY(X,Y,N)           S = X  * Y (scalar product)
-*
-      IMPLICIT NONE
-      INTEGER N,I,M,J
-      DOUBLE PRECISION X(*),Y(*)
-      DOUBLE PRECISION SUM
-*     ...
-      SUM=0.0D0
-      M=N/4
-      I=0
-      DO J=1,M
-       SUM=SUM+X(I+1)*Y(I+1)+X(I+2)*Y(I+2)+X(I+3)*Y(I+3)+X(I+4)*Y(I+4)
-       I=I+4
-      END DO
-      DO J=I+1,N
-       SUM=SUM+X(J)*Y(J)
-      END DO
-      SCALXY=SUM
-      END
-#endif
-
       DOUBLE PRECISION FUNCTION SCALXY(X,Y,N) ! scalar vector product
 *     Scalar product of two vectors
 *                - - -                 T
@@ -465,55 +440,6 @@
  102  FORMAT(I5,2X,15I4)
  103  FORMAT(A9,I2,14I4)
       END
-
-#ifdef notyet
-      SUBROUTINE CGCORR(LUP,V,N) ! print matrix of correlation coefficients
-      DOUBLE PRECISION V(*),RHO,PRD
-      INTEGER MC(15)
-      CHARACTER*9 MODTX
-*     
-      DO I=1,MIN(N,15)
-       MC(I)=I  
-      END DO
-      WRITE(LUP,*) ' '
-      WRITE(LUP,*) 'Correlation coefficients'
-      WRITE(LUP,*) ' '
-      MODTX='    i    '
-      IF(N.GT.15) MODTX='mod(i,15)' 
-      WRITE(LUP,103) MODTX,(MC(K),K=1,MIN(N,15))
-      DO I=1,N
-       L=0
-       DO J=1,I
-        RHO=0.0D0
-        PRD=V(IJSYM(I,I))*V(IJSYM(J,J))
-        IF(PRD.GT.0.0D0) RHO=V(IJSYM(I,J))/SQRT(PRD)
-        IF(L.EQ.15) THEN
-           IF(J.EQ.L+1) THEN
-              WRITE(LUP,102) I,MC
-           ELSE
-              WRITE(LUP,101) (MC(K),K=1,L)
-           END IF
-           L=0
-        END IF  
-        L=L+1
-        MC(L)=100.0*ABS(RHO)+0.5
-        IF(RHO.LT.0.0) MC(L)=-MC(L)
-       END DO 
-       IF(I.LE.15) THEN 
-          WRITE(LUP,102) I,(MC(K),K=1,L)
-       END IF
-      END DO
-      DO I=1,MIN(N,15)
-       MC(I)=I  
-      END DO
-      WRITE(LUP,103) MODTX,(MC(K),K=1,MIN(N,15))
-      WRITE(LUP,*) '(coefficients in %)'
-      WRITE(LUP,*) ' ' 
- 101  FORMAT(7X,   15I4) 
- 102  FORMAT(I5,'|  ',15I4)
- 103  FORMAT(A9,I2,14I4)
-      END
-#endif
 
 
       SUBROUTINE SIMSEL(X,VX,NY,LIST,Y,VY)
