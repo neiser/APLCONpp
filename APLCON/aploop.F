@@ -36,9 +36,6 @@
       INDTR=INDST+NX      ! transformation flags
       INDLM=INDTR+NX      ! 2*limits for variables
       NDTOT=INDLM+2*NX    ! space used so far
-      IF(NDTOT.GT.NAUX) THEN
-         STOP
-      END IF
 *     __________________________________________________________________
 *     storage of initial sub-arrays
 *           1 ...    NX * (NF+2)   Jacobian, derivative matrix   A(.)
@@ -81,9 +78,6 @@
       INDPU=INDAS+NX             ! pulls, solution X and Vx
       NDTOT=INDPU+NX             ! total number of words (so far)  
       NDTOTL=NDTOT
-      IF(NDTOTL.GT.NAUX) THEN
-         STOP
-      END IF
       DO I=INDLM+2*NX+1,NDTOT
        AUX(I)=0.0D0          ! reset part of aux, unused so far
       END DO

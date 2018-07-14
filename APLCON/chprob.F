@@ -38,7 +38,6 @@
           SUM=SUM+DEL
           IF(ABS(DEL).LT.ABS(SUM)*EPS) GOTO 10
          END DO
-         STOP 'DGAMIN:  error 1'
  10      DGAMIN=SUM*EXP(-X+A*LOG(X)-GLN)
       ELSE                     ! continued fraction representation
          GLN=DGAMML(A)         ! ln[Gamma(a)]
