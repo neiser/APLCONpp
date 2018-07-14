@@ -12,3 +12,5 @@ mv aplusopt.f90 aplusopt.f90.F
 mv aplist.f90 aplist.f90.F
 f2c *.f90.F
 rm *.f90.F
+clang-format -i *.f90.c
+
