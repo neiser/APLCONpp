@@ -1,19 +1,16 @@
 cmake_minimum_required (VERSION 3.0)
-project(APLCONpp CXX Fortran)
+project(APLCONpp CXX C)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/Modules)
 
 # set also default CMAKE_BUILD_TYPE to Release
 include(ConfigSafeGuards)
 
-if((CMAKE_CXX_COMPILER_ID MATCHES GNU) OR (CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    AND (CMAKE_Fortran_COMPILER_ID MATCHES GNU))
+if((CMAKE_CXX_COMPILER_ID MATCHES GNU) OR (CMAKE_CXX_COMPILER_ID MATCHES Clang))
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   set(DEBUG_FLAGS "-O0 -Wall -Wextra")
   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${DEBUG_FLAGS}")
   set(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG} ${DEBUG_FLAGS}")
-  # suppress warnings in release mode (just not to confuse people)
-  set(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE} -w")
 else()
   message(FATAL_ERROR "Only GNU/Clang CXX and GNU Fortran compiler supported")
 endif()
@@ -31,7 +28,7 @@ add_subdirectory(APLCON)
 
 add_library(aplcon++ SHARED
     src/APLCON.hpp src/detail/APLCON_hpp.hpp
-    src/wrapper/APLCON.f90 src/wrapper/APLCON.h
+    src/wrapper/APLCON.c src/wrapper/APLCON.h
     $<TARGET_OBJECTS:aplcon>)
   
 # Benchmarking business

@@ -1,19 +1,15 @@
-if(NOT CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
-  message(FATAL_ERROR "Only GNU Fortran compiler supported")
-endif()
-
 # those flags (from original Makefile)
 # are crucial to make the program run properly
 # otherwise you end up in an endless loop...
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fno-automatic -fno-backslash")
+#set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -fno-automatic -fno-backslash")
 
 # build the library
 set(SRCS_LIB
-  aplist.F
-  aploop.F
-  aplusopt.F
-  chprob.F
-  condutil.F
+  aplist.f90.c
+  aploop.f90.c
+  aplusopt.f90.c
+  chprob.f90.c
+  condutil.f90.c
   )
 
 add_library(aplcon OBJECT ${SRCS_LIB})
