@@ -4,6 +4,7 @@ typedef integer logical;
 #define TRUE_ (1)
 #define FALSE_ (0)
 #define max(a,b) ((a) >= (b) ? (a) : (b))
+#define abs(x) ((x) >= 0 ? (x) : -(x))
 
 integer ijsym_(integer *i__, integer *j) {
   /* System generated locals */
