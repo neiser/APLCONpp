@@ -1,3 +1,5 @@
+#include <math.h>
+
 typedef double doublereal;
 typedef int integer;
 typedef integer logical;

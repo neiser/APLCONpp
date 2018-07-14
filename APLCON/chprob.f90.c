@@ -1,3 +1,5 @@
+#include <math.h>
+
 typedef double doublereal;
 typedef int integer;
 #define abs(x) ((x) >= 0 ? (x) : -(x))
