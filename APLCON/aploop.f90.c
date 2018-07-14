@@ -136,10 +136,6 @@ static integer c__1 = 1;
     simcom_1.indlm = simcom_1.indtr + simcom_1.nx;
 /* 2*limits for variables */
     simcom_1.ndtot = simcom_1.indlm + (simcom_1.nx << 1);
-/* space used so far */
-    if (simcom_1.ndtot > 125000) {
-	s_stop("", (ftnlen)0);
-    }
 /*     __________________________________________________________________ */
 /*     storage of initial sub-arrays */
 /*           1 ...    NX * (NF+2)   Jacobian, derivative matrix   A(.) */
@@ -148,6 +144,7 @@ static integer c__1 = 1;
 /*     INDLM+1 ...    2 * NX        limits for variables          XL(2,.) */
 /*                    ----------- */
 /*     NDTOT =        NX * (NF+6)   initial memory area */
+/* space used so far */
     i__1 = simcom_1.ndtot;
     for (ij = 1; ij <= i__1; ++ij) {
 /* NX*(NF+6) */
@@ -262,9 +259,6 @@ static integer c__1 = 1;
     simcom_1.ndtot = simcom_1.indpu + simcom_1.nx;
 /* total number of words (so far) */
     simcom_1.ndtotl = simcom_1.ndtot;
-    if (simcom_1.ndtotl > 125000) {
-	s_stop("", (ftnlen)0);
-    }
     i__1 = simcom_1.ndtot;
     for (i__ = simcom_1.indlm + (simcom_1.nx << 1) + 1; i__ <= i__1; ++i__) {
 	nauxcm_1.aux[i__ - 1] = 0.;
@@ -905,67 +899,13 @@ L10:
 /*     __________________________________________________________________ */
 /*     define displaced values for derivative calculation */
     if (ilr == 0) {
-L20:
+/* L20: */
 	if (ntvar == 0 || ntvar == 2 || ntvar == 3) {
 	    xt[0] = xsave + st[i__];
 /* symmetric (two-sided) steps */
 	    xt[1] = xsave - st[i__];
 	    xd[0] = xt[0];
 	    xd[1] = xt[1];
-	} else if (ntvar == 1) {
-/* 1/x */
-	    xt[0] = 1. / xsave + st[i__];
-/* internal */
-	    xt[1] = 1. / xsave - st[i__];
-	    xd[0] = 1. / xt[0];
-/* external */
-	    xd[1] = 1. / xt[1];
-	} else if (ntvar == 4) {
-/* log-normal */
-	    xt[0] = log(xsave) + st[i__];
-/* internal */
-	    xt[1] = log(xsave) - st[i__];
-	    xd[0] = exp(xt[0]);
-/* external */
-	    xd[1] = exp(xt[1]);
-	} else if (ntvar == 5) {
-/* sqrt */
-/* Computing 2nd power */
-	    d__1 = st[i__];
-	    if (d__1 * d__1 >= xsave) {
-		if (xsave <= 0.) {
-		    ntvar = 0;
-/*     packfl.inc   = code for flag packing */
-/*     explanation see: */
-/*     unpackfl.inc = code for flag unpacking */
-		    nauxcm_1.aux[simcom_1.indtr + simcom_1.ipak - 1] = (
-			    doublereal) (((((ntprf * 10 + ntlim) * 10 + ntine)
-			     * 10 + ntder) * 10 + ntmes) * 10 + ntvar);
-		    goto L20;
-		} else {
-		    st[i__] = sqrt(xsave) * .9;
-		}
-	    }
-	    xt[0] = sqrt(xsave) + st[i__];
-/* internal */
-	    xt[1] = sqrt(xsave) - st[i__];
-/* Computing 2nd power */
-	    d__1 = xt[0];
-	    xd[0] = d__1 * d__1;
-/* external */
-/* Computing 2nd power */
-	    d__1 = xt[1];
-	    xd[1] = d__1 * d__1;
-	} else if (ntvar == 6) {
-/* x**power */
-	    xt[0] = pow_dd(&xsave, &xl[(i__ << 1) + 2]) + st[i__];
-/* internal */
-	    xt[1] = pow_dd(&xsave, &xl[(i__ << 1) + 2]) - st[i__];
-	    d__1 = 1. / xl[(i__ << 1) + 2];
-	    xd[0] = pow_dd(xt, &d__1);
-/* external */
-	    d__1 = 1. / xl[(i__ << 1) + 2];
-	    xd[1] = pow_dd(&xt[1], &d__1);
 	}
     }
 /*     __________________________________________________________________ */

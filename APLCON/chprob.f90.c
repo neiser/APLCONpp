@@ -69,7 +69,6 @@ doublereal dgamin_(doublereal *a, doublereal *x)
 		goto L10;
 	    }
 	}
-	s_stop("DGAMIN:  error 1", (ftnlen)16);
 L10:
 	ret_val = sum * exp(-(*x) + *a * log(*x) - gln);
     } else {
