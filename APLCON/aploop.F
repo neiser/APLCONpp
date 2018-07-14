@@ -360,35 +360,6 @@
             XT(2)=XSAVE-ST(I)
             XD(1)=XT(1)
             XD(2)=XT(2)
-         ELSE IF(NTVAR.EQ.1) THEN   ! 1/x
-            XT(1)=1.0D0/XSAVE+ST(I) ! internal
-            XT(2)=1.0D0/XSAVE-ST(I) 
-            XD(1)=1.0D0/XT(1)       ! external
-            XD(2)=1.0D0/XT(2)
-         ELSE IF(NTVAR.EQ.4) THEN   ! log-normal
-            XT(1)=LOG(XSAVE)+ST(I)  ! internal
-            XT(2)=LOG(XSAVE)-ST(I)
-            XD(1)=EXP(XT(1))        ! external
-            XD(2)=EXP(XT(2))
-         ELSE IF(NTVAR.EQ.5) THEN ! sqrt
-            IF(ST(I)**2.GE.XSAVE) THEN
-               IF(XSAVE.LE.0.0D0) THEN
-                  NTVAR=0 
-#include "packfl.inc"
-                  GOTO 20
-               ELSE
-                  ST(I)=0.9D0*SQRT(XSAVE)
-               END IF
-            END IF
-            XT(1)=SQRT(XSAVE)+ST(I) ! internal 
-            XT(2)=SQRT(XSAVE)-ST(I)
-            XD(1)=XT(1)**2          ! external
-            XD(2)=XT(2)**2
-         ELSE IF(NTVAR.EQ.6) THEN ! x**power       
-            XT(1)=XSAVE**XL(2,I)+ST(I)   ! internal
-            XT(2)=XSAVE**XL(2,I)-ST(I)
-            XD(1)=XT(1)**(1.0D0/XL(2,I)) ! external
-            XD(2)=XT(2)**(1.0D0/XL(2,I))
          END IF
       END IF
 *     __________________________________________________________________
