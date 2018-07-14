@@ -11,7 +11,6 @@
 */
 
 #include <f2c.h>
-#include <stdlib.h> /* For exit() */
 
 /* Common Block Declarations */
 

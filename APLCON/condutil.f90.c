@@ -11,7 +11,6 @@
 */
 
 #include <f2c.h>
-#include <stdlib.h> /* For exit() */
 
 integer ijsym_(integer *i__, integer *j) {
   /* System generated locals */

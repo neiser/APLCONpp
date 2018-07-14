@@ -11,7 +11,6 @@
 */
 
 #include <f2c.h>
-#include <stdlib.h> /* For exit() */
 
 doublereal chprob_(doublereal *chisq, integer *n) {
   /* System generated locals */
