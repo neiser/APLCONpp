@@ -29,50 +29,6 @@ struct {
   /* Local variables */
   static integer i__;
 
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
-
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     ... */
   /* Parameter adjustments */
   --pulls;
 

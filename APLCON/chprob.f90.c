@@ -87,7 +87,7 @@ doublereal dgamin_(doublereal *a, doublereal *x) {
         goto L20;
       }
     }
-    return ret_val;
+    return 0;
   L20:
     ret_val = 1. - exp(-(*x) + *a * log(*x) - gln) * h__;
   }

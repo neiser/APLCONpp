@@ -48,51 +48,6 @@ static integer c__1 = 1;
   /*     define pointer to arrays within aux array */
   /*     clear aux array */
   /*     ================================================================== */
-  /* dimension parameters */
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /* ,I1,I2,NFF,I */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
-
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
   simcom_1.nx = *nvar;
   /* number of variables */
   simcom_1.nf = *mcst;
@@ -167,49 +122,7 @@ static integer c__1 = 1;
               integer *);
 
   /* steering routine for loop */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
 
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
   /* Parameter adjustments */
   --f;
   --vx;
@@ -301,57 +214,6 @@ L10:
   /* steering routine for loop */
   /* ,FOPT,FAC */
   /*     local variables */
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /* constraint values */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
-
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     __________________________________________________________________ */
-  /*                    = -1  numerical derivatives */
-  /*                    =  0  constraint function evaluation */
-  /*                    =  1  constraint function with test afterwards */
-  /*                    =  2  end-of-fit */
-  /*     __________________________________________________________________ */
-  /*     ... */
   /* Parameter adjustments */
   --rh;
   --xp;
@@ -512,51 +374,7 @@ L80:
   /*     ================================================================== */
 
   /* define initial steps */
-  /*     flags used in packfl.inc, unpackfl.inc */
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
 
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     ... */
   /* Parameter adjustments */
   --st;
   --vx;
@@ -744,50 +562,7 @@ L80:
   /*     ================================================================== */
 
   /* numerical derivatives */
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
 
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     flags used in packfl.inc, unpackfl.inc */
   /* Parameter adjustments */
   --hh;
   --fc;
@@ -1017,51 +792,7 @@ L30:
   extern doublereal scalxy_(doublereal *, doublereal *, integer *);
 
   /* next iteration step */
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
 
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     flags used in packfl.inc, unpackfl.inc */
-  /*     ... */
   /* Parameter adjustments */
   --dx;
   --wm;
@@ -1174,51 +905,6 @@ L30:
   /* Local variables */
   static integer i__, ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
 
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
-
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     flags used in packfl.inc, unpackfl.inc */
-  /*     ... */
   /* Parameter adjustments */
   --xp;
   --dx;
@@ -1272,49 +958,6 @@ L30:
   extern /* Subroutine */ int lesfcm_(doublereal *);
   static real factor, dchisq;
 
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /* test convergence */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
-
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     .... */
   *iret = -1;
   /* calculate new Jacobian */
   simcom_1.iunph = 0;
@@ -1413,50 +1056,7 @@ L30:
   static integer i__, ii;
   static doublereal scopy;
 
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
 
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     Auxiliary array for all arrays used in APLCON */
-  /* 1 Mega byte */
-  /*     ... */
   /*     __________________________________________________________________ */
   /*     convergence: pull calculation */
   /* Parameter adjustments */
@@ -1517,48 +1117,6 @@ L30:
 /* Subroutine */ int chndpv_(real *chi2, integer *nd, real *pval) {
   extern doublereal chprob_(doublereal *, integer *);
 
-  /*     =========================== MACRO ================================ */
-  /*     Parameter statement for basic dimensions */
-  /*     Definition of common for APLCON/ERRPRP/SIM... subroutines */
-
-  /*     NX       = number of parameters */
-  /*     NF       = number of constraint equations */
-  /*     NUM      = flag for numerical differentiation */
-  /*                = 0  analytical derivatives */
-  /*                = 1  numerical derivatives */
-  /*                = 2  numerical derivatives, compare with analytical */
-  /*     IFLG     = flag for first case (check derivative) */
-  /*     INIT     = flag */
-  /*                = 1  deriving */
-  /*                = 0  else */
-
-  /*     EPSF     = required |F| accuracy */
-  /*     ISTAT    = status flag */
-  /*                =0 */
-  /*                =1  derivative matrix finished */
-  /*                =2  X(.) corrections applied */
-
-  /*     XL(2,.)  = lower and upper values of parameters */
-  /*     ST(.)    = step sizes for numerical differentiation */
-  /*     FC(.)    = central values of parameters */
-  /*     H(.)     = copy */
-
-  /*     A        = derivative matrix a/flags during matrix inversion/pulls */
-  /*     A(NX,NF) */
-
-  /*     ****************************************************************** */
-
-  /*     ND       = number of degrees of freedom */
-  /*              = number of constraint equations minus number of */
-  /*                unmeasured parameters */
-  /*     CHSQ     = chi square */
-
-  /*     DERFAC   = factor for standard deviation in numerical derivatives */
-
-  /*     NDENDE   = index of last used word incl. single-precision array */
-  /*     NDACTL   = index of actual single-precision array */
-  /*     =========================end=of=macro============================= */
-  /*     ... */
   *chi2 = simcom_1.chisq;
   /* chi^square */
   *nd = simcom_1.ndf;
