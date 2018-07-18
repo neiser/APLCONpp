@@ -838,7 +838,6 @@ L30:
 
   *iret = -1;
   /* calculate new Jacobian */
-  simcom_.iunph = 0;
   /*     __________________________________________________________________ */
   /*     combined measure? */
   if (simcom_.iter == 1 && simcom_.ncst == 0) {
@@ -895,10 +894,8 @@ L30:
   }
   /*     __________________________________________________________________ */
   /*     cutstep */
-  if (simcom_.ncst < 2 &&
-      (simcom_.iunph != 0 ||
-       (simcom_.iter > 1 &&
-           simcom_.ftest > simcom_.ftestp * 2. + simcom_.epsf))) {
+  if (simcom_.ncst < 2 && simcom_.iter > 1 &&
+           simcom_.ftest > simcom_.ftestp * 2. + simcom_.epsf) {
     ++simcom_.ncst;
     simcom_.weight = .25;
     simcom_.weight = .5;
