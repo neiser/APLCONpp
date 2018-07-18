@@ -4,7 +4,6 @@ typedef double doublereal;
 typedef int integer;
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
-
 doublereal chprob_(doublereal *chisq, integer *n) {
   /* System generated locals */
   doublereal ret_val, d__1, d__2;

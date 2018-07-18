@@ -1,8 +1,8 @@
 typedef double doublereal;
 typedef int integer;
 typedef float real;
-#define min(a,b) ((a) <= (b) ? (a) : (b))
-#define max(a,b) ((a) >= (b) ? (a) : (b))
+#define min(a, b) ((a) <= (b) ? (a) : (b))
+#define max(a, b) ((a) >= (b) ? (a) : (b))
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
 /* Common Block Declarations */
@@ -34,12 +34,12 @@ struct {
   /*     parameters for fit method */
   /*     __________________________________________________________________ */
   switch (n__) {
-  case 2:
-    goto L_apdeps;
-  case 8:
-    goto L_apstep;
-  case 12:
-    goto L_apoiss;
+    case 2:
+      goto L_apdeps;
+    case 8:
+      goto L_apstep;
+    case 12:
+      goto L_apoiss;
   }
 
 L_apdeps:
@@ -109,7 +109,6 @@ L_apoiss:
   goto L100;
   /*     __________________________________________________________________ */
 
-
 /*     __________________________________________________________________ */
 L100:
   /*     packfl.inc   = code for flag packing */
@@ -138,7 +137,6 @@ L100:
                    (integer *)0, i__, (doublereal *)0, (doublereal *)0,
                    (doublereal *)0, (integer *)0, (doublereal *)0);
 }
-
 
 /* Subroutine */ int apstat_(doublereal *fopt, integer *nfun, integer *niter) {
   /*     __________________________________________________________________ */

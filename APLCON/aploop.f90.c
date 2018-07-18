@@ -6,9 +6,9 @@ typedef integer logical;
 typedef float real;
 #define TRUE_ (1)
 #define FALSE_ (0)
-#define dabs(x) (doublereal)abs(x)
-#define min(a,b) ((a) <= (b) ? (a) : (b))
-#define max(a,b) ((a) >= (b) ? (a) : (b))
+#define dabs(x) (doublereal) abs(x)
+#define min(a, b) ((a) <= (b) ? (a) : (b))
+#define max(a, b) ((a) >= (b) ? (a) : (b))
 #define abs(x) ((x) >= 0 ? (x) : -(x))
 
 /* Common Block Declarations */
@@ -353,7 +353,6 @@ L80:
 } /* iploop_ */
 
 /* Subroutine */ int asteps_(doublereal *x, doublereal *vx, doublereal *st) {
-
   /* System generated locals */
   integer i__1, i__2;
   doublereal d__1, d__2, d__3, d__4, d__5;
@@ -453,7 +452,6 @@ L80:
     if (ntine == 1) {
       st[i__] = 0.;
     }
-
   }
   return 0;
 } /* asteps_ */
@@ -996,7 +994,6 @@ L30:
   /* Local variables */
   static integer i__, ii;
   static doublereal scopy;
-
 
   /*     __________________________________________________________________ */
   /*     convergence: pull calculation */
