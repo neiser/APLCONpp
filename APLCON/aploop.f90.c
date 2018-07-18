@@ -22,13 +22,9 @@ struct {
       ncalls, ndpdim, indqn, itermx, nauxc, indpu, nfprim, ndtotl;
 } simcom_;
 
-#define simcom_1 simcom_
-
 struct {
   doublereal aux[125000];
 } nauxcm_;
-
-#define nauxcm_1 nauxcm_
 
 /* Table of constant values */
 
@@ -47,45 +43,45 @@ static integer c__1 = 1;
   /*     define pointer to arrays within aux array */
   /*     clear aux array */
   /*     ================================================================== */
-  simcom_1.nx = *nvar;
+  simcom_.nx = *nvar;
   /* number of variables */
-  simcom_1.nf = *mcst;
+  simcom_.nf = *mcst;
   /* number of constraint equations */
-  simcom_1.nfprim = simcom_1.nf;
+  simcom_.nfprim = simcom_.nf;
   /* primary value of NF */
-  simcom_1.ndpdim = 125000;
+  simcom_.ndpdim = 125000;
   /* dimension of AUX array */
-  simcom_1.derfac = .001;
+  simcom_.derfac = .001;
   /* derivative factor */
-  simcom_1.derufc = 1e-5;
+  simcom_.derufc = 1e-5;
   /* factor or unmeasured variable */
-  simcom_1.derlow = .01;
+  simcom_.derlow = .01;
   /* factor for lower limit */
-  simcom_1.epsf = 1e-6;
+  simcom_.epsf = 1e-6;
   /* accuracy limit */
-  simcom_1.epschi = 1e-5;
+  simcom_.epschi = 1e-5;
   /* chi2 accuracy limit */
-  simcom_1.itermx = 10;
+  simcom_.itermx = 10;
   /* max number of iterations */
-  simcom_1.nauxc = 125000;
+  simcom_.nauxc = 125000;
   /* copy AUX dimension */
-  simcom_1.init = 0;
-  simcom_1.istat = 0;
+  simcom_.init = 0;
+  simcom_.istat = 0;
   /* init phase */
-  simcom_1.nxf = simcom_1.nx + simcom_1.nf;
+  simcom_.nxf = simcom_.nx + simcom_.nf;
   /* total number of fit equations */
-  simcom_1.mxf = (simcom_1.nxf * simcom_1.nxf + simcom_1.nxf) / 2;
+  simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
   /* ______________________________________________________________________ */
   /*     Indices for steps, flags and limits are defined here */
   /* reserve NX * (NF + 2) for Jacobian */
   /* number elements symmetric matrix */
-  simcom_1.indst = simcom_1.nx * (simcom_1.nf + 2);
+  simcom_.indst = simcom_.nx * (simcom_.nf + 2);
   /* steps */
-  simcom_1.indtr = simcom_1.indst + simcom_1.nx;
+  simcom_.indtr = simcom_.indst + simcom_.nx;
   /* transformation flags */
-  simcom_1.indlm = simcom_1.indtr + simcom_1.nx;
+  simcom_.indlm = simcom_.indtr + simcom_.nx;
   /* 2*limits for variables */
-  simcom_1.ndtot = simcom_1.indlm + (simcom_1.nx << 1);
+  simcom_.ndtot = simcom_.indlm + (simcom_.nx << 1);
   /*     __________________________________________________________________ */
   /*     storage of initial sub-arrays */
   /*           1 ...    NX * (NF+2)   Jacobian, derivative matrix   A(.) */
@@ -95,15 +91,15 @@ static integer c__1 = 1;
   /*                    ----------- */
   /*     NDTOT =        NX * (NF+6)   initial memory area */
   /* space used so far */
-  i__1 = simcom_1.ndtot;
+  i__1 = simcom_.ndtot;
   for (ij = 1; ij <= i__1; ++ij) {
     /* NX*(NF+6) */
-    nauxcm_1.aux[ij - 1] = 0.;
+    nauxcm_.aux[ij - 1] = 0.;
     /* clear  A(.), ST(.),...,XL(2,.) */
   }
-  simcom_1.ndf = simcom_1.nf;
+  simcom_.ndf = simcom_.nf;
   /* reset n d f */
-  simcom_1.ncalls = 0;
+  simcom_.ncalls = 0;
   /* reset number of calls */
   return 0;
 } /* aplcon_ */
@@ -128,59 +124,59 @@ static integer c__1 = 1;
   --x;
 
   /* Function Body */
-  if (simcom_1.ncalls != 0) {
+  if (simcom_.ncalls != 0) {
     goto L10;
   }
   /*     __________________________________________________________________ */
   /*     indices/pointer etc at first APLOOP entry */
-  nff = simcom_1.nf;
+  nff = simcom_.nf;
   /* max. number of constraints */
-  simcom_1.nxf = simcom_1.nx + nff;
+  simcom_.nxf = simcom_.nx + nff;
   /* total number of fit equations */
-  simcom_1.mxf = (simcom_1.nxf * simcom_1.nxf + simcom_1.nxf) / 2;
+  simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
   /* number elements symmetric matrix */
-  simcom_1.indfc = simcom_1.indlm + (simcom_1.nx << 1);
+  simcom_.indfc = simcom_.indlm + (simcom_.nx << 1);
   /* pointer to FC(NF) = copy of F(NF) */
-  simcom_1.indcf = simcom_1.indfc + nff;
+  simcom_.indcf = simcom_.indfc + nff;
   /* pointer to FCOPY */
-  simcom_1.indhh = simcom_1.indcf + nff;
+  simcom_.indhh = simcom_.indcf + nff;
   /* pointer to HH(NF) = copy of F(.) */
-  simcom_1.indxs = simcom_1.indhh + nff;
+  simcom_.indxs = simcom_.indhh + nff;
   /* save X(.)        pointer */
-  simcom_1.inddx = simcom_1.indxs + simcom_1.nx;
+  simcom_.inddx = simcom_.indxs + simcom_.nx;
   /* step */
-  simcom_1.indxp = simcom_1.inddx + simcom_1.nx;
+  simcom_.indxp = simcom_.inddx + simcom_.nx;
   /* previos step */
-  simcom_1.indrh = simcom_1.indxp + simcom_1.nx;
+  simcom_.indrh = simcom_.indxp + simcom_.nx;
   /* right-hand side */
-  simcom_1.indwm = simcom_1.indrh + simcom_1.nxf;
+  simcom_.indwm = simcom_.indrh + simcom_.nxf;
   /* weight matrix */
-  simcom_1.india = simcom_1.indwm + simcom_1.mxf;
+  simcom_.india = simcom_.indwm + simcom_.mxf;
   /* matrix diagonal "DIAG" */
-  simcom_1.indqn = simcom_1.india + simcom_1.nxf;
+  simcom_.indqn = simcom_.india + simcom_.nxf;
   /* next pointer    "QNEXT" */
-  simcom_1.indas = simcom_1.indqn + simcom_1.nxf;
+  simcom_.indas = simcom_.indqn + simcom_.nxf;
   /* X result */
-  simcom_1.indpu = simcom_1.indas + simcom_1.nx;
+  simcom_.indpu = simcom_.indas + simcom_.nx;
   /* pulls, solution X and Vx */
-  simcom_1.ndtot = simcom_1.indpu + simcom_1.nx;
+  simcom_.ndtot = simcom_.indpu + simcom_.nx;
   /* total number of words (so far) */
-  simcom_1.ndtotl = simcom_1.ndtot;
-  i__1 = simcom_1.ndtot;
-  for (i__ = simcom_1.indlm + (simcom_1.nx << 1) + 1; i__ <= i__1; ++i__) {
-    nauxcm_1.aux[i__ - 1] = 0.;
+  simcom_.ndtotl = simcom_.ndtot;
+  i__1 = simcom_.ndtot;
+  for (i__ = simcom_.indlm + (simcom_.nx << 1) + 1; i__ <= i__1; ++i__) {
+    nauxcm_.aux[i__ - 1] = 0.;
     /* reset part of aux, unused so far */
   }
-  asteps_(&x[1], &vx[1], &nauxcm_1.aux[simcom_1.indst]);
+  asteps_(&x[1], &vx[1], &nauxcm_.aux[simcom_.indst]);
 /*     __________________________________________________________________ */
 /*     internal APLOOP */
 /* initial steps ST(.) */
 L10:
   *iret = -1;
   /* default status is -1 = continue */
-  iploop_(&x[1], &vx[1], &f[1], &nauxcm_1.aux[simcom_1.indxs],
-          &nauxcm_1.aux[simcom_1.inddx], &nauxcm_1.aux[simcom_1.indcf],
-          &nauxcm_1.aux[simcom_1.indxp], &nauxcm_1.aux[simcom_1.indrh], iret);
+  iploop_(&x[1], &vx[1], &f[1], &nauxcm_.aux[simcom_.indxs],
+          &nauxcm_.aux[simcom_.inddx], &nauxcm_.aux[simcom_.indcf],
+          &nauxcm_.aux[simcom_.indxp], &nauxcm_.aux[simcom_.indrh], iret);
   return 0;
 } /* aploop_ */
 
@@ -224,19 +220,19 @@ L10:
   --x;
 
   /* Function Body */
-  ++simcom_1.ncalls;
+  ++simcom_.ncalls;
   /*     __________________________________________________________________ */
   /*     initialization */
   /* count calls */
-  if (simcom_1.ncalls != 1) {
+  if (simcom_.ncalls != 1) {
     goto L20;
   }
   istatu = 0;
   /* !! */
   nfit = 0;
   /* reset fit count */
-  simcom_1.iter = 0;
-  i__1 = simcom_1.nx;
+  simcom_.iter = 0;
+  i__1 = simcom_.nx;
   for (j = 1; j <= i__1; ++j) {
     xs[j] = x[j];
     /* save initial X values */
@@ -248,11 +244,11 @@ L10:
   /* L10: */
   ++nfit;
   /* count fits */
-  simcom_1.iter = 0;
-  simcom_1.ncst = 0;
-  simcom_1.chisq = 0.;
+  simcom_.iter = 0;
+  simcom_.ncst = 0;
+  simcom_.chisq = 0.;
 L20:
-  i__1 = simcom_1.nf;
+  i__1 = simcom_.nf;
   for (j = 1; j <= i__1; ++j) {
     fj = f[j];
     fex[j - 1] = fj;
@@ -263,29 +259,29 @@ L20:
   if (istatu < 0) {
     goto L40;
   }
-  simcom_1.ftestp = simcom_1.ftest;
+  simcom_.ftestp = simcom_.ftest;
   /* save previous value */
-  simcom_1.ftest = 0.;
+  simcom_.ftest = 0.;
   /* reset constraint tests */
-  simcom_1.frmsp = simcom_1.frms;
-  simcom_1.frms = 0.;
-  i__1 = simcom_1.nf;
+  simcom_.frmsp = simcom_.frms;
+  simcom_.frms = 0.;
+  i__1 = simcom_.nf;
   for (j = 1; j <= i__1; ++j) {
     fj = f[j];
     fcopy[j] = fj;
     /* copy constraint vector */
-    simcom_1.ftest += abs(fj);
+    simcom_.ftest += abs(fj);
     /* sum absolute values */
     /* Computing 2nd power */
     d__1 = fj;
-    simcom_1.frms += d__1 * d__1;
+    simcom_.frms += d__1 * d__1;
     /* sum squares */
   }
   /* Computing MAX */
-  d__1 = 1e-16, d__2 = simcom_1.ftest / (real)simcom_1.nf;
-  simcom_1.ftest = max(d__1, d__2);
+  d__1 = 1e-16, d__2 = simcom_.ftest / (real)simcom_.nf;
+  simcom_.ftest = max(d__1, d__2);
   /* average |F| */
-  simcom_1.frms = sqrt(simcom_1.frms / (real)simcom_1.nf + 1e-32);
+  simcom_.frms = sqrt(simcom_.frms / (real)simcom_.nf + 1e-32);
   /* LS mean */
   if (istatu == 1) {
     goto L60;
@@ -302,9 +298,9 @@ L40:
     goto L50;
   }
   /* ISTATU=-1 */
-  anumde_(&x[1], fex, nauxcm_1.aux, &nauxcm_1.aux[simcom_1.indst],
-          &nauxcm_1.aux[simcom_1.indlm], &nauxcm_1.aux[simcom_1.indfc],
-          &nauxcm_1.aux[simcom_1.indhh], &jret);
+  anumde_(&x[1], fex, nauxcm_.aux, &nauxcm_.aux[simcom_.indst],
+          &nauxcm_.aux[simcom_.indlm], &nauxcm_.aux[simcom_.indfc],
+          &nauxcm_.aux[simcom_.indhh], &jret);
   /* derivative matrix A */
   /* steps  ST(.) */
   /* limits XL(2,.) */
@@ -318,8 +314,8 @@ L40:
 /*     next iteration */
 /* ...for constraint calculation */
 L50:
-  aniter_(&x[1], &vx[1], &fcopy[1], nauxcm_1.aux, &xp[1], &rh[1],
-          &nauxcm_1.aux[simcom_1.indwm], &dx[1]);
+  aniter_(&x[1], &vx[1], &fcopy[1], nauxcm_.aux, &xp[1], &rh[1],
+          &nauxcm_.aux[simcom_.indwm], &dx[1]);
   goto L70;
 /*     __________________________________________________________________ */
 /*     test cutsteps */
@@ -344,9 +340,9 @@ L70:
 /*     end-of-primary-fit (NFIT=1) */
 L80:
   istatu = 2;
-  acopxv_(&x[1], &vx[1], &nauxcm_1.aux[simcom_1.inddx],
-          &nauxcm_1.aux[simcom_1.indas], &nauxcm_1.aux[simcom_1.indwm],
-          &nauxcm_1.aux[simcom_1.indpu]);
+  acopxv_(&x[1], &vx[1], &nauxcm_.aux[simcom_.inddx],
+          &nauxcm_.aux[simcom_.indas], &nauxcm_.aux[simcom_.indwm],
+          &nauxcm_.aux[simcom_.indpu]);
   *iret = 0;
   return 0;
 } /* iploop_ */
@@ -381,12 +377,12 @@ L80:
 
   /* Function Body */
   ii = 0;
-  i__1 = simcom_1.nx;
+  i__1 = simcom_.nx;
   for (i__ = 1; i__ <= i__1; ++i__) {
     /* loop on all variables */
-    simcom_1.ipak = i__;
+    simcom_.ipak = i__;
     /*     unpackfl.inc = code for flag unpacking */
-    ntrfl = (integer)nauxcm_1.aux[simcom_1.indtr + simcom_1.ipak - 1];
+    ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
     /* get packed flags */
     ntvar = ntrfl % 10;
     /* transformation flag */
@@ -413,40 +409,40 @@ L80:
       /* measured variable */
       if (st[i__] > 0.) {
         /* Computing MIN */
-        d__1 = st[i__], d__2 = simcom_1.derfac * sqrt(vii);
+        d__1 = st[i__], d__2 = simcom_.derfac * sqrt(vii);
         st[i__] = min(d__1, d__2);
         /* user step, if smaller */
       } else if (st[i__] <= 0.) {
         /* step is undefined */
-        st[i__] = simcom_1.derfac * sqrt(vii);
+        st[i__] = simcom_.derfac * sqrt(vii);
         /* step from cov matrix */
         if (ntvar != 2) {
           /* Computing MIN */
           /* Computing MAX */
           d__4 = 1e-6, d__5 = (d__1 = x[i__], abs(d__1));
-          d__2 = st[i__], d__3 = simcom_1.derlow * max(d__4, d__5);
+          d__2 = st[i__], d__3 = simcom_.derlow * max(d__4, d__5);
           st[i__] = min(d__2, d__3);
         } else {
           /* Poisson */
           /* Computing MIN */
           /* Computing MAX */
           d__4 = 1e-6, d__5 = (d__1 = x[i__] + 1., abs(d__1));
-          d__2 = st[i__], d__3 = simcom_1.derlow * max(d__4, d__5);
+          d__2 = st[i__], d__3 = simcom_.derlow * max(d__4, d__5);
           st[i__] = min(d__2, d__3);
         }
       }
     } else if (vii == 0.) {
       /* unmeasured variable */
-      --simcom_1.ndf;
+      --simcom_.ndf;
       /* reduce degrees of freedom */
-      i__2 = simcom_1.nx;
+      i__2 = simcom_.nx;
       for (j = 1; j <= i__2; ++j) {
         vx[ijsym_(&i__, &j)] = 0.;
         /* clear matrix elements */
       }
       /* Computing MAX */
       d__2 = 1., d__3 = (d__1 = x[i__], abs(d__1));
-      st[i__] = simcom_1.derufc * max(d__2, d__3);
+      st[i__] = simcom_.derufc * max(d__2, d__3);
     }
     if (ntine == 1) {
       st[i__] = 0.;
@@ -522,7 +518,7 @@ L80:
   i__ = 0;
 /* initialize derivative loop */
 L10:
-  if (i__ >= simcom_1.nx) {
+  if (i__ >= simcom_.nx) {
     /* finished */
     *jret = 0;
     /* ... means differentation finished */
@@ -600,7 +596,7 @@ L10:
 L30:
   if (i__ < 0) {
     /* calculation of first step done ... */
-    i__1 = simcom_1.nf;
+    i__1 = simcom_.nf;
     for (j = 1; j <= i__1; ++j) {
       hh[j] = f[j];
       /* save constraint values */
@@ -628,7 +624,7 @@ L30:
   /* max of diff-ratio */
   derzer = 0.;
   /* abs of nonzero-derivative */
-  i__1 = simcom_1.nf;
+  i__1 = simcom_.nf;
   for (j = 1; j <= i__1; ++j) {
     /* loop on all constraint functions */
     if (ilr == 0) {
@@ -664,7 +660,7 @@ L30:
     }
     a[ij] = der;
     /* insert into Jacobian matrix A */
-    ij += simcom_1.nx;
+    ij += simcom_.nx;
   }
   if (ntder == 0) {
     ntder = 1;
@@ -686,7 +682,7 @@ L30:
   /*     packfl.inc   = code for flag packing */
   /*     explanation see: */
   /*     unpackfl.inc = code for flag unpacking */
-  nauxcm_1.aux[simcom_1.indtr + simcom_1.ipak - 1] = (doublereal)(
+  nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (doublereal)(
       ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 +
       ntvar);
   goto L10;
@@ -722,49 +718,49 @@ L30:
   --x;
 
   /* Function Body */
-  ++simcom_1.iter;
+  ++simcom_.iter;
   /* start next iteration */
-  simcom_1.chsqp = simcom_1.chisq;
+  simcom_.chsqp = simcom_.chisq;
   /*     __________________________________________________________________ */
   /*     right-hand side of equation */
   /* save current chi^2 */
-  simcom_1.ncst = 0;
-  i__1 = simcom_1.nx;
+  simcom_.ncst = 0;
+  i__1 = simcom_.nx;
   for (i__ = 1; i__ <= i__1; ++i__) {
     /* first NX components */
     rh[i__] = 0.;
     /* define right hand side of equation */
   }
-  i__1 = simcom_1.nf;
+  i__1 = simcom_.nf;
   for (j = 1; j <= i__1; ++j) {
     /* next NF components */
-    nauxcm_1.aux[simcom_1.indfc + j - 1] = f[j];
-    rh[simcom_1.nx + j] = -f[j];
+    nauxcm_.aux[simcom_.indfc + j - 1] = f[j];
+    rh[simcom_.nx + j] = -f[j];
   }
   ia = 0;
-  i__1 = simcom_1.nf;
+  i__1 = simcom_.nf;
   for (j = 1; j <= i__1; ++j) {
     /* "subtract" actual step */
-    rh[simcom_1.nx + j] += scalxy_(&a[ia + 1], &dx[1], &simcom_1.nx);
-    ia += simcom_1.nx;
-    nauxcm_1.aux[simcom_1.indhh + j - 1] = rh[simcom_1.nx + j];
+    rh[simcom_.nx + j] += scalxy_(&a[ia + 1], &dx[1], &simcom_.nx);
+    ia += simcom_.nx;
+    nauxcm_.aux[simcom_.indhh + j - 1] = rh[simcom_.nx + j];
     /* right hand side for chi**2 */
   }
   /*     __________________________________________________________________ */
   /*     form matrix and solve */
-  i__1 = (simcom_1.nx * simcom_1.nx + simcom_1.nx) / 2;
+  i__1 = (simcom_.nx * simcom_.nx + simcom_.nx) / 2;
   for (i__ = 1; i__ <= i__1; ++i__) {
     wm[i__] = -vx[i__];
     /* copy -VX(.) into W_11 */
   }
   ii = 0;
   /* modify V for Poisson variables */
-  i__1 = simcom_1.nx;
+  i__1 = simcom_.nx;
   for (i__ = 1; i__ <= i__1; ++i__) {
     ii += i__;
-    simcom_1.ipak = i__;
+    simcom_.ipak = i__;
     /*     unpackfl.inc = code for flag unpacking */
-    ntrfl = (integer)nauxcm_1.aux[simcom_1.indtr + simcom_1.ipak - 1];
+    ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
     /* get packed flags */
     ntvar = ntrfl % 10;
     /* transformation flag */
@@ -777,25 +773,25 @@ L30:
       /* -MAX(ABS(X(I)),1.0D0) */
     }
   }
-  duminv_(&a[1], &wm[1], &rh[1], &simcom_1.nx, &simcom_1.nf, &c__1, &nrank,
+  duminv_(&a[1], &wm[1], &rh[1], &simcom_.nx, &simcom_.nf, &c__1, &nrank,
           diag, qnext);
-  simcom_1.chisq = -scalxy_(&nauxcm_1.aux[simcom_1.indhh], &rh[simcom_1.nx + 1],
-                            &simcom_1.nf);
+  simcom_.chisq = -scalxy_(&nauxcm_.aux[simcom_.indhh], &rh[simcom_.nx + 1],
+                            &simcom_.nf);
   /* next chi^2 */
-  if (simcom_1.chisq < 0.) {
-    simcom_1.chisq = 0.;
+  if (simcom_.chisq < 0.) {
+    simcom_.chisq = 0.;
   }
   /*     __________________________________________________________________ */
   /*     handle corrections and cutstep */
-  simcom_1.weight = 1.;
+  simcom_.weight = 1.;
   /* default weight */
-  if (simcom_1.iter > 1 && simcom_1.chisq >= simcom_1.chsqp * 2.) {
-    simcom_1.weight = .1;
+  if (simcom_.iter > 1 && simcom_.chisq >= simcom_.chsqp * 2.) {
+    simcom_.weight = .1;
   }
-  if (simcom_1.iter > 1 && simcom_1.chisq >= simcom_1.chsqp * 3.) {
-    simcom_1.weight = .05;
+  if (simcom_.iter > 1 && simcom_.chisq >= simcom_.chsqp * 3.) {
+    simcom_.weight = .05;
   }
-  i__1 = simcom_1.nx;
+  i__1 = simcom_.nx;
   for (i__ = 1; i__ <= i__1; ++i__) {
     xp[i__] = dx[i__];
     /* save previous corrections */
@@ -820,9 +816,9 @@ L30:
   --x;
 
   /* Function Body */
-  i__1 = simcom_1.nx;
+  i__1 = simcom_.nx;
   for (i__ = 1; i__ <= i__1; ++i__) {
-    dx[i__] = simcom_1.weight * dx[i__] + (1. - simcom_1.weight) * xp[i__];
+    dx[i__] = simcom_.weight * dx[i__] + (1. - simcom_.weight) * xp[i__];
     /* reduce step evtl. */
     x[i__] = xs[i__] + dx[i__];
     /* correct x and return to test constraints */
@@ -842,13 +838,13 @@ L30:
 
   *iret = -1;
   /* calculate new Jacobian */
-  simcom_1.iunph = 0;
+  simcom_.iunph = 0;
   /*     __________________________________________________________________ */
   /*     combined measure? */
-  if (simcom_1.iter == 1 && simcom_1.ncst == 0) {
+  if (simcom_.iter == 1 && simcom_.ncst == 0) {
     factor =
-        simcom_1.chisq /
-        ((d__1 = simcom_1.ftestp - simcom_1.ftest, abs(d__1)) + simcom_1.epsf);
+        simcom_.chisq /
+        ((d__1 = simcom_.ftestp - simcom_.ftest, abs(d__1)) + simcom_.epsf);
     for (i__ = 1; i__ <= 14; ++i__) {
       cm[i__ - 1] = 0.;
     }
@@ -856,65 +852,65 @@ L30:
     /* damping factor */
     cm[0] = 2.;
     /* Computing 2nd power */
-    d__1 = simcom_1.frms;
+    d__1 = simcom_.frms;
     /* Computing 2nd power */
-    d__2 = simcom_1.frmsp;
+    d__2 = simcom_.frmsp;
     cm[1] = d__1 * d__1 + d__2 * d__2;
     /* Computing 4th power */
-    d__1 = simcom_1.frms, d__1 *= d__1;
+    d__1 = simcom_.frms, d__1 *= d__1;
     /* Computing 4th power */
-    d__2 = simcom_1.frmsp, d__2 *= d__2;
+    d__2 = simcom_.frmsp, d__2 *= d__2;
     cm[2] = d__1 * d__1 + d__2 * d__2;
-    cm[3] = simcom_1.chisq + simcom_1.chsqp;
+    cm[3] = simcom_.chisq + simcom_.chsqp;
     /* Computing 2nd power */
-    d__1 = simcom_1.frms;
+    d__1 = simcom_.frms;
     /* Computing 2nd power */
-    d__2 = simcom_1.frmsp;
-    cm[4] = simcom_1.chisq * (d__1 * d__1) + simcom_1.chsqp * (d__2 * d__2);
+    d__2 = simcom_.frmsp;
+    cm[4] = simcom_.chisq * (d__1 * d__1) + simcom_.chsqp * (d__2 * d__2);
     lesfcm_(cm);
     /* fit */
     /* Computing 2nd power */
-    d__1 = simcom_1.frms;
+    d__1 = simcom_.frms;
     cm[12] = cm[5] - cm[6] * (d__1 * d__1);
     /* combined penalty */
-  } else if (simcom_1.ncst == 0) {
+  } else if (simcom_.ncst == 0) {
     cm[0] = cm[8] * cm[0] + 1.;
     /* Computing 2nd power */
-    d__1 = simcom_1.frms;
+    d__1 = simcom_.frms;
     cm[1] = cm[8] * cm[1] + d__1 * d__1;
     /* Computing 4th power */
-    d__1 = simcom_1.frms, d__1 *= d__1;
+    d__1 = simcom_.frms, d__1 *= d__1;
     cm[2] = cm[8] * cm[2] + d__1 * d__1;
-    cm[3] = cm[8] * cm[3] + simcom_1.chisq;
+    cm[3] = cm[8] * cm[3] + simcom_.chisq;
     /* Computing 2nd power */
-    d__1 = simcom_1.frms;
-    cm[4] = cm[8] * cm[4] + simcom_1.chisq * (d__1 * d__1);
+    d__1 = simcom_.frms;
+    cm[4] = cm[8] * cm[4] + simcom_.chisq * (d__1 * d__1);
     lesfcm_(cm);
     /* fit */
     cm[13] = cm[12];
     /* Computing 2nd power */
-    d__1 = simcom_1.frms;
+    d__1 = simcom_.frms;
     cm[12] = cm[5] - cm[6] * (d__1 * d__1);
     /* combined penalty */
   }
   /*     __________________________________________________________________ */
   /*     cutstep */
-  if (simcom_1.ncst < 2 &&
-      (simcom_1.iunph != 0 ||
-       simcom_1.iter > 1 &&
-           simcom_1.ftest > simcom_1.ftestp * 2. + simcom_1.epsf)) {
-    ++simcom_1.ncst;
-    simcom_1.weight = .25;
-    simcom_1.weight = .5;
+  if (simcom_.ncst < 2 &&
+      (simcom_.iunph != 0 ||
+       simcom_.iter > 1 &&
+           simcom_.ftest > simcom_.ftestp * 2. + simcom_.epsf)) {
+    ++simcom_.ncst;
+    simcom_.weight = .25;
+    simcom_.weight = .5;
     *iret = -2;
     /* cutstep - add corrections */
     return 0;
   }
   /*     __________________________________________________________________ */
   /*     convergent */
-  if (simcom_1.iter >= 2 && simcom_1.ncst == 0) {
-    dchisq = simcom_1.chisq - simcom_1.chsqp;
-    if (dabs(dchisq) <= simcom_1.epschi && simcom_1.ftest < simcom_1.epsf) {
+  if (simcom_.iter >= 2 && simcom_.ncst == 0) {
+    dchisq = simcom_.chisq - simcom_.chsqp;
+    if (dabs(dchisq) <= simcom_.epschi && simcom_.ftest < simcom_.epsf) {
       *iret = 0;
       /* convergence */
       return 0;
@@ -922,7 +918,7 @@ L30:
   }
   /*     __________________________________________________________________ */
   /*     failure */
-  if (simcom_1.iter > simcom_1.itermx) {
+  if (simcom_.iter > simcom_.itermx) {
     *iret = 2;
   }
   /* non-convergence */
@@ -950,7 +946,7 @@ L30:
 
   /* Function Body */
   ii = 0;
-  i__1 = simcom_1.nx;
+  i__1 = simcom_.nx;
   for (i__ = 1; i__ <= i__1; ++i__) {
     as[i__] = x[i__];
     ii += i__;
@@ -963,7 +959,7 @@ L30:
   }
   /*     __________________________________________________________________ */
   /*     copy/exchange result/input covariance matrix */
-  i__1 = (simcom_1.nx * simcom_1.nx + simcom_1.nx) / 2;
+  i__1 = (simcom_.nx * simcom_.nx + simcom_.nx) / 2;
   for (i__ = 1; i__ <= i__1; ++i__) {
     scopy = vx[i__];
     vx[i__] = wm[i__];
@@ -998,11 +994,11 @@ L30:
 /* Subroutine */ int chndpv_(real *chi2, integer *nd, real *pval) {
   extern doublereal chprob_(doublereal *, integer *);
 
-  *chi2 = simcom_1.chisq;
+  *chi2 = simcom_.chisq;
   /* chi^square */
-  *nd = simcom_1.ndf;
+  *nd = simcom_.ndf;
   /* number of degrees of freedom */
-  *pval = chprob_(&simcom_1.chisq, &simcom_1.ndf);
+  *pval = chprob_(&simcom_.chisq, &simcom_.ndf);
   /* p-value */
   return 0;
 } /* chndpv_ */
