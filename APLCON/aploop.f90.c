@@ -20,7 +20,6 @@ struct {
       ndende, ndactl, indas, indvs, indtr, indfc, indhh, indxs, inddx, indxp,
       indrh, indwm, india, ndtot, icnt, nxf, mxf, ndf, iunph, ncst, iter,
       ncalls, ndpdim, indqn, itermx, nauxc, indpu, nfprim, ndtotl;
-  real tab[10000] /* was [1000][10] */;
 } simcom_;
 
 #define simcom_1 simcom_
@@ -839,7 +838,6 @@ L30:
                              doublereal *xp) {
   /* System generated locals */
   integer i__1;
-  doublereal d__1;
 
   /* Local variables */
   static integer i__, ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
@@ -874,14 +872,6 @@ L30:
     if (ntvar == 0 || ntvar == 2 || ntvar == 3) {
       x[i__] = xs[i__] + dx[i__];
       /* correct x and return to test constraints */
-    } else if (ntvar == 4) {
-      /* log-normal */
-      x[i__] = exp(log(xs[i__]) + dx[i__]);
-    } else if (ntvar == 5) {
-      /* sqrt */
-      /* Computing 2nd power */
-      d__1 = sqrt(xs[i__]) + dx[i__];
-      x[i__] = d__1 * d__1;
     }
   }
   return 0;

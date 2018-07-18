@@ -11,7 +11,6 @@ struct {
       ndende, ndactl, indas, indvs, indtr, indfc, indhh, indxs, inddx, indxp,
       indrh, indwm, india, ndtot, icnt, nxf, mxf, ndf, iunph, ncst, iter,
       ncalls, ndpdim, indqn, itermx, nauxc, indpu, nfprim, ndtotl;
-  real tab[10000] /* was [1000][10] */;
 } simcom_;
 
 #define simcom_1 simcom_
