@@ -471,8 +471,7 @@ L80:
   static doublereal xd[2], xt[2], der;
   static integer ilr;
   static doublereal stm;
-  static integer nalz, nzer, nonz, ntder, ntine, ntrfl, ntvar, ntmes, ntlim,
-      ntprf;
+  static integer nalz, nzer, nonz, ntder, ntine, ntvar, ntmes, ntlim, ntprf;
   static doublereal xsave;
   static logical limdef;
   static doublereal ratdif, ratmax, derzer;
@@ -537,25 +536,6 @@ L10:
     goto L10;
   }
   /* skip fixed variable */
-  simcom_1.ipak = i__;
-  /*     unpackfl.inc = code for flag unpacking */
-  ntrfl = (integer)nauxcm_1.aux[simcom_1.indtr + simcom_1.ipak - 1];
-  /* get packed flags */
-  ntvar = ntrfl % 10;
-  /* transformation flag */
-  ntmes = ntrfl / 10 % 10;
-  /* M-estimate flag */
-  ntder = ntrfl / 100 % 10;
-  /* derivative type flag */
-  ntine = ntrfl / 1000 % 10;
-  /* inequality flag */
-  ntlim = ntrfl / 10000 % 10;
-  /* limit flag */
-  ntprf = ntrfl / 100000 % 10;
-  /* profile flag */
-  if (ntder >= 4) {
-    goto L10;
-  }
   /* skip repeated derivative calculation */
   xsave = x[i__];
   /* save current value of variable */
@@ -722,7 +702,7 @@ L30:
   /* Local variables */
   static integer i__, j, ia, ii;
   static doublereal diag[1000];
-  static integer nrank, ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
+  static integer nrank, ntrfl, ntvar;
   static doublereal qnext[1000];
   extern /* Subroutine */ int duminv_(doublereal *, doublereal *, doublereal *,
                                       integer *, integer *, integer *,
@@ -788,15 +768,6 @@ L30:
     /* get packed flags */
     ntvar = ntrfl % 10;
     /* transformation flag */
-    ntmes = ntrfl / 10 % 10;
-    /* M-estimate flag */
-    ntder = ntrfl / 100 % 10;
-    /* derivative type flag */
-    ntine = ntrfl / 1000 % 10;
-    /* inequality flag */
-    ntlim = ntrfl / 10000 % 10;
-    /* limit flag */
-    ntprf = ntrfl / 100000 % 10;
     /* profile flag */
     if (ntvar == 2) {
       /* Poisson */
@@ -840,7 +811,7 @@ L30:
   integer i__1;
 
   /* Local variables */
-  static integer i__, ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
+  static integer i__;
 
   /* Parameter adjustments */
   --xp;
@@ -853,26 +824,8 @@ L30:
   for (i__ = 1; i__ <= i__1; ++i__) {
     dx[i__] = simcom_1.weight * dx[i__] + (1. - simcom_1.weight) * xp[i__];
     /* reduce step evtl. */
-    simcom_1.ipak = i__;
-    /*     unpackfl.inc = code for flag unpacking */
-    ntrfl = (integer)nauxcm_1.aux[simcom_1.indtr + simcom_1.ipak - 1];
-    /* get packed flags */
-    ntvar = ntrfl % 10;
-    /* transformation flag */
-    ntmes = ntrfl / 10 % 10;
-    /* M-estimate flag */
-    ntder = ntrfl / 100 % 10;
-    /* derivative type flag */
-    ntine = ntrfl / 1000 % 10;
-    /* inequality flag */
-    ntlim = ntrfl / 10000 % 10;
-    /* limit flag */
-    ntprf = ntrfl / 100000 % 10;
-    /* profile flag */
-    if (ntvar == 0 || ntvar == 2 || ntvar == 3) {
-      x[i__] = xs[i__] + dx[i__];
-      /* correct x and return to test constraints */
-    }
+    x[i__] = xs[i__] + dx[i__];
+    /* correct x and return to test constraints */
   }
   return 0;
 } /* addtox_ */
