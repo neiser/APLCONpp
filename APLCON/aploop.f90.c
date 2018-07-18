@@ -897,8 +897,8 @@ L30:
   /*     cutstep */
   if (simcom_.ncst < 2 &&
       (simcom_.iunph != 0 ||
-       simcom_.iter > 1 &&
-           simcom_.ftest > simcom_.ftestp * 2. + simcom_.epsf)) {
+       (simcom_.iter > 1 &&
+           simcom_.ftest > simcom_.ftestp * 2. + simcom_.epsf))) {
     ++simcom_.ncst;
     simcom_.weight = .25;
     simcom_.weight = .5;
