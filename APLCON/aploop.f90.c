@@ -18,7 +18,7 @@ struct {
       decxp, derufc, derlow, weight;
   integer nx, nf, num, iflg, init, ipak, indcf, istat, indst, indlm, ndenda,
       ndende, ndactl, indas, indvs, indtr, indfc, indhh, indxs, inddx, indxp,
-      indrh, indwm, india, ndtot, icnt, nxf, mxf, ndf, iunph, ncst, iter,
+      indrh, indwm, india, ndtot, icnt, nxf, mxf, ndf, ncst, iter,
       ncalls, ndpdim, indqn, itermx, nauxc, indpu, nfprim, ndtotl;
 } simcom_;
 
