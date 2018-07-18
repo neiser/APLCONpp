@@ -999,3 +999,145 @@ L30:
   /* p-value */
   return 0;
 } /* chndpv_ */
+
+/* Subroutine */ int adummy_0_(int n__, integer *lunp, integer *jpr,
+                               doublereal *arg, integer *it, integer *i__,
+                               doublereal *step, doublereal *xlow,
+                               doublereal *xhig, integer *nbinom,
+                               doublereal *pow) {
+  static integer ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
+  /*     parameters for fit method */
+  /*     __________________________________________________________________ */
+  switch (n__) {
+    case 2:
+      goto L_apdeps;
+    case 8:
+      goto L_apstep;
+    case 12:
+      goto L_apoiss;
+  }
+
+L_apdeps:
+  /* constraint accuracy */
+  simcom_.epsf = *arg;
+  /* |F| accuracy */
+  return 0;
+  /*     __________________________________________________________________ */
+
+L_apstep:
+  /* step size for numdif */
+  if (*i__ < 1 || *i__ > simcom_.nx) {
+    return 0;
+  }
+  simcom_.ipak = *i__;
+  /*     unpackfl.inc = code for flag unpacking */
+  ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+  /* get packed flags */
+  ntvar = ntrfl % 10;
+  /* transformation flag */
+  ntmes = ntrfl / 10 % 10;
+  /* M-estimate flag */
+  ntder = ntrfl / 100 % 10;
+  /* derivative type flag */
+  ntine = ntrfl / 1000 % 10;
+  /* inequality flag */
+  ntlim = ntrfl / 10000 % 10;
+  /* limit flag */
+  ntprf = ntrfl / 100000 % 10;
+  /* profile flag */
+  nauxcm_.aux[simcom_.indst + *i__ - 1] = abs(*step);
+  /* ST(I)= ... */
+  if (*step != 0.) {
+    ntine = 0;
+    /* variable */
+  } else {
+    ntine = 1;
+    /* fixed by user */
+  }
+  goto L100;
+  /*     __________________________________________________________________ */
+
+L_apoiss:
+  /* Poisson distributed variable */
+  if (*i__ < 1 || *i__ > simcom_.nx) {
+    return 0;
+  }
+  simcom_.ipak = *i__;
+  /*     unpackfl.inc = code for flag unpacking */
+  ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+  /* get packed flags */
+  ntvar = ntrfl % 10;
+  /* transformation flag */
+  ntmes = ntrfl / 10 % 10;
+  /* M-estimate flag */
+  ntder = ntrfl / 100 % 10;
+  /* derivative type flag */
+  ntine = ntrfl / 1000 % 10;
+  /* inequality flag */
+  ntlim = ntrfl / 10000 % 10;
+  /* limit flag */
+  ntprf = ntrfl / 100000 % 10;
+  /* profile flag */
+  ntvar = 2;
+  /* Poisson distributed variable */
+  ntlim = 1;
+  goto L100;
+  /*     __________________________________________________________________ */
+
+/*     __________________________________________________________________ */
+L100:
+  /*     packfl.inc   = code for flag packing */
+  /*     explanation see: */
+  /*     unpackfl.inc = code for flag unpacking */
+  nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (doublereal)(
+      ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 +
+      ntvar);
+  return 0;
+} /* adummy_ */
+
+/* Subroutine */ int apdeps_(doublereal *arg) {
+  return adummy_0_(2, (integer *)0, (integer *)0, arg, (integer *)0,
+                   (integer *)0, (doublereal *)0, (doublereal *)0,
+                   (doublereal *)0, (integer *)0, (doublereal *)0);
+}
+
+/* Subroutine */ int apstep_(integer *i__, doublereal *step) {
+  return adummy_0_(8, (integer *)0, (integer *)0, (doublereal *)0, (integer *)0,
+                   i__, step, (doublereal *)0, (doublereal *)0, (integer *)0,
+                   (doublereal *)0);
+}
+
+/* Subroutine */ int apoiss_(integer *i__) {
+  return adummy_0_(12, (integer *)0, (integer *)0, (doublereal *)0,
+                   (integer *)0, i__, (doublereal *)0, (doublereal *)0,
+                   (doublereal *)0, (integer *)0, (doublereal *)0);
+}
+
+/* Subroutine */ int apstat_(doublereal *fopt, integer *nfun, integer *niter) {
+  /*     __________________________________________________________________ */
+  /*     return information after the fit */
+  /*     __________________________________________________________________ */
+  /* return Fopt and Nfun */
+  *fopt = simcom_.chisq;
+  *nfun = simcom_.ncalls;
+  *niter = simcom_.iter;
+  return 0;
+} /* apstat_ */
+
+/* Subroutine */ int appull_(doublereal *pulls) {
+  /* System generated locals */
+  integer i__1;
+
+  /* Local variables */
+  static integer i__;
+
+  /* Parameter adjustments */
+  --pulls;
+
+  /* Function Body */
+  i__1 = simcom_.nx;
+  for (i__ = 1; i__ <= i__1; ++i__) {
+    pulls[i__] = nauxcm_.aux[simcom_.indpu + i__ - 1];
+  }
+  return 0;
+} /* appull_ */

@@ -5,9 +5,7 @@
 
 # build the library
 set(SRCS_LIB
-  aplist.f90.c
   aploop.f90.c
-  aplusopt.f90.c
   chprob.f90.c
   condutil.f90.c
   )
