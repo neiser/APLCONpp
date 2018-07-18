@@ -353,6 +353,7 @@ L80:
 } /* iploop_ */
 
 /* Subroutine */ int asteps_(doublereal *x, doublereal *vx, doublereal *st) {
+
   /* System generated locals */
   integer i__1, i__2;
   doublereal d__1, d__2, d__3, d__4, d__5;
@@ -409,21 +410,6 @@ L80:
       /* set unmeasured flag */
     }
     /*      _________________________________________________________________ */
-    /*      check transformed variables */
-    if (ntvar == 4) {
-      /* logarithmic transformation - check */
-      if (x[i__] <= 0.f) {
-        ntvar = 0;
-        /* reset: X(i) has to be positive */
-      }
-    } else if (ntvar == 5) {
-      /* sqrt transformation - check */
-      if (x[i__] <= 0.f) {
-        ntvar = 0;
-        /* reset: X(i) has to be positive */
-      }
-    }
-    /*      _________________________________________________________________ */
     /*      define step size for derivative calculation */
     if (vii != 0.) {
       /* measured variable */
@@ -467,52 +453,7 @@ L80:
     if (ntine == 1) {
       st[i__] = 0.;
     }
-    /*      _________________________________________________________________ */
-    /*      transform steps for transformed variables */
-    /* fix */
-    if (st[i__] == 0.) {
 
-      ntine = 1;
-      /* fixed by user */
-    } else {
-
-      if (ntvar == 3) {
-        /* lognormal variable */
-        st[i__] /= x[i__];
-        /* change step to log step */
-      } else if (ntvar == 4) {
-        /* sqrt variable */
-        st[i__] = st[i__] * .5 / sqrt(x[i__]);
-        /* change step to sqrt step */
-      }
-    }
-    /*     __________________________________________________________________ */
-    /*     transform covariance matrix for transformed variables */
-    if (ntvar == 4) {
-      /* transform covariance matrix for logn */
-      i__2 = simcom_1.nx;
-      for (j = 1; j <= i__2; ++j) {
-        vx[ijsym_(&i__, &j)] = vx[ijsym_(&i__, &j)] / x[i__];
-        if (i__ == j) {
-          vx[ijsym_(&i__, &j)] = vx[ijsym_(&i__, &j)] / x[i__];
-        }
-      }
-    } else if (ntvar == 5) {
-      /* ... and for sqrt */
-      i__2 = simcom_1.nx;
-      for (j = 1; j <= i__2; ++j) {
-        vx[ijsym_(&i__, &j)] = vx[ijsym_(&i__, &j)] * .5 / sqrt(x[i__]);
-        if (i__ == j) {
-          vx[ijsym_(&i__, &j)] = vx[ijsym_(&i__, &j)] * .5 / sqrt(x[i__]);
-        }
-      }
-    }
-    /*     packfl.inc   = code for flag packing */
-    /*     explanation see: */
-    /*     unpackfl.inc = code for flag unpacking */
-    nauxcm_1.aux[simcom_1.indtr + simcom_1.ipak - 1] = (doublereal)(
-        ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 +
-        ntvar);
   }
   return 0;
 } /* asteps_ */
