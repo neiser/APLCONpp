@@ -50,12 +50,6 @@ void c_aplcon_appull(double* PULLS);
 
 // setup/config routines
 /**
- * @brief Setup verbosity
- * @param LUNP device to printout messages
- * @param IPR verbosity level
- */
-void c_aplcon_aprint(const int LUNP, const int IPR);
-/**
  * @brief Setup constraint accuracy
  * @param EPSF Constraint accuracy
  */

@@ -33,10 +33,6 @@ void c_aplcon_appull(double* PULLS) {
 
 // setup/config routines
 
-void c_aplcon_aprint(int LUNP, int IPR) {
-    // empty
-}
-
 void c_aplcon_apdeps(double EPSF) {
     extern int apdeps_(doublereal*);
     apdeps_(&EPSF);

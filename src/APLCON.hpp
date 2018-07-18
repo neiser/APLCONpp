@@ -171,7 +171,6 @@ private:
         using namespace detail;
 
         c_aplcon_aplcon(X.size(), F.size());
-        c_aplcon_aprint(6, FitSettings.DebugLevel); // default output on LUNP 6 (STDOUT)
 
         call_if_set(c_aplcon_apdeps,   FitSettings.ConstraintAccuracy);
         call_if_set(c_aplcon_apepschi, FitSettings.Chi2Accuracy);
