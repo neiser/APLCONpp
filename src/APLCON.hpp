@@ -173,11 +173,6 @@ private:
         c_aplcon_aplcon(X.size(), F.size());
 
         call_if_set(c_aplcon_apdeps,   FitSettings.ConstraintAccuracy);
-        call_if_set(c_aplcon_apepschi, FitSettings.Chi2Accuracy);
-        call_if_set(c_aplcon_apiter,   FitSettings.MaxIterations);
-        call_if_set(c_aplcon_apderf,   FitSettings.MeasuredStepSizeFactor);
-        call_if_set(c_aplcon_apderu,   FitSettings.UnmeasuredStepSizeFactor);
-        call_if_set(c_aplcon_apdlow,   FitSettings.MinimalStepSizeFactor);
 
         // still don't use simple loop,
         // as we can check at compile time if something to do
@@ -291,19 +286,12 @@ private:
                 case APLCON::Distribution_t::Poissonian:
                     c_aplcon_apoiss(varidx);
                     break;
-                case APLCON::Distribution_t::LogNormal:
-                    c_aplcon_aplogn(varidx);
-                    break;
-                case APLCON::Distribution_t::SquareRoot:
-                    c_aplcon_apsqrt(varidx);
-                    break;
                     // APLCON exposes even more transformations (see wrapper),
                     // but they're not mentioned in the README...
                 default:
                     break;
                 }
 
-                call_if_set(std::bind(c_aplcon_aplimt, varidx, _1, _2), s.Limit.Low, s.Limit.High);
                 call_if_set(std::bind(c_aplcon_apstep, varidx, _1), s.StepSize);
             }
         }

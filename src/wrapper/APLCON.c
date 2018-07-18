@@ -38,55 +38,12 @@ void c_aplcon_apdeps(double EPSF) {
     apdeps_(&EPSF);
 }
 
-void c_aplcon_apepschi(double EPSCHI) {
-    extern int apepschi_(doublereal*);
-    apepschi_(&EPSCHI);
-}
-
-void c_aplcon_apderf(double DERFAC) {
-    extern int apderf_(doublereal*);
-    apderf_(&DERFAC);
-}
-
-void c_aplcon_apderu(double DERUFC) {
-    extern int apderu_(doublereal*);
-    apderu_(&DERUFC);
-}
-
-void c_aplcon_apdlow(double DERLOW) {
-    extern int apdlow_(doublereal*);
-    apdlow_(&DERLOW);
-}
-
-void c_aplcon_apiter(int ITERMX) {
-    extern int apiter_(integer*);
-    apiter_(&ITERMX);
-}
-
 void c_aplcon_apstep(int I, double STEP) {
     extern int apstep_(integer*, doublereal*);
     apstep_(&I, &STEP);
 }
 
-void c_aplcon_apfix(int I) {
-    extern int apfix_(integer*);
-    apfix_(&I);
-}
-
-void c_aplcon_aplimt(int I, double XLOW, double XHIG) {
-    extern int aplimt_(integer*, doublereal*, doublereal*);
-    aplimt_(&I, &XLOW, &XHIG);
-}
-
 void c_aplcon_apoiss(int I) {
     extern int apoiss_(integer*);
     apoiss_(&I);
-}
-
-void c_aplcon_apsqrt(int I) {
-    // nothing
-}
-
-void c_aplcon_aplogn(int I) {
-    // nothing
 }
