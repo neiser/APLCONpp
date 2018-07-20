@@ -28,8 +28,6 @@ struct {
 
 /* Table of constant values */
 
-static integer c__1 = 1;
-
 /* Subroutine */ int aplcon_(integer *nvar, integer *mcst) {
   /* System generated locals */
   integer i__1;
@@ -681,7 +679,7 @@ L30:
   static integer nrank, ntrfl, ntvar;
   static doublereal qnext[1000];
   extern /* Subroutine */ int duminv_(doublereal *, doublereal *, doublereal *,
-                                      integer *, integer *, integer *,
+                                      integer *, integer *,
                                       integer *, doublereal *, doublereal *);
   extern doublereal scalxy_(doublereal *, doublereal *, integer *);
 
@@ -753,7 +751,7 @@ L30:
       /* -MAX(ABS(X(I)),1.0D0) */
     }
   }
-  duminv_(&a[1], &wm[1], &rh[1], &simcom_.nx, &simcom_.nf, &c__1, &nrank,
+  duminv_(&a[1], &wm[1], &rh[1], &simcom_.nx, &simcom_.nf, &nrank,
           diag, qnext);
   simcom_.chisq = -scalxy_(&nauxcm_.aux[simcom_.indhh], &rh[simcom_.nx + 1],
                             &simcom_.nf);

@@ -21,22 +21,17 @@ integer ijsym_(integer *i__, integer *j) {
 } /* ijsym_ */
 
 /* Subroutine */ int duminv_(doublereal *a, doublereal *w, doublereal *b,
-                             integer *nx, integer *nf, integer *mb,
+                             integer *nx, integer *nf,
                              integer *nrank, doublereal *aux,
                              doublereal *qnext) {
   /* Initialized data */
 
   static doublereal eps = 1e-6;
 
-  /* System generated locals */
-  integer i__1, i__2, i__3;
-  doublereal d__1, d__2, d__3;
-
   /* Local variables */
-  static integer i__, j, k, l, m, n, ia, ij, jk, jj, kk, jl, lk;
+  static integer i, j, k, l, m, n, ia, ij, jk, jj, kk, jl, lk;
   static doublereal vjk, vkk, sum;
   static integer last, nmeas, jlast;
-  static logical solve;
   static integer jfirst;
 
   /*     Obtain solution of a system of linear equations V *  X  =  B  with */
@@ -76,29 +71,24 @@ integer ijsym_(integer *i__, integer *j) {
   /*     make sure AUX is zero, prevents uninit access */
   /*     in continued execution of DBMINV */
   /* dimension parameter */
-  i__1 = n;
-  for (i__ = 1; i__ <= i__1; ++i__) {
-    aux[i__] = 0.;
+  for (i = 1; i <= n; ++i) {
+    aux[i] = 0.;
   }
   /*     -VX(NX-sym) is already inserted in W(NX+NF-sym) ------------------ */
   ij = (*nx * *nx + *nx) / 2;
   /* number of elements of V(.) */
-  i__1 = n;
-  for (i__ = 1; i__ <= i__1; ++i__) {
-    qnext[i__] = 0.;
+  for (i = 1; i <= n; ++i) {
+    qnext[i] = 0.;
     /* reset pointer */
   }
   ia = 0;
-  i__1 = *nf;
-  for (j = 1; j <= i__1; ++j) {
-    i__2 = *nx;
-    for (i__ = 1; i__ <= i__2; ++i__) {
-      w[ij + i__] = a[ia + i__];
+  for (j = 1; j <= *nf; ++j) {
+    for (i = 1; i <= *nx; ++i) {
+      w[ij + i] = a[ia + i];
       /* copy A(.) into W_12 */
     }
-    i__2 = j;
-    for (i__ = 1; i__ <= i__2; ++i__) {
-      w[ij + *nx + i__] = 0.f;
+    for (i = 1; i <= j; ++i) {
+      w[ij + *nx + i] = 0.f;
       /* reset last submatrix W_22 of W(.) */
     }
     ij = ij + *nx + j;
@@ -109,18 +99,17 @@ integer ijsym_(integer *i__, integer *j) {
   /* first index of measured variable */
   nmeas = 0;
   /* number of measured variables */
-  i__1 = *nx;
-  for (i__ = 1; i__ <= i__1; ++i__) {
-    if (w[(i__ * i__ + i__) / 2] < 0.f) {
+  for (i = 1; i <= *nx; ++i) {
+    if (w[(i * i + i) / 2] < 0.f) {
       /* measured variable */
       if (jfirst == 0) {
-        jfirst = i__;
+        jfirst = i;
         /* first index of measured variable */
       } else {
-        qnext[jlast] = (doublereal)i__;
+        qnext[jlast] = (doublereal)i;
         /* insert index at previous index */
       }
-      jlast = i__;
+      jlast = i;
       /* save index */
       ++nmeas;
     }
@@ -132,25 +121,22 @@ integer ijsym_(integer *i__, integer *j) {
   qnext[jlast] = -1.;
   /*     apply exchange algorithm to sub-matrices ------------------------- */
   /* stop index for last measured variable */
-  i__1 = n;
-  for (i__ = *nx + 1; i__ <= i__1; ++i__) {
+  for (i = *nx + 1; i <= n; ++i) {
     /* loop I over constraint equations */
     j = jfirst;
     /* first index of unmeasured variable */
-    i__2 = nmeas;
-    for (m = 1; m <= i__2; ++m) {
+    for (m = 1; m <= nmeas; ++m) {
       /* already inverted element index J */
       sum = 0.;
       jk = (j * j - j) / 2;
       /* index of diagonal element before */
-      i__3 = *nx;
-      for (k = 1; k <= i__3; ++k) {
+      for (k = 1; k <= *nx; ++k) {
         if (k <= j) {
           ++jk;
         }
         /* index in j column */
         if (qnext[k] != 0.) {
-          sum += w[jk] * w[(i__ * i__ - i__) / 2 + k];
+          sum += w[jk] * w[(i * i - i) / 2 + k];
         }
         if (k >= j) {
           jk += k;
@@ -162,27 +148,24 @@ integer ijsym_(integer *i__, integer *j) {
       j = (integer)qnext[j];
       /* next index of unmeasured variable */
     }
-    i__2 = n;
-    for (k = i__; k <= i__2; ++k) {
+    for (k = i; k <= n; ++k) {
       sum = 0.;
       j = jfirst;
       /* first index of unmeasured variable */
-      i__3 = nmeas;
-      for (m = 1; m <= i__3; ++m) {
+      for (m = 1; m <= nmeas; ++m) {
         /* already inverted element index J */
         sum += w[(k * k - k) / 2 + j] * aux[j];
         /* = A-row * H */
         j = (integer)qnext[j];
         /* next index of unmeasured variable */
       }
-      w[(k * k - k) / 2 + i__] += sum;
+      w[(k * k - k) / 2 + i] += sum;
       /* add to diagonal W_22 */
     }
     j = jfirst;
     /* first index of unmeasured variable */
-    i__2 = nmeas;
-    for (m = 1; m <= i__2; ++m) {
-      w[(i__ * i__ - i__) / 2 + j] = -aux[j];
+    for (m = 1; m <= nmeas; ++m) {
+      w[(i * i - i) / 2 + j] = -aux[j];
       /* add to off-diagonal W_22 */
       j = (integer)qnext[j];
       /* next index of unmeasured variable */
@@ -191,20 +174,19 @@ integer ijsym_(integer *i__, integer *j) {
   /*     set pointer for unmeasured variables ----------------------------- */
   jfirst = 0;
   jlast = 0;
-  i__1 = n;
-  for (i__ = 1; i__ <= i__1; ++i__) {
-    if (qnext[i__] == 0.) {
+  for (i = 1; i <= n; ++i) {
+    if (qnext[i] == 0.) {
       /* unmeasured variable */
       if (jfirst == 0) {
-        jfirst = i__;
+        jfirst = i;
         /* first index of unmeasured variable */
       } else {
-        qnext[jlast] = (doublereal)i__;
+        qnext[jlast] = (doublereal)i;
         /* next index of unmeasured variable */
       }
-      jlast = i__;
+      jlast = i;
     } else {
-      qnext[i__] = 0.;
+      qnext[i] = 0.;
       /* reset index for measured variable */
     }
   }
@@ -216,14 +198,9 @@ integer ijsym_(integer *i__, integer *j) {
 /*     common code for inversion and (M=1) solution of matrix equation */
 /* end flag */
 L10:
-  solve = TRUE_;
-  if (*mb == 0) {
-    solve = FALSE_;
-  }
   /*     loop begin (loop on all remaining rows/cols) */
   /* solution flag */
-  i__1 = n;
-  for (i__ = 1; i__ <= i__1; ++i__) {
+  for (i = 1; i <= n; ++i) {
     /* loop on all remaining elements */
     vkk = 0.;
     /* search for pivot element */
@@ -238,8 +215,7 @@ L10:
       jj = (j * j + j) / 2;
       /* diagonal index */
       /* Computing MAX */
-      d__2 = abs(vkk), d__3 = eps * aux[j];
-      if ((d__1 = w[jj], abs(d__1)) > max(d__2, d__3)) {
+      if (abs(w[jj]) > max(abs(vkk), eps * aux[j])) {
         vkk = w[jj];
         /* largest pivot candidate so far */
         k = j;
@@ -270,13 +246,10 @@ L10:
       vkk = 1.f / vkk;
       /* invert pivot */
       w[kk] = -vkk;
-      if (solve) {
-        b[k] *= vkk;
-      }
+      b[k] *= vkk;
       jk = kk - k;
       jl = 0;
-      i__2 = n;
-      for (j = 1; j <= i__2; ++j) {
+      for (j = 1; j <= n; ++j) {
         /* elimination */
         if (j == k) {
           jk = kk;
@@ -289,12 +262,9 @@ L10:
           }
           vjk = w[jk];
           w[jk] = vkk * vjk;
-          if (solve) {
-            b[j] -= b[k] * vjk;
-          }
+          b[j] -= b[k] * vjk;
           lk = kk - k;
-          i__3 = j;
-          for (l = 1; l <= i__3; ++l) {
+          for (l = 1; l <= j; ++l) {
             ++jl;
             if (l == k) {
               lk = kk;
@@ -311,20 +281,16 @@ L10:
       }
     } else {
       /* no pivot candadate found - reset */
-      i__2 = n;
-      for (k = 1; k <= i__2; ++k) {
+      for (k = 1; k <= n; ++k) {
         if (qnext[k] != 0.) {
           /* undefined variable */
-          if (solve) {
-            b[k] = 0.;
-          }
+          b[k] = 0;
           /* clear undefined vector element */
-          i__3 = k;
-          for (j = 1; j <= i__3; ++j) {
+          for (j = 1; j <= k; ++j) {
             if (qnext[j] != 0.) {
               w[(k * k - k) / 2 + j] = 0.;
             }
-            /* clear matri */
+            /* clear matrix */
           }
         }
       }
@@ -333,9 +299,8 @@ L10:
   }
 /* end of inversion loop */
 L30:
-  i__1 = (n * n + n) / 2;
-  for (i__ = 1; i__ <= i__1; ++i__) {
-    w[i__] = -w[i__];
+  for (i = 1; i <= (n * n + n) / 2; ++i) {
+    w[i] = -w[i];
     /* finally reverse sign */
   }
   return 0;
