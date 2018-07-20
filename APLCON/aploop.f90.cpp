@@ -2,7 +2,7 @@
 
 typedef double doublereal;
 typedef int integer;
-typedef integer logical;
+typedef bool logical;
 typedef float real;
 #define TRUE_ (1)
 #define FALSE_ (0)
@@ -333,7 +333,7 @@ L80:
   /* Local variables */
   static integer i__, j, ii;
   static doublereal vii;
-  static integer ntder, ntine, ntlim, ntrfl, ntmes, ntprf, ntvar;
+  static integer ntine, ntrfl, ntvar;
   extern integer ijsym_(integer *, integer *);
 
   /*     ================================================================== */
@@ -364,23 +364,11 @@ L80:
     /* get packed flags */
     ntvar = ntrfl % 10;
     /* transformation flag */
-    ntmes = ntrfl / 10 % 10;
-    /* M-estimate flag */
-    ntder = ntrfl / 100 % 10;
-    /* derivative type flag */
     ntine = ntrfl / 1000 % 10;
     /* inequality flag */
-    ntlim = ntrfl / 10000 % 10;
-    /* limit flag */
-    ntprf = ntrfl / 100000 % 10;
-    /* profile flag */
     ii += i__;
     vii = (d__1 = vx[ii], abs(d__1));
     /* original diagonal element */
-    if (vii == 0.) {
-      ntmes = 1;
-      /* set unmeasured flag */
-    }
     /*      _________________________________________________________________ */
     /*      define step size for derivative calculation */
     if (vii != 0.) {
@@ -445,7 +433,7 @@ L80:
   static doublereal xd[2], xt[2], der;
   static integer ilr;
   static doublereal stm;
-  static integer nalz, nzer, nonz, ntder, ntine, ntvar, ntmes, ntlim, ntprf;
+  static integer nzer, nonz, ntder, ntine, ntvar, ntmes, ntlim, ntprf;
   static doublereal xsave;
   static logical limdef;
   static doublereal ratdif, ratmax, derzer;
@@ -596,8 +584,6 @@ L30:
   /* reset: number of zero derivatives */
   nonz = 0;
   /* reset: number of non-zero derivatives */
-  nalz = 0;
-  /* flag all derivatives are zero */
   ratmax = 0.;
   /* max of diff-ratio */
   derzer = 0.;
@@ -619,10 +605,6 @@ L30:
     }
     /*      _________________________________________________________________ */
     /*      classify derivative properties of variable I */
-    if (a[ij] != 0. || der != 0.) {
-      nalz = 1;
-    }
-    /* non all zero */
     if (der == 0.) {
       ++nzer;
       /* derivative zero - count */
@@ -811,16 +793,13 @@ L30:
   static integer i__;
   static doublereal cm[14];
   extern /* Subroutine */ int lesfcm_(doublereal *);
-  static real factor, dchisq;
+  static real dchisq;
 
   *iret = -1;
   /* calculate new Jacobian */
   /*     __________________________________________________________________ */
   /*     combined measure? */
   if (simcom_.iter == 1 && simcom_.ncst == 0) {
-    factor =
-        simcom_.chisq /
-        ((d__1 = simcom_.ftestp - simcom_.ftest, abs(d__1)) + simcom_.epsf);
     for (i__ = 1; i__ <= 14; ++i__) {
       cm[i__ - 1] = 0.;
     }
@@ -977,11 +956,7 @@ L30:
   return 0;
 } /* chndpv_ */
 
-/* Subroutine */ int adummy_0_(int n__, integer *lunp, integer *jpr,
-                               doublereal *arg, integer *it, integer *i__,
-                               doublereal *step, doublereal *xlow,
-                               doublereal *xhig, integer *nbinom,
-                               doublereal *pow) {
+/* Subroutine */ int adummy_0_(int n__, doublereal *arg, integer *i__, doublereal *step) {
   static integer ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
   /*     parameters for fit method */
   /*     __________________________________________________________________ */
@@ -1073,21 +1048,15 @@ L100:
 } /* adummy_ */
 
 /* Subroutine */ int apdeps_(doublereal *arg) {
-  return adummy_0_(2, (integer *)0, (integer *)0, arg, (integer *)0,
-                   (integer *)0, (doublereal *)0, (doublereal *)0,
-                   (doublereal *)0, (integer *)0, (doublereal *)0);
+  return adummy_0_(2, arg, (integer *)0, (doublereal *)0);
 }
 
 /* Subroutine */ int apstep_(integer *i__, doublereal *step) {
-  return adummy_0_(8, (integer *)0, (integer *)0, (doublereal *)0, (integer *)0,
-                   i__, step, (doublereal *)0, (doublereal *)0, (integer *)0,
-                   (doublereal *)0);
+  return adummy_0_(8, (doublereal *)0, i__, step);
 }
 
 /* Subroutine */ int apoiss_(integer *i__) {
-  return adummy_0_(12, (integer *)0, (integer *)0, (doublereal *)0,
-                   (integer *)0, i__, (doublereal *)0, (doublereal *)0,
-                   (doublereal *)0, (integer *)0, (doublereal *)0);
+  return adummy_0_(12, (doublereal *)0, i__, (doublereal*)0);
 }
 
 /* Subroutine */ int apstat_(doublereal *fopt, integer *nfun, integer *niter) {
