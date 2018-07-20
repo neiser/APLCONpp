@@ -1,15 +1,12 @@
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 
 typedef double doublereal;
 typedef int integer;
 typedef bool logical;
 typedef float real;
-#define TRUE_ (1)
-#define FALSE_ (0)
-#define dabs(x) (doublereal) abs(x)
-#define min(a, b) ((a) <= (b) ? (a) : (b))
-#define max(a, b) ((a) >= (b) ? (a) : (b))
-#define abs(x) ((x) >= 0 ? (x) : -(x))
+
+using namespace std;
 
 /* Common Block Declarations */
 
@@ -367,7 +364,7 @@ L80:
     ntine = ntrfl / 1000 % 10;
     /* inequality flag */
     ii += i__;
-    vii = (d__1 = vx[ii], abs(d__1));
+    vii = abs(vx[ii]);
     /* original diagonal element */
     /*      _________________________________________________________________ */
     /*      define step size for derivative calculation */
@@ -422,7 +419,7 @@ L80:
                              doublereal *hh, integer *jret) {
   /* Initialized data */
 
-  static logical tinue = FALSE_;
+  static logical tinue = false;
 
   /* System generated locals */
   integer i__1;
@@ -480,7 +477,7 @@ L80:
     goto L30;
   }
   /* continue */
-  tinue = TRUE_;
+  tinue = true;
   i__ = 0;
 /* initialize derivative loop */
 L10:
@@ -488,7 +485,7 @@ L10:
     /* finished */
     *jret = 0;
     /* ... means differentation finished */
-    tinue = FALSE_;
+    tinue = false;
     /* Jacobian ready */
     return 0;
   }
@@ -793,7 +790,6 @@ L30:
   static integer i__;
   static doublereal cm[14];
   extern /* Subroutine */ int lesfcm_(doublereal *);
-  static real dchisq;
 
   *iret = -1;
   /* calculate new Jacobian */
@@ -862,8 +858,8 @@ L30:
   /*     __________________________________________________________________ */
   /*     convergent */
   if (simcom_.iter >= 2 && simcom_.ncst == 0) {
-    dchisq = simcom_.chisq - simcom_.chsqp;
-    if (dabs(dchisq) <= simcom_.epschi && simcom_.ftest < simcom_.epsf) {
+    double dchisq = simcom_.chisq - simcom_.chsqp;
+    if (abs(dchisq) <= simcom_.epschi && simcom_.ftest < simcom_.epsf) {
       *iret = 0;
       /* convergence */
       return 0;
