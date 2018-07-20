@@ -28,9 +28,9 @@ add_subdirectory(APLCON)
 
 add_library(aplcon++ SHARED
     src/APLCON.hpp src/detail/APLCON_hpp.hpp
-    src/wrapper/APLCON.c src/wrapper/APLCON.h
+    src/wrapper/APLCON.cpp src/wrapper/APLCON.h
     $<TARGET_OBJECTS:aplcon>)
-  
+
 # Benchmarking business
 option(EnableBenchmark "Build benchmark binaries" OFF)
 if(EnableBenchmark)

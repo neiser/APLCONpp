@@ -1,3 +1,5 @@
+#include "APLCON.h"
+
 typedef double doublereal;
 typedef int integer;
 typedef float real;

@@ -1,9 +1,6 @@
 #pragma once
 
-// link to the FORTRAN world
-extern "C" {
 #include "wrapper/APLCON.h"
-}
 
 // some template in extra header file
 #include "detail/APLCON_hpp.hpp"
