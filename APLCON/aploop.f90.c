@@ -742,7 +742,6 @@ L30:
     /* get packed flags */
     ntvar = ntrfl % 10;
     /* transformation flag */
-    /* profile flag */
     if (ntvar == 2) {
       /* Poisson */
       /* Computing 2nd power */
