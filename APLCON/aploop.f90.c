@@ -15,11 +15,11 @@ typedef float real;
 
 struct {
   doublereal epsf, epschi, chisq, ftest, ftestp, chsqp, frms, frmsp, derfac,
-      decxp, derufc, derlow, weight;
-  integer nx, nf, num, iflg, init, ipak, indcf, istat, indst, indlm, ndenda,
-      ndende, ndactl, indas, indvs, indtr, indfc, indhh, indxs, inddx, indxp,
-      indrh, indwm, india, ndtot, icnt, nxf, mxf, ndf, ncst, iter,
-      ncalls, ndpdim, indqn, itermx, nauxc, indpu, nfprim, ndtotl;
+      derufc, derlow, weight;
+  integer nx, nf, ipak, indcf, indst, indlm,
+      indas, indtr, indfc, indhh, indxs, inddx, indxp,
+      indrh, indwm, ndtot, nxf, mxf, ndf, ncst, iter,
+      ncalls, itermx, indpu;
 } simcom_;
 
 struct {
@@ -46,11 +46,7 @@ static integer c__1 = 1;
   simcom_.nx = *nvar;
   /* number of variables */
   simcom_.nf = *mcst;
-  /* number of constraint equations */
-  simcom_.nfprim = simcom_.nf;
   /* primary value of NF */
-  simcom_.ndpdim = 125000;
-  /* dimension of AUX array */
   simcom_.derfac = .001;
   /* derivative factor */
   simcom_.derufc = 1e-5;
@@ -63,10 +59,6 @@ static integer c__1 = 1;
   /* chi2 accuracy limit */
   simcom_.itermx = 10;
   /* max number of iterations */
-  simcom_.nauxc = 125000;
-  /* copy AUX dimension */
-  simcom_.init = 0;
-  simcom_.istat = 0;
   /* init phase */
   simcom_.nxf = simcom_.nx + simcom_.nf;
   /* total number of fit equations */
@@ -106,11 +98,9 @@ static integer c__1 = 1;
 
 /* Subroutine */ int aploop_(doublereal *x, doublereal *vx, doublereal *f,
                              integer *iret) {
-  /* System generated locals */
-  integer i__1;
 
   /* Local variables */
-  static integer i__, nff;
+  static integer nff;
   extern /* Subroutine */ int asteps_(doublereal *, doublereal *, doublereal *),
       iploop_(doublereal *, doublereal *, doublereal *, doublereal *,
               doublereal *, doublereal *, doublereal *, doublereal *,
@@ -151,22 +141,12 @@ static integer c__1 = 1;
   /* right-hand side */
   simcom_.indwm = simcom_.indrh + simcom_.nxf;
   /* weight matrix */
-  simcom_.india = simcom_.indwm + simcom_.mxf;
-  /* matrix diagonal "DIAG" */
-  simcom_.indqn = simcom_.india + simcom_.nxf;
-  /* next pointer    "QNEXT" */
-  simcom_.indas = simcom_.indqn + simcom_.nxf;
+  simcom_.indas = simcom_.indwm + simcom_.mxf + simcom_.nxf + simcom_.nxf;
   /* X result */
   simcom_.indpu = simcom_.indas + simcom_.nx;
   /* pulls, solution X and Vx */
   simcom_.ndtot = simcom_.indpu + simcom_.nx;
   /* total number of words (so far) */
-  simcom_.ndtotl = simcom_.ndtot;
-  i__1 = simcom_.ndtot;
-  for (i__ = simcom_.indlm + (simcom_.nx << 1) + 1; i__ <= i__1; ++i__) {
-    nauxcm_.aux[i__ - 1] = 0.;
-    /* reset part of aux, unused so far */
-  }
   asteps_(&x[1], &vx[1], &nauxcm_.aux[simcom_.indst]);
 /*     __________________________________________________________________ */
 /*     internal APLOOP */
