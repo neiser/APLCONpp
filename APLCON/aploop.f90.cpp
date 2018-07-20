@@ -1,6 +1,8 @@
 #include <cmath>
 #include <algorithm>
 #include <vector>
+#include <stdexcept>
+#include <sstream>
 
 typedef double doublereal;
 typedef int integer;
@@ -28,8 +30,14 @@ class vec {
     vector<double> c;
 
 public:
-    explicit vec(size_t n) : c(n) {}
 
+    void resize(size_t n) {
+        c.resize(n);
+    }
+
+    double& operator[](size_t i) {
+        return c[i-1];
+    }
 };
 
 struct aplcon {
@@ -153,12 +161,14 @@ struct aplcon {
         /*     __________________________________________________________________ */
         /*     internal APLOOP */
         /* initial steps ST(.) */
+
+        static vec x_save;
+        x_save.resize(simcom_.nx);
 L10:
-        static vec x_save(simcom_.nx);
 
         *iret = -1;
         /* default status is -1 = continue */
-        iploop_(&x[1], &vx[1], &f[1], &nauxcm_.aux[simcom_.indxs],
+        iploop_(&x[1], &vx[1], &f[1], x_save,
                 &nauxcm_.aux[simcom_.inddx], &nauxcm_.aux[simcom_.indcf],
                 &nauxcm_.aux[simcom_.indxp], &nauxcm_.aux[simcom_.indrh], iret);
         return 0;
@@ -166,7 +176,7 @@ L10:
 
     /* Subroutine */
     static int iploop_(doublereal *x, doublereal *vx, doublereal *f,
-                       doublereal *xs, doublereal *dx, doublereal *fcopy,
+                       vec& xs, doublereal *dx, doublereal *fcopy,
                        doublereal *xp, doublereal *rh, integer *iret) {
         /* System generated locals */
         integer i__1;
@@ -190,7 +200,6 @@ L10:
         --xp;
         --fcopy;
         --dx;
-        --xs;
         --f;
         --vx;
         --x;
