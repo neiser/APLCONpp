@@ -158,9 +158,13 @@ L10:
     static int iploop_(double *x, double *vx, double *f,
                        vecd& xs, double *dx, double *fcopy,
                        double *xp, double *rh, int *iret) {
+
+        static vecd a;
+        a.resize(simcom_.nx * (simcom_.nf + 2));
+
         /* Local variables */
         static int j;
-        static double fj, fex[100];
+        static double fj;
         static int nfit, jret;
         static int istatu;
 
@@ -211,11 +215,6 @@ L10:
         simcom_.ncst = 0;
         simcom_.chisq = 0.;
 L20:
-        for (j = 1; j <= simcom_.nf; ++j) {
-            fj = f[j];
-            fex[j - 1] = fj;
-            /* extended F */
-        }
         /*     __________________________________________________________________ */
         /*     constraint test summary */
         if (istatu < 0) {
@@ -251,8 +250,7 @@ L30:
         istatu = -1;
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-
-        anumde_(&x[1], fex, nauxcm_.aux, &nauxcm_.aux[simcom_.indst],
+        anumde_(&x[1], &f[1], a, &nauxcm_.aux[simcom_.indst],
                 &nauxcm_.aux[simcom_.indlm], &nauxcm_.aux[simcom_.indfc],
                 &nauxcm_.aux[simcom_.indhh], &jret);
         /* derivative matrix A */
@@ -267,7 +265,7 @@ L30:
         /*     __________________________________________________________________ */
         /*     next iteration */
         /* ...for constraint calculation */
-        aniter_(&x[1], &vx[1], &fcopy[1], nauxcm_.aux, &xp[1], &rh[1],
+        aniter_(&x[1], &vx[1], &fcopy[1], a, &xp[1], &rh[1],
                 &nauxcm_.aux[simcom_.indwm], &dx[1]);
         goto L70;
         /*     __________________________________________________________________ */
@@ -377,7 +375,7 @@ L80:
     } /* asteps_ */
 
     /* Subroutine */
-    static int anumde_(double *x, double *f, double *a,
+    static int anumde_(double *x, double *f, vecd& a,
                        double *st, double *xl, double *fc,
                        double *hh, int *jret) {
         /* Initialized data */
@@ -386,7 +384,7 @@ L80:
         /* Local variables */
         static int i, j, ij;
         static double xd[2], xt[2], der;
-        static int nzer, nonz, ntine, ntvar, ntmes, ntlim, ntprf;
+        static int nzer, nonz, ntvar;
         static double xsave;
         static double ratdif, ratmax;
 
@@ -419,7 +417,6 @@ L80:
         --fc;
         xl -= 3;
         --st;
-        --a;
         --f;
         --x;
 
@@ -520,18 +517,12 @@ L30:
             /* insert into Jacobian matrix A */
             ij += simcom_.nx;
         }
-        /*     packfl.inc   = code for flag packing */
-        /*     explanation see: */
-        /*     unpackfl.inc = code for flag unpacking */
-        nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (double)(
-                                                            ((((ntprf * 10 + ntlim) * 10 + ntine) * 10) * 10 + ntmes) * 10 +
-                                                            ntvar);
         goto L10;
     } /* anumde_ */
 
     /* Subroutine */
     static int aniter_(double *x, double *vx, double *f,
-                       double *a, double *xp, double *rh,
+                       vecd& a, double *xp, double *rh,
                        double *wm, double *dx) {
         /* Local variables */
         static int i, j, ia, ii;
@@ -544,7 +535,6 @@ L30:
         --wm;
         --rh;
         --xp;
-        --a;
         --f;
         --vx;
         --x;
