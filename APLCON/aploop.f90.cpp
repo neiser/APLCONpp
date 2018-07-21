@@ -97,10 +97,6 @@ struct aplcon {
     /* Subroutine */
     static int aploop_(double *x, double *vx, double *f,
                        int *iret) {
-
-        /* Local variables */
-        static int nff;
-
         /* steering routine for loop */
 
         /* Parameter adjustments */
@@ -114,19 +110,18 @@ struct aplcon {
         }
         /*     __________________________________________________________________ */
         /*     indices/pointer etc at first APLOOP entry */
-        nff = simcom_.nf;
-        /* max. number of constraints */
-        simcom_.nxf = simcom_.nx + nff;
+
+        simcom_.nxf = simcom_.nx + simcom_.nf;
         /* total number of fit equations */
         simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
         /* number elements symmetric matrix */
         simcom_.indfc = simcom_.indlm + (simcom_.nx << 1);
         /* pointer to FC(NF) = copy of F(NF) */
-        simcom_.indcf = simcom_.indfc + nff;
+        simcom_.indcf = simcom_.indfc + simcom_.nf;
         /* pointer to FCOPY */
-        simcom_.indhh = simcom_.indcf + nff;
+        simcom_.indhh = simcom_.indcf + simcom_.nf;
         /* pointer to HH(NF) = copy of F(.) */
-        simcom_.indxs = simcom_.indhh + nff;
+        simcom_.indxs = simcom_.indhh + simcom_.nf;
         /* save X(.)        pointer */
         simcom_.inddx = simcom_.indxs + simcom_.nx;
         /* step */
@@ -136,7 +131,7 @@ struct aplcon {
         /* right-hand side */
         simcom_.indwm = simcom_.indrh + simcom_.nxf;
         /* weight matrix */
-        simcom_.indas = simcom_.indwm + simcom_.mxf + simcom_.nxf + simcom_.nxf;
+        simcom_.indas = simcom_.indwm + simcom_.mxf;
         /* X result */
         simcom_.indpu = simcom_.indas + simcom_.nx;
         /* pulls, solution X and Vx */
@@ -256,6 +251,7 @@ L30:
         istatu = -1;
         /*     __________________________________________________________________ */
         /*     derivative calculation */
+
         anumde_(&x[1], fex, nauxcm_.aux, &nauxcm_.aux[simcom_.indst],
                 &nauxcm_.aux[simcom_.indlm], &nauxcm_.aux[simcom_.indfc],
                 &nauxcm_.aux[simcom_.indhh], &jret);
