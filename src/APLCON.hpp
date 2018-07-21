@@ -224,7 +224,7 @@ private:
         // retrieve some info about the fit (directly copy to struct field if possible)
         // chndpv and apstat both return the resulting chi2,
         // but the latter returns it with double precision
-        float chi2, pval;
+        double chi2, pval;
         c_aplcon_chndpv(&chi2,&result.NDoF,&pval);
         result.Probability = pval;
         c_aplcon_apstat(&result.ChiSquare, &result.NFunctionCalls, &result.NIterations);

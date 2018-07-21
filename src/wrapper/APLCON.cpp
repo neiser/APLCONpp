@@ -18,7 +18,7 @@ void c_aplcon_aploop(double X[], double VX[], double F[], int* IRET) {
 
 // routines to obtain results
 
-void c_aplcon_chndpv(float* CHI2, int* ND, float* PVAL) {
+void c_aplcon_chndpv(double* CHI2, int* ND, double* PVAL) {
     aplcon::chndpv_(CHI2, ND, PVAL);
 }
 

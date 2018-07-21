@@ -1,40 +1,28 @@
 #include <cmath>
 
-typedef double doublereal;
-typedef int integer;
-
 using namespace std;
 
-inline doublereal dgamml_(doublereal x) {
+inline double dgamml_(double x) {
     /* Initialized data */
 
-    static doublereal cof[6] = {76.18009172947146,   -86.50532032941677,
+    constexpr double cof[6] = {76.18009172947146,   -86.50532032941677,
                                 24.01409824083091,   -1.231739572450155,
                                 .001208650973866179, -5.395239384953e-7};
-    static doublereal stp = 2.5066282746310005;
-
-    /* Local variables */
-    static integer j;
-    static doublereal yy, ser, tmp;
+    constexpr double stp = 2.5066282746310005;
 
     /* ln[Gamma(x)] */
     /*     ... */
-    yy = x;
-    tmp = (x + .5) * log(x + 5.5) - x - 5.5;
-    ser = 1.000000000190015;
-    for (j = 1; j <= 6; ++j) {
+    double yy = x;
+    double tmp = (x + .5) * log(x + 5.5) - x - 5.5;
+    double ser = 1.000000000190015;
+    for (int j = 1; j <= 6; ++j) {
         yy += 1.;
         ser += cof[j - 1] / yy;
     }
     return tmp + log(stp * ser / x);
 } /* dgamml_ */
 
-inline doublereal dgamin_(doublereal a, doublereal x) {
-    /* Local variables */
-    static doublereal b, c__, d__, h__;
-    static integer i, n;
-    static doublereal an, ap, del, gln, sum;
-
+inline double dgamin_(double a, double x) {
     /*     incomplete gamma function P(a,x) */
     /*     returns -1.0 for x < 0 or a =< 0 */
     /*     ... */
@@ -45,12 +33,12 @@ inline doublereal dgamin_(doublereal a, doublereal x) {
         return 0.;
     } else if (x < a + 1.) {
         /* series representation */
-        gln = dgamml_(a);
+        double gln = dgamml_(a);
         /* ln[Gamma(a)] */
-        ap = a;
-        sum = 1. / a;
-        del = sum;
-        for (n = 1; n <= 300; ++n) {
+        double ap = a;
+        double sum = 1. / a;
+        double del = sum;
+        for (int n = 1; n <= 300; ++n) {
             ap += 1.f;
             del = del * x / ap;
             sum += del;
@@ -62,45 +50,45 @@ L10:
         return sum * exp(-(x) + a * log(x) - gln);
     } else {
         /* continued fraction representation */
-        gln = dgamml_(a);
+        double gln = dgamml_(a);
         /* ln[Gamma(a)] */
-        b = x + 1. - a;
-        c__ = 9.9999999999999988e29;
-        d__ = 1. / b;
-        h__ = d__;
-        for (i = 1; i <= 300; ++i) {
-            an = -i * (i - a);
+        double b = x + 1. - a;
+        double c = 9.9999999999999988e29;
+        double d = 1. / b;
+        double h = d;
+        for (int i = 1; i <= 300; ++i) {
+            double an = -i * (i - a);
             b += 2.;
-            d__ = an * d__ + b;
-            if (abs(d__) < 1e-30) {
-                d__ = 1e-30;
+            d = an * d + b;
+            if (abs(d) < 1e-30) {
+                d = 1e-30;
             }
-            c__ = b + an / c__;
-            if (abs(c__) < 1e-30) {
-                c__ = 1e-30;
+            c = b + an / c;
+            if (abs(c) < 1e-30) {
+                c = 1e-30;
             }
-            d__ = 1. / d__;
-            del = d__ * c__;
-            h__ *= del;
+            d = 1. / d;
+            double del = d * c;
+            h *= del;
             if (abs(del - 1.) < 3e-7) {
                 goto L20;
             }
         }
         return 0;
 L20:
-        return 1. - exp(-(x) + a * log(x) - gln) * h__;
+        return 1. - exp(-(x) + a * log(x) - gln) * h;
     }
 } /* dgamin_ */
 
-inline doublereal chprob_(doublereal *chisq, integer *n) {
+inline double chprob_(double chisq, int n) {
     /*     chi square probability for N degrees of freedom at CHISQ */
     /*     =integral from 0 ... CHISQ */
     /* prob from chisquare */
     /*     ... */
-    if (*chisq <= 0.f) {
+    if (chisq <= 0.f) {
         return 1.;
     } else {
-        return 1. - dgamin_(*n * .5, *chisq * .5);
+        return 1. - dgamin_(n * .5, chisq * .5);
     }
 } /* chprob_ */
 

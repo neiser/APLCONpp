@@ -7,27 +7,22 @@
 #include "chprob.f90.h"
 #include "condutil.f90.h"
 
-typedef double doublereal;
-typedef int integer;
-typedef bool logical;
-typedef float real;
-
 using namespace std;
 
 
 /* Common Block Declarations */
 
 struct {
-    doublereal epsf, epschi, chisq, ftest, ftestp, chsqp, frms, frmsp, derfac,
+    double epsf, epschi, chisq, ftest, ftestp, chsqp, frms, frmsp, derfac,
     derufc, derlow, weight;
-    integer nx, nf, ipak, indcf, indst, indlm,
+    int nx, nf, ipak, indcf, indst, indlm,
     indas, indtr, indfc, indhh, indxs, inddx, indxp,
     indrh, indwm, ndtot, nxf, mxf, ndf, ncst, iter,
     ncalls, itermx, indpu;
 } simcom_;
 
 struct {
-    doublereal aux[125000];
+    double aux[125000];
 } nauxcm_;
 
 
@@ -48,9 +43,9 @@ public:
 struct aplcon {
 
     /* Subroutine */
-    static int aplcon_(integer *nvar, integer *mcst) {
+    static int aplcon_(int *nvar, int *mcst) {
         /* Local variables */
-        static integer ij;
+        static int ij;
 
         /*     ================================================================== */
         /*     initialize and define dimension  NVAR/MCST */
@@ -111,11 +106,11 @@ struct aplcon {
     } /* aplcon_ */
 
     /* Subroutine */
-    static int aploop_(doublereal *x, doublereal *vx, doublereal *f,
-                       integer *iret) {
+    static int aploop_(double *x, double *vx, double *f,
+                       int *iret) {
 
         /* Local variables */
-        static integer nff;
+        static int nff;
 
         /* steering routine for loop */
 
@@ -176,14 +171,14 @@ L10:
     } /* aploop_ */
 
     /* Subroutine */
-    static int iploop_(doublereal *x, doublereal *vx, doublereal *f,
-                       vec& xs, doublereal *dx, doublereal *fcopy,
-                       doublereal *xp, doublereal *rh, integer *iret) {
+    static int iploop_(double *x, double *vx, double *f,
+                       vec& xs, double *dx, double *fcopy,
+                       double *xp, double *rh, int *iret) {
         /* Local variables */
-        static integer j;
-        static doublereal fj, fex[100];
-        static integer nfit, jret;
-        static integer istatu;
+        static int j;
+        static double fj, fex[100];
+        static int nfit, jret;
+        static int istatu;
 
         /*     ================================================================== */
         /*     call IPLDER */
@@ -259,9 +254,9 @@ L20:
             /* sum squares */
         }
         /* Computing MAX */
-        simcom_.ftest = max(1e-16, simcom_.ftest / (doublereal)simcom_.nf);
+        simcom_.ftest = max(1e-16, simcom_.ftest / (double)simcom_.nf);
         /* average |F| */
-        simcom_.frms = sqrt(simcom_.frms / (real)simcom_.nf + 1e-32);
+        simcom_.frms = sqrt(simcom_.frms / (double)simcom_.nf + 1e-32);
         /* LS mean */
         if (istatu == 1) {
             goto L60;
@@ -321,11 +316,11 @@ L80:
     } /* iploop_ */
 
     /* Subroutine */
-    static int asteps_(doublereal *x, doublereal *vx, doublereal *st) {
+    static int asteps_(double *x, double *vx, double *st) {
         /* Local variables */
-        static integer i, j, ii;
-        static doublereal vii;
-        static integer ntine, ntrfl, ntvar;
+        static int i, j, ii;
+        static double vii;
+        static int ntine, ntrfl, ntvar;
 
         /*     ================================================================== */
         /*     check transformed variables (e.g. > 0) */
@@ -350,7 +345,7 @@ L80:
             /* loop on all variables */
             simcom_.ipak = i;
             /*     unpackfl.inc = code for flag unpacking */
-            ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+            ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
             /* get packed flags */
             ntvar = ntrfl % 10;
             /* transformation flag */
@@ -397,18 +392,18 @@ L80:
     } /* asteps_ */
 
     /* Subroutine */
-    static int anumde_(doublereal *x, doublereal *f, doublereal *a,
-                       doublereal *st, doublereal *xl, doublereal *fc,
-                       doublereal *hh, integer *jret) {
+    static int anumde_(double *x, double *f, double *a,
+                       double *st, double *xl, double *fc,
+                       double *hh, int *jret) {
         /* Initialized data */
-        static logical tinue = false;
+        static bool tinue = false;
 
         /* Local variables */
-        static integer i, j, ij;
-        static doublereal xd[2], xt[2], der;
-        static integer nzer, nonz, ntine, ntvar, ntmes, ntlim, ntprf;
-        static doublereal xsave;
-        static doublereal ratdif, ratmax;
+        static int i, j, ij;
+        static double xd[2], xt[2], der;
+        static int nzer, nonz, ntine, ntvar, ntmes, ntlim, ntprf;
+        static double xsave;
+        static double ratdif, ratmax;
 
         /*     ================================================================== */
         /*     calculation of numerical derivatives, one variable at a time */
@@ -543,21 +538,21 @@ L30:
         /*     packfl.inc   = code for flag packing */
         /*     explanation see: */
         /*     unpackfl.inc = code for flag unpacking */
-        nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (doublereal)(
+        nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (double)(
                                                             ((((ntprf * 10 + ntlim) * 10 + ntine) * 10) * 10 + ntmes) * 10 +
                                                             ntvar);
         goto L10;
     } /* anumde_ */
 
     /* Subroutine */
-    static int aniter_(doublereal *x, doublereal *vx, doublereal *f,
-                       doublereal *a, doublereal *xp, doublereal *rh,
-                       doublereal *wm, doublereal *dx) {
+    static int aniter_(double *x, double *vx, double *f,
+                       double *a, double *xp, double *rh,
+                       double *wm, double *dx) {
         /* Local variables */
-        static integer i, j, ia, ii;
-        static doublereal diag[1000];
-        static integer nrank, ntrfl, ntvar;
-        static doublereal qnext[1000];
+        static int i, j, ia, ii;
+        static double diag[1000];
+        static int nrank, ntrfl, ntvar;
+        static double qnext[1000];
 
         /* next iteration step */
 
@@ -609,7 +604,7 @@ L30:
             ii += i;
             simcom_.ipak = i;
             /*     unpackfl.inc = code for flag unpacking */
-            ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+            ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
             /* get packed flags */
             ntvar = ntrfl % 10;
             /* transformation flag */
@@ -647,8 +642,8 @@ L30:
     } /* aniter_ */
 
     /* Subroutine */
-    static int addtox_(doublereal *x, doublereal *xs, doublereal *dx,
-                       doublereal *xp) {
+    static int addtox_(double *x, double *xs, double *dx,
+                       double *xp) {
         /* Parameter adjustments */
         --xp;
         --dx;
@@ -666,7 +661,7 @@ L30:
     } /* addtox_ */
 
     /* Subroutine */
-    static int antest_(integer *iret) {
+    static int antest_(int *iret) {
         *iret = -1;
         /* combined penalty */
         //        }
@@ -701,12 +696,12 @@ L30:
     } /* antest_ */
 
     /* Subroutine */
-    static int acopxv_(doublereal *x, doublereal *vx, doublereal *dx,
-                       doublereal *as, doublereal *wm, doublereal *pu) {
+    static int acopxv_(double *x, double *vx, double *dx,
+                       double *as, double *wm, double *pu) {
 
         /* Local variables */
-        static integer i, ii;
-        static doublereal scopy;
+        static int i, ii;
+        static double scopy;
 
         /*     __________________________________________________________________ */
         /*     convergence: pull calculation */
@@ -743,20 +738,20 @@ L30:
     } /* acopxv_ */
 
     /* Subroutine */
-    static int chndpv_(real *chi2, integer *nd, real *pval) {
+    static int chndpv_(double *chi2, int *nd, double *pval) {
 
         *chi2 = simcom_.chisq;
         /* chi^square */
         *nd = simcom_.ndf;
         /* number of degrees of freedom */
-        *pval = chprob_(&simcom_.chisq, &simcom_.ndf);
+        *pval = chprob_(simcom_.chisq, simcom_.ndf);
         /* p-value */
         return 0;
     } /* chndpv_ */
 
     /* Subroutine */
-    static int adummy_0_(int n__, doublereal *arg, integer *i, doublereal *step) {
-        static integer ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
+    static int adummy_0_(int n__, double *arg, int *i, double *step) {
+        static int ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
         /*     parameters for fit method */
         /*     __________________________________________________________________ */
         switch (n__) {
@@ -782,7 +777,7 @@ L_apstep:
         }
         simcom_.ipak = *i;
         /*     unpackfl.inc = code for flag unpacking */
-        ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+        ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
         /* get packed flags */
         ntvar = ntrfl % 10;
         /* transformation flag */
@@ -813,7 +808,7 @@ L_apoiss:
         }
         simcom_.ipak = *i;
         /*     unpackfl.inc = code for flag unpacking */
-        ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+        ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
         /* get packed flags */
         ntvar = ntrfl % 10;
         /* transformation flag */
@@ -836,29 +831,29 @@ L100:
         /*     packfl.inc   = code for flag packing */
         /*     explanation see: */
         /*     unpackfl.inc = code for flag unpacking */
-        nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (doublereal)(
+        nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (double)(
                                                             ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 +
                                                             ntvar);
         return 0;
     } /* adummy_ */
 
     /* Subroutine */
-    static int apdeps_(doublereal *arg) {
-        return adummy_0_(2, arg, (integer *)0, (doublereal *)0);
+    static int apdeps_(double *arg) {
+        return adummy_0_(2, arg, (int *)0, (double *)0);
     }
 
     /* Subroutine */
-    static int apstep_(integer *i, doublereal *step) {
-        return adummy_0_(8, (doublereal *)0, i, step);
+    static int apstep_(int *i, double *step) {
+        return adummy_0_(8, (double *)0, i, step);
     }
 
     /* Subroutine */
-    static int apoiss_(integer *i) {
-        return adummy_0_(12, (doublereal *)0, i, (doublereal*)0);
+    static int apoiss_(int *i) {
+        return adummy_0_(12, (double *)0, i, (double*)0);
     }
 
     /* Subroutine */
-    static int apstat_(doublereal *fopt, integer *nfun, integer *niter) {
+    static int apstat_(double *fopt, int *nfun, int *niter) {
         /*     __________________________________________________________________ */
         /*     return information after the fit */
         /*     __________________________________________________________________ */
@@ -870,9 +865,9 @@ L100:
     } /* apstat_ */
 
     /* Subroutine */
-    static int appull_(doublereal *pulls) {
+    static int appull_(double *pulls) {
         /* Local variables */
-        static integer i;
+        static int i;
 
         /* Parameter adjustments */
         --pulls;

@@ -3,11 +3,7 @@
 
 using namespace std;
 
-typedef double doublereal;
-typedef int integer;
-typedef bool logical;
-
-inline integer ijsym_(integer *i, integer *j) {
+inline int ijsym_(int *i, int *j) {
 
     /* index (I,J)=(J,I) in symmetric matrix */
     if (*i <= *j) {
@@ -18,19 +14,19 @@ inline integer ijsym_(integer *i, integer *j) {
 } /* ijsym_ */
 
 /* Subroutine */
-inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
-                   integer *nx, integer *nf,
-                   integer *nrank, doublereal *aux,
-                   doublereal *qnext) {
+inline int duminv_(double *a, double *w, double *b,
+                   int *nx, int *nf,
+                   int *nrank, double *aux,
+                   double *qnext) {
     /* Initialized data */
 
-    static doublereal eps = 1e-6;
+    static double eps = 1e-6;
 
     /* Local variables */
-    static integer i, j, k, l, m, n, ia, ij, jk, jj, kk, jl, lk;
-    static doublereal vjk, vkk, sum;
-    static integer last, nmeas, jlast;
-    static integer jfirst;
+    static int i, j, k, l, m, n, ia, ij, jk, jj, kk, jl, lk;
+    static double vjk, vkk, sum;
+    static int last, nmeas, jlast;
+    static int jfirst;
 
     /*     Obtain solution of a system of linear equations V *  X  =  B  with */
     /*     symmetric matrix V and inverse (for M =  1)  or  matrix  inversion */
@@ -104,7 +100,7 @@ inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
                 jfirst = i;
                 /* first index of measured variable */
             } else {
-                qnext[jlast] = (doublereal)i;
+                qnext[jlast] = (double)i;
                 /* insert index at previous index */
             }
             jlast = i;
@@ -143,7 +139,7 @@ inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
             }
             aux[j] = sum;
             /* = A-row * VX-row/col */
-            j = (integer)qnext[j];
+            j = (int)qnext[j];
             /* next index of unmeasured variable */
         }
         for (k = i; k <= n; ++k) {
@@ -154,7 +150,7 @@ inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
                 /* already inverted element index J */
                 sum += w[(k * k - k) / 2 + j] * aux[j];
                 /* = A-row * H */
-                j = (integer)qnext[j];
+                j = (int)qnext[j];
                 /* next index of unmeasured variable */
             }
             w[(k * k - k) / 2 + i] += sum;
@@ -165,7 +161,7 @@ inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
         for (m = 1; m <= nmeas; ++m) {
             w[(i * i - i) / 2 + j] = -aux[j];
             /* add to off-diagonal W_22 */
-            j = (integer)qnext[j];
+            j = (int)qnext[j];
             /* next index of unmeasured variable */
         }
     }
@@ -179,7 +175,7 @@ inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
                 jfirst = i;
                 /* first index of unmeasured variable */
             } else {
-                qnext[jlast] = (doublereal)i;
+                qnext[jlast] = (double)i;
                 /* next index of unmeasured variable */
             }
             jlast = i;
@@ -221,7 +217,7 @@ L20:
                 l = last;
             }
             last = j;
-            j = (integer)qnext[j];
+            j = (int)qnext[j];
             /* index of next candidate */
             goto L20;
         }
@@ -231,7 +227,7 @@ L20:
             /* increase rank counter */
             kk = (k * k + k) / 2;
             if (l == 0) {
-                jfirst = (integer)qnext[k];
+                jfirst = (int)qnext[k];
                 /* new first index */
             } else {
                 qnext[l] = qnext[k];
@@ -304,10 +300,10 @@ L30:
     return 0;
 } /* duminv_ */
 
-inline doublereal scalxy_(doublereal *x, doublereal *y, integer *n) {
+inline double scalxy_(double *x, double *y, int *n) {
     /* Local variables */
-    static integer j;
-    static doublereal sum;
+    static int j;
+    static double sum;
 
     /*     Scalar product of two vectors */
     /*                - - -                 T */

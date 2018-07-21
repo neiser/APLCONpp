@@ -25,7 +25,7 @@ void c_aplcon_aploop(double X[], double VX[], double F[], int* IRET);
  * @param ND Number of degrees of freedom
  * @param PVAL Probability
  */
-void c_aplcon_chndpv(float* CHI2, int* ND, float* PVAL);
+void c_aplcon_chndpv(double* CHI2, int* ND, double* PVAL);
 /**
  * @brief Obtain information after fit
  * @param FOPT ChiSqare as double
