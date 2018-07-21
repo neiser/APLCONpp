@@ -440,9 +440,9 @@ L80:
         /* Local variables */
         static integer i__, j, ij;
         static doublereal xd[2], xt[2], der;
-        static integer nzer, nonz, ntder, ntine, ntvar, ntmes, ntlim, ntprf;
+        static integer nzer, nonz, ntine, ntvar, ntmes, ntlim, ntprf;
         static doublereal xsave;
-        static doublereal ratdif, ratmax, derzer;
+        static doublereal ratdif, ratmax;
 
         /*     ================================================================== */
         /*     calculation of numerical derivatives, one variable at a time */
@@ -552,8 +552,6 @@ L30:
         /* reset: number of non-zero derivatives */
         ratmax = 0.;
         /* max of diff-ratio */
-        derzer = 0.;
-        /* abs of nonzero-derivative */
         i__1 = simcom_.nf;
         for (j = 1; j <= i__1; ++j) {
             /* loop on all constraint functions */
@@ -572,8 +570,6 @@ L30:
                 ratdif = (d__2 = a[ij] - der, abs(d__2)) /
                          ((d__1 = a[ij], abs(d__1)) + abs(der));
                 ratmax = max(ratmax, ratdif);
-                derzer = abs(der);
-                /* abs value of this derivative */
                 ++nonz;
                 /* count non-zero derivative */
             }
@@ -581,28 +577,11 @@ L30:
             /* insert into Jacobian matrix A */
             ij += simcom_.nx;
         }
-        if (ntder == 0) {
-            ntder = 1;
-        } else {
-            if (nonz == 1 && (d__1 = derzer - 1., abs(d__1)) < 1e-12) {
-                /* Computing MIN */
-                i__1 = ntder + 1;
-                ntder = min(i__1, 7);
-            } else if (ratmax < 1e-12) {
-                /* Computing MIN */
-                i__1 = ntder + 1;
-                ntder = min(i__1, 7);
-            } else {
-                ntder = 2;
-                /* reset to 2 */
-            }
-        }
-        ntder = 0;
         /*     packfl.inc   = code for flag packing */
         /*     explanation see: */
         /*     unpackfl.inc = code for flag unpacking */
         nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (doublereal)(
-                                                            ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 +
+                                                            ((((ntprf * 10 + ntlim) * 10 + ntine) * 10) * 10 + ntmes) * 10 +
                                                             ntvar);
         goto L10;
     } /* anumde_ */
@@ -953,8 +932,6 @@ L_apstep:
         /* transformation flag */
         ntmes = ntrfl / 10 % 10;
         /* M-estimate flag */
-        ntder = ntrfl / 100 % 10;
-        /* derivative type flag */
         ntine = ntrfl / 1000 % 10;
         /* inequality flag */
         ntlim = ntrfl / 10000 % 10;
@@ -986,8 +963,6 @@ L_apoiss:
         /* transformation flag */
         ntmes = ntrfl / 10 % 10;
         /* M-estimate flag */
-        ntder = ntrfl / 100 % 10;
-        /* derivative type flag */
         ntine = ntrfl / 1000 % 10;
         /* inequality flag */
         ntlim = ntrfl / 10000 % 10;
