@@ -8,17 +8,13 @@ typedef int integer;
 typedef bool logical;
 
 inline integer ijsym_(integer *i__, integer *j) {
-    /* System generated locals */
-    integer ret_val;
 
-    /* index (I,J)=(J,I) in symmetric matri */
-    /* ,NCOUNT */
+    /* index (I,J)=(J,I) in symmetric matrix */
     if (*i__ <= *j) {
-        ret_val = (*j * *j - *j) / 2 + *i__;
+        return (*j * *j - *j) / 2 + *i__;
     } else {
-        ret_val = (*i__ * *i__ - *i__) / 2 + *j;
+        return (*i__ * *i__ - *i__) / 2 + *j;
     }
-    return ret_val;
 } /* ijsym_ */
 
 /* Subroutine */
@@ -309,10 +305,6 @@ L30:
 } /* duminv_ */
 
 inline doublereal scalxy_(doublereal *x, doublereal *y, integer *n) {
-    /* System generated locals */
-    integer i__1;
-    doublereal ret_val;
-
     /* Local variables */
     static integer j;
     static doublereal sum;
@@ -330,10 +322,8 @@ inline doublereal scalxy_(doublereal *x, doublereal *y, integer *n) {
 
     /* Function Body */
     sum = 0.;
-    i__1 = *n;
-    for (j = 1; j <= i__1; ++j) {
+    for (j = 1; j <= *n; ++j) {
         sum += x[j] * y[j];
     }
-    ret_val = sum;
-    return ret_val;
+    return sum;
 } /* scalxy_ */
