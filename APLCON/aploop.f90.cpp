@@ -440,7 +440,6 @@ L80:
         /* Local variables */
         static integer i__, j, ij;
         static doublereal xd[2], xt[2], der;
-        static integer ilr;
         static integer nzer, nonz, ntder, ntine, ntvar, ntmes, ntlim, ntprf;
         static doublereal xsave;
         static doublereal ratdif, ratmax, derzer;
@@ -507,19 +506,16 @@ L10:
         /* skip fixed variable */
         /* skip repeated derivative calculation */
         xsave = x[i__];
-        /* save current value of variable */
-        ilr = 0;
+
         /*     __________________________________________________________________ */
         /*     define displaced values for derivative calculation */
-        if (ilr == 0) {
-            /* L20: */
-            if (ntvar == 0 || ntvar == 2 || ntvar == 3) {
-                xt[0] = xsave + st[i__];
-                /* symmetric (two-sided) steps */
-                xt[1] = xsave - st[i__];
-                xd[0] = xt[0];
-                xd[1] = xt[1];
-            }
+        /* L20: */
+        if (ntvar == 0 || ntvar == 2 || ntvar == 3) {
+            xt[0] = xsave + st[i__];
+            /* symmetric (two-sided) steps */
+            xt[1] = xsave - st[i__];
+            xd[0] = xt[0];
+            xd[1] = xt[1];
         }
         /*     __________________________________________________________________ */
         /*     set variable to displaced value and return for calculation */
@@ -561,18 +557,11 @@ L30:
         i__1 = simcom_.nf;
         for (j = 1; j <= i__1; ++j) {
             /* loop on all constraint functions */
-            if (ilr == 0) {
-                /* symmetric formula */
-                der = (hh[j] - f[j]) / (xt[0] - xt[1]);
-                /* !! internal variable */
-            } else {
-                /* asymmetric formula */
-                der = (fc[j] * 3. + f[j] - hh[j] * 4.) * .5 / st[i__];
-                if (ilr == 2) {
-                    der = -der;
-                }
-                /* sign */
-            }
+
+            /* symmetric formula */
+            der = (hh[j] - f[j]) / (xt[0] - xt[1]);
+            /* !! internal variable */
+
             /*      _________________________________________________________________ */
             /*      classify derivative properties of variable I */
             if (der == 0.) {
