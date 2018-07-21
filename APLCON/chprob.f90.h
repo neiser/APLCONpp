@@ -32,7 +32,7 @@ inline doublereal dgamml_(doublereal x) {
 inline doublereal dgamin_(doublereal a, doublereal x) {
     /* Local variables */
     static doublereal b, c__, d__, h__;
-    static integer i__, n;
+    static integer i, n;
     static doublereal an, ap, del, gln, sum;
 
     /*     incomplete gamma function P(a,x) */
@@ -68,8 +68,8 @@ L10:
         c__ = 9.9999999999999988e29;
         d__ = 1. / b;
         h__ = d__;
-        for (i__ = 1; i__ <= 300; ++i__) {
-            an = -i__ * (i__ - a);
+        for (i = 1; i <= 300; ++i) {
+            an = -i * (i - a);
             b += 2.;
             d__ = an * d__ + b;
             if (abs(d__) < 1e-30) {

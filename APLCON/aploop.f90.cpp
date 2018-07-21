@@ -323,7 +323,7 @@ L80:
     /* Subroutine */
     static int asteps_(doublereal *x, doublereal *vx, doublereal *st) {
         /* Local variables */
-        static integer i__, j, ii;
+        static integer i, j, ii;
         static doublereal vii;
         static integer ntine, ntrfl, ntvar;
 
@@ -346,9 +346,9 @@ L80:
 
         /* Function Body */
         ii = 0;
-        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
+        for (i = 1; i <= simcom_.nx; ++i) {
             /* loop on all variables */
-            simcom_.ipak = i__;
+            simcom_.ipak = i;
             /*     unpackfl.inc = code for flag unpacking */
             ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
             /* get packed flags */
@@ -356,26 +356,26 @@ L80:
             /* transformation flag */
             ntine = ntrfl / 1000 % 10;
             /* inequality flag */
-            ii += i__;
+            ii += i;
             vii = abs(vx[ii]);
             /* original diagonal element */
             /*      _________________________________________________________________ */
             /*      define step size for derivative calculation */
             if (vii != 0.) {
                 /* measured variable */
-                if (st[i__] > 0.) {
+                if (st[i] > 0.) {
                     /* Computing MIN */
-                    st[i__] = min(st[i__], simcom_.derfac * sqrt(vii));
+                    st[i] = min(st[i], simcom_.derfac * sqrt(vii));
                     /* user step, if smaller */
-                } else if (st[i__] <= 0.) {
+                } else if (st[i] <= 0.) {
                     /* step is undefined */
-                    st[i__] = simcom_.derfac * sqrt(vii);
+                    st[i] = simcom_.derfac * sqrt(vii);
                     /* step from cov matrix */
                     if (ntvar != 2) {
-                        st[i__] = min(st[i__], simcom_.derlow * max(1e-6, abs(x[i__])));
+                        st[i] = min(st[i], simcom_.derlow * max(1e-6, abs(x[i])));
                     } else {
                         /* Poisson */
-                        st[i__] = min(st[i__], simcom_.derlow * max(1e-6, abs(x[i__] + 1.)));
+                        st[i] = min(st[i], simcom_.derlow * max(1e-6, abs(x[i] + 1.)));
                     }
                 }
             } else if (vii == 0.) {
@@ -383,14 +383,14 @@ L80:
                 --simcom_.ndf;
                 /* reduce degrees of freedom */
                 for (j = 1; j <= simcom_.nx; ++j) {
-                    vx[ijsym_(&i__, &j)] = 0.;
+                    vx[ijsym_(&i, &j)] = 0.;
                     /* clear matrix elements */
                 }
                 /* Computing MAX */
-                st[i__] = simcom_.derufc * max(1.0, abs(x[i__]));
+                st[i] = simcom_.derufc * max(1.0, abs(x[i]));
             }
             if (ntine == 1) {
-                st[i__] = 0.;
+                st[i] = 0.;
             }
         }
         return 0;
@@ -404,7 +404,7 @@ L80:
         static logical tinue = false;
 
         /* Local variables */
-        static integer i__, j, ij;
+        static integer i, j, ij;
         static doublereal xd[2], xt[2], der;
         static integer nzer, nonz, ntine, ntvar, ntmes, ntlim, ntprf;
         static doublereal xsave;
@@ -453,10 +453,10 @@ L80:
         }
         /* continue */
         tinue = true;
-        i__ = 0;
+        i = 0;
         /* initialize derivative loop */
 L10:
-        if (i__ >= simcom_.nx) {
+        if (i >= simcom_.nx) {
             /* finished */
             *jret = 0;
             /* ... means differentation finished */
@@ -464,52 +464,52 @@ L10:
             /* Jacobian ready */
             return 0;
         }
-        ++i__;
+        ++i;
         /* next variable */
-        if (st[i__] == 0.f) {
+        if (st[i] == 0.f) {
             goto L10;
         }
         /* skip fixed variable */
         /* skip repeated derivative calculation */
-        xsave = x[i__];
+        xsave = x[i];
 
         /*     __________________________________________________________________ */
         /*     define displaced values for derivative calculation */
         /* L20: */
         if (ntvar == 0 || ntvar == 2 || ntvar == 3) {
-            xt[0] = xsave + st[i__];
+            xt[0] = xsave + st[i];
             /* symmetric (two-sided) steps */
-            xt[1] = xsave - st[i__];
+            xt[1] = xsave - st[i];
             xd[0] = xt[0];
             xd[1] = xt[1];
         }
         /*     __________________________________________________________________ */
         /*     set variable to displaced value and return for calculation */
-        x[i__] = xd[0];
+        x[i] = xd[0];
         /* first step */
-        i__ = -i__;
+        i = -i;
         return 0;
         /*     __________________________________________________________________ */
         /*     continue */
 L30:
-        if (i__ < 0) {
+        if (i < 0) {
             /* calculation of first step done ... */
             for (j = 1; j <= simcom_.nf; ++j) {
                 hh[j] = f[j];
                 /* save constraint values */
             }
-            i__ = -i__;
+            i = -i;
             /* reverse flag */
-            x[i__] = xd[1];
+            x[i] = xd[1];
             /* set next step ... */
             return 0;
             /* ... and return for second step */
         }
         /*     __________________________________________________________________ */
         /*     INIT ne 0: second step done - calculate derivative */
-        x[i__] = xsave;
+        x[i] = xsave;
         /* restore variable I */
-        ij = i__;
+        ij = i;
         /* derivative calculation */
         nzer = 0;
         /* reset: number of zero derivatives */
@@ -554,7 +554,7 @@ L30:
                        doublereal *a, doublereal *xp, doublereal *rh,
                        doublereal *wm, doublereal *dx) {
         /* Local variables */
-        static integer i__, j, ia, ii;
+        static integer i, j, ia, ii;
         static doublereal diag[1000];
         static integer nrank, ntrfl, ntvar;
         static doublereal qnext[1000];
@@ -579,9 +579,9 @@ L30:
         /*     right-hand side of equation */
         /* save current chi^2 */
         simcom_.ncst = 0;
-        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
+        for (i = 1; i <= simcom_.nx; ++i) {
             /* first NX components */
-            rh[i__] = 0.;
+            rh[i] = 0.;
             /* define right hand side of equation */
         }
         for (j = 1; j <= simcom_.nf; ++j) {
@@ -599,15 +599,15 @@ L30:
         }
         /*     __________________________________________________________________ */
         /*     form matrix and solve */
-        for (i__ = 1; i__ <= (simcom_.nx * simcom_.nx + simcom_.nx) / 2; ++i__) {
-            wm[i__] = -vx[i__];
+        for (i = 1; i <= (simcom_.nx * simcom_.nx + simcom_.nx) / 2; ++i) {
+            wm[i] = -vx[i];
             /* copy -VX(.) into W_11 */
         }
         ii = 0;
         /* modify V for Poisson variables */
-        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
-            ii += i__;
-            simcom_.ipak = i__;
+        for (i = 1; i <= simcom_.nx; ++i) {
+            ii += i;
+            simcom_.ipak = i;
             /*     unpackfl.inc = code for flag unpacking */
             ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
             /* get packed flags */
@@ -616,7 +616,7 @@ L30:
             if (ntvar == 2) {
                 /* Poisson */
                 /* Computing 2nd power */
-                wm[ii] = -max(abs(x[i__]), 1.0);
+                wm[ii] = -max(abs(x[i]), 1.0);
             }
         }
         duminv_(&a[1], &wm[1], &rh[1], &simcom_.nx, &simcom_.nf, &nrank,
@@ -637,10 +637,10 @@ L30:
         if (simcom_.iter > 1 && simcom_.chisq >= simcom_.chsqp * 3.) {
             simcom_.weight = .05;
         }
-        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
-            xp[i__] = dx[i__];
+        for (i = 1; i <= simcom_.nx; ++i) {
+            xp[i] = dx[i];
             /* save previous corrections */
-            dx[i__] = rh[i__];
+            dx[i] = rh[i];
             /* store new corrections */
         }
         return 0;
@@ -649,10 +649,6 @@ L30:
     /* Subroutine */
     static int addtox_(doublereal *x, doublereal *xs, doublereal *dx,
                        doublereal *xp) {
-
-        /* Local variables */
-        static integer i__;
-
         /* Parameter adjustments */
         --xp;
         --dx;
@@ -660,10 +656,10 @@ L30:
         --x;
 
         /* Function Body */
-        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
-            dx[i__] = simcom_.weight * dx[i__] + (1. - simcom_.weight) * xp[i__];
+        for (int i = 1; i <= simcom_.nx; ++i) {
+            dx[i] = simcom_.weight * dx[i] + (1. - simcom_.weight) * xp[i];
             /* reduce step evtl. */
-            x[i__] = xs[i__] + dx[i__];
+            x[i] = xs[i] + dx[i];
             /* correct x and return to test constraints */
         }
         return 0;
@@ -709,7 +705,7 @@ L30:
                        doublereal *as, doublereal *wm, doublereal *pu) {
 
         /* Local variables */
-        static integer i__, ii;
+        static integer i, ii;
         static doublereal scopy;
 
         /*     __________________________________________________________________ */
@@ -724,23 +720,23 @@ L30:
 
         /* Function Body */
         ii = 0;
-        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
-            as[i__] = x[i__];
-            ii += i__;
-            pu[i__] = 0.f;
+        for (i = 1; i <= simcom_.nx; ++i) {
+            as[i] = x[i];
+            ii += i;
+            pu[i] = 0.f;
             if (vx[ii] > 0.f) {
                 if (vx[ii] - wm[ii] > 0.f) {
-                    pu[i__] = dx[i__] / sqrt(vx[ii] - wm[ii]);
+                    pu[i] = dx[i] / sqrt(vx[ii] - wm[ii]);
                 }
             }
         }
         /*     __________________________________________________________________ */
         /*     copy/exchange result/input covariance matrix */
-        for (i__ = 1; i__ <= (simcom_.nx * simcom_.nx + simcom_.nx) / 2; ++i__) {
-            scopy = vx[i__];
-            vx[i__] = wm[i__];
+        for (i = 1; i <= (simcom_.nx * simcom_.nx + simcom_.nx) / 2; ++i) {
+            scopy = vx[i];
+            vx[i] = wm[i];
             /* copy fitted covariance matrix */
-            wm[i__] = scopy;
+            wm[i] = scopy;
             /* ... and save input matrix */
         }
         return 0;
@@ -759,7 +755,7 @@ L30:
     } /* chndpv_ */
 
     /* Subroutine */
-    static int adummy_0_(int n__, doublereal *arg, integer *i__, doublereal *step) {
+    static int adummy_0_(int n__, doublereal *arg, integer *i, doublereal *step) {
         static integer ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
         /*     parameters for fit method */
         /*     __________________________________________________________________ */
@@ -781,10 +777,10 @@ L_apdeps:
 
 L_apstep:
         /* step size for numdif */
-        if (*i__ < 1 || *i__ > simcom_.nx) {
+        if (*i < 1 || *i > simcom_.nx) {
             return 0;
         }
-        simcom_.ipak = *i__;
+        simcom_.ipak = *i;
         /*     unpackfl.inc = code for flag unpacking */
         ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
         /* get packed flags */
@@ -798,7 +794,7 @@ L_apstep:
         /* limit flag */
         ntprf = ntrfl / 100000 % 10;
         /* profile flag */
-        nauxcm_.aux[simcom_.indst + *i__ - 1] = abs(*step);
+        nauxcm_.aux[simcom_.indst + *i - 1] = abs(*step);
         /* ST(I)= ... */
         if (*step != 0.) {
             ntine = 0;
@@ -812,10 +808,10 @@ L_apstep:
 
 L_apoiss:
         /* Poisson distributed variable */
-        if (*i__ < 1 || *i__ > simcom_.nx) {
+        if (*i < 1 || *i > simcom_.nx) {
             return 0;
         }
-        simcom_.ipak = *i__;
+        simcom_.ipak = *i;
         /*     unpackfl.inc = code for flag unpacking */
         ntrfl = (integer)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
         /* get packed flags */
@@ -852,13 +848,13 @@ L100:
     }
 
     /* Subroutine */
-    static int apstep_(integer *i__, doublereal *step) {
-        return adummy_0_(8, (doublereal *)0, i__, step);
+    static int apstep_(integer *i, doublereal *step) {
+        return adummy_0_(8, (doublereal *)0, i, step);
     }
 
     /* Subroutine */
-    static int apoiss_(integer *i__) {
-        return adummy_0_(12, (doublereal *)0, i__, (doublereal*)0);
+    static int apoiss_(integer *i) {
+        return adummy_0_(12, (doublereal *)0, i, (doublereal*)0);
     }
 
     /* Subroutine */
@@ -876,14 +872,14 @@ L100:
     /* Subroutine */
     static int appull_(doublereal *pulls) {
         /* Local variables */
-        static integer i__;
+        static integer i;
 
         /* Parameter adjustments */
         --pulls;
 
         /* Function Body */
-        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
-            pulls[i__] = nauxcm_.aux[simcom_.indpu + i__ - 1];
+        for (i = 1; i <= simcom_.nx; ++i) {
+            pulls[i] = nauxcm_.aux[simcom_.indpu + i - 1];
         }
         return 0;
     } /* appull_ */

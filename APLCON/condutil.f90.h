@@ -7,21 +7,21 @@ typedef double doublereal;
 typedef int integer;
 typedef bool logical;
 
-inline integer ijsym_(integer *i__, integer *j) {
+inline integer ijsym_(integer *i, integer *j) {
 
     /* index (I,J)=(J,I) in symmetric matrix */
-    if (*i__ <= *j) {
-        return (*j * *j - *j) / 2 + *i__;
+    if (*i <= *j) {
+        return (*j * *j - *j) / 2 + *i;
     } else {
-        return (*i__ * *i__ - *i__) / 2 + *j;
+        return (*i * *i - *i) / 2 + *j;
     }
 } /* ijsym_ */
 
 /* Subroutine */
 inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
-                             integer *nx, integer *nf,
-                             integer *nrank, doublereal *aux,
-                             doublereal *qnext) {
+                   integer *nx, integer *nf,
+                   integer *nrank, doublereal *aux,
+                   doublereal *qnext) {
     /* Initialized data */
 
     static doublereal eps = 1e-6;
