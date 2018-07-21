@@ -30,6 +30,7 @@ struct {
     doublereal aux[125000];
 } nauxcm_;
 
+
 class vec {
     vector<double> c;
 
@@ -182,10 +183,6 @@ L10:
     static int iploop_(doublereal *x, doublereal *vx, doublereal *f,
                        vec& xs, doublereal *dx, doublereal *fcopy,
                        doublereal *xp, doublereal *rh, integer *iret) {
-        /* System generated locals */
-        integer i__1;
-        doublereal d__1, d__2;
-
         /* Local variables */
         static integer j;
         static doublereal fj, fex[100];
@@ -208,6 +205,9 @@ L10:
         --vx;
         --x;
 
+
+        // asdsa
+
         /* Function Body */
         ++simcom_.ncalls;
         /*     __________________________________________________________________ */
@@ -221,8 +221,7 @@ L10:
         nfit = 0;
         /* reset fit count */
         simcom_.iter = 0;
-        i__1 = simcom_.nx;
-        for (j = 1; j <= i__1; ++j) {
+        for (j = 1; j <= simcom_.nx; ++j) {
             xs[j] = x[j];
             /* save initial X values */
             dx[j] = 0.;
@@ -237,8 +236,7 @@ L10:
         simcom_.ncst = 0;
         simcom_.chisq = 0.;
 L20:
-        i__1 = simcom_.nf;
-        for (j = 1; j <= i__1; ++j) {
+        for (j = 1; j <= simcom_.nf; ++j) {
             fj = f[j];
             fex[j - 1] = fj;
             /* extended F */
@@ -254,21 +252,18 @@ L20:
         /* reset constraint tests */
         simcom_.frmsp = simcom_.frms;
         simcom_.frms = 0.;
-        i__1 = simcom_.nf;
-        for (j = 1; j <= i__1; ++j) {
+        for (j = 1; j <= simcom_.nf; ++j) {
             fj = f[j];
             fcopy[j] = fj;
             /* copy constraint vector */
             simcom_.ftest += abs(fj);
             /* sum absolute values */
             /* Computing 2nd power */
-            d__1 = fj;
-            simcom_.frms += d__1 * d__1;
+            simcom_.frms += fj * fj;
             /* sum squares */
         }
         /* Computing MAX */
-        d__1 = 1e-16, d__2 = simcom_.ftest / (real)simcom_.nf;
-        simcom_.ftest = max(d__1, d__2);
+        simcom_.ftest = max(1e-16, simcom_.ftest / (doublereal)simcom_.nf);
         /* average |F| */
         simcom_.frms = sqrt(simcom_.frms / (real)simcom_.nf + 1e-32);
         /* LS mean */
@@ -586,10 +581,6 @@ L30:
     static int aniter_(doublereal *x, doublereal *vx, doublereal *f,
                        doublereal *a, doublereal *xp, doublereal *rh,
                        doublereal *wm, doublereal *dx) {
-        /* System generated locals */
-        integer i__1;
-        doublereal d__1;
-
         /* Local variables */
         static integer i__, j, ia, ii;
         static doublereal diag[1000];
@@ -616,21 +607,18 @@ L30:
         /*     right-hand side of equation */
         /* save current chi^2 */
         simcom_.ncst = 0;
-        i__1 = simcom_.nx;
-        for (i__ = 1; i__ <= i__1; ++i__) {
+        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
             /* first NX components */
             rh[i__] = 0.;
             /* define right hand side of equation */
         }
-        i__1 = simcom_.nf;
-        for (j = 1; j <= i__1; ++j) {
+        for (j = 1; j <= simcom_.nf; ++j) {
             /* next NF components */
             nauxcm_.aux[simcom_.indfc + j - 1] = f[j];
             rh[simcom_.nx + j] = -f[j];
         }
         ia = 0;
-        i__1 = simcom_.nf;
-        for (j = 1; j <= i__1; ++j) {
+        for (j = 1; j <= simcom_.nf; ++j) {
             /* "subtract" actual step */
             rh[simcom_.nx + j] += scalxy_(&a[ia + 1], &dx[1], &simcom_.nx);
             ia += simcom_.nx;
@@ -639,15 +627,13 @@ L30:
         }
         /*     __________________________________________________________________ */
         /*     form matrix and solve */
-        i__1 = (simcom_.nx * simcom_.nx + simcom_.nx) / 2;
-        for (i__ = 1; i__ <= i__1; ++i__) {
+        for (i__ = 1; i__ <= (simcom_.nx * simcom_.nx + simcom_.nx) / 2; ++i__) {
             wm[i__] = -vx[i__];
             /* copy -VX(.) into W_11 */
         }
         ii = 0;
         /* modify V for Poisson variables */
-        i__1 = simcom_.nx;
-        for (i__ = 1; i__ <= i__1; ++i__) {
+        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
             ii += i__;
             simcom_.ipak = i__;
             /*     unpackfl.inc = code for flag unpacking */
@@ -658,9 +644,7 @@ L30:
             if (ntvar == 2) {
                 /* Poisson */
                 /* Computing 2nd power */
-                d__1 = x[i__];
-                wm[ii] = -sqrt(d__1 * d__1 + 1.f);
-                /* -MAX(ABS(X(I)),1.0D0) */
+                wm[ii] = -max(abs(x[i__]), 1.0);
             }
         }
         duminv_(&a[1], &wm[1], &rh[1], &simcom_.nx, &simcom_.nf, &nrank,
@@ -681,8 +665,7 @@ L30:
         if (simcom_.iter > 1 && simcom_.chisq >= simcom_.chsqp * 3.) {
             simcom_.weight = .05;
         }
-        i__1 = simcom_.nx;
-        for (i__ = 1; i__ <= i__1; ++i__) {
+        for (i__ = 1; i__ <= simcom_.nx; ++i__) {
             xp[i__] = dx[i__];
             /* save previous corrections */
             dx[i__] = rh[i__];
@@ -719,66 +702,9 @@ L30:
 
     /* Subroutine */
     static int antest_(integer *iret) {
-        /* System generated locals */
-        doublereal d__1, d__2;
-
-        /* Local variables */
-        static integer i__;
-        static doublereal cm[14];
-
         *iret = -1;
-        /* calculate new Jacobian */
-        /*     __________________________________________________________________ */
-        /*     combined measure? */
-        if (simcom_.iter == 1 && simcom_.ncst == 0) {
-            for (i__ = 1; i__ <= 14; ++i__) {
-                cm[i__ - 1] = 0.;
-            }
-            cm[8] = .5;
-            /* damping factor */
-            cm[0] = 2.;
-            /* Computing 2nd power */
-            d__1 = simcom_.frms;
-            /* Computing 2nd power */
-            d__2 = simcom_.frmsp;
-            cm[1] = d__1 * d__1 + d__2 * d__2;
-            /* Computing 4th power */
-            d__1 = simcom_.frms, d__1 *= d__1;
-            /* Computing 4th power */
-            d__2 = simcom_.frmsp, d__2 *= d__2;
-            cm[2] = d__1 * d__1 + d__2 * d__2;
-            cm[3] = simcom_.chisq + simcom_.chsqp;
-            /* Computing 2nd power */
-            d__1 = simcom_.frms;
-            /* Computing 2nd power */
-            d__2 = simcom_.frmsp;
-            cm[4] = simcom_.chisq * (d__1 * d__1) + simcom_.chsqp * (d__2 * d__2);
-            lesfcm_(cm);
-            /* fit */
-            /* Computing 2nd power */
-            d__1 = simcom_.frms;
-            cm[12] = cm[5] - cm[6] * (d__1 * d__1);
-            /* combined penalty */
-        } else if (simcom_.ncst == 0) {
-            cm[0] = cm[8] * cm[0] + 1.;
-            /* Computing 2nd power */
-            d__1 = simcom_.frms;
-            cm[1] = cm[8] * cm[1] + d__1 * d__1;
-            /* Computing 4th power */
-            d__1 = simcom_.frms, d__1 *= d__1;
-            cm[2] = cm[8] * cm[2] + d__1 * d__1;
-            cm[3] = cm[8] * cm[3] + simcom_.chisq;
-            /* Computing 2nd power */
-            d__1 = simcom_.frms;
-            cm[4] = cm[8] * cm[4] + simcom_.chisq * (d__1 * d__1);
-            lesfcm_(cm);
-            /* fit */
-            cm[13] = cm[12];
-            /* Computing 2nd power */
-            d__1 = simcom_.frms;
-            cm[12] = cm[5] - cm[6] * (d__1 * d__1);
-            /* combined penalty */
-        }
+        /* combined penalty */
+        //        }
         /*     __________________________________________________________________ */
         /*     cutstep */
         if (simcom_.ncst < 2 && simcom_.iter > 1 &&
@@ -854,28 +780,6 @@ L30:
         }
         return 0;
     } /* acopxv_ */
-
-    /* Subroutine */
-    static int lesfcm_(doublereal *c__) {
-        /*     ... */
-        /* Parameter adjustments */
-        --c__;
-
-        /* Function Body */
-        c__[8] = c__[1] * c__[3] - c__[2] * c__[2];
-        /* determinant */
-        c__[10] = c__[3] / c__[8];
-        /* V_11 */
-        c__[11] = -c__[2] / c__[8];
-        /* V_12 */
-        c__[12] = c__[1] / c__[8];
-        /* V_22 */
-        c__[6] = c__[4] * c__[10] + c__[5] * c__[11];
-        /* 1. parameter */
-        c__[7] = c__[4] * c__[11] + c__[5] * c__[12];
-        /* 2. parameter */
-        return 0;
-    } /* lesfcm_ */
 
     /* Subroutine */
     static int chndpv_(real *chi2, integer *nd, real *pval) {
