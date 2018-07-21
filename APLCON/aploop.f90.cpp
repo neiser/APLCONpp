@@ -242,7 +242,7 @@ L20:
         /*     __________________________________________________________________ */
         /*     constraint test summary */
         if (istatu < 0) {
-            goto L40;
+            goto L30;
         }
         simcom_.ftestp = simcom_.ftest;
         /* save previous value */
@@ -277,12 +277,6 @@ L30:
         istatu = -1;
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-        /* !! */
-L40:
-        if (istatu + 1 != 0) {
-            goto L50;
-        }
-        /* ISTATU=-1 */
         anumde_(&x[1], fex, nauxcm_.aux, &nauxcm_.aux[simcom_.indst],
                 &nauxcm_.aux[simcom_.indlm], &nauxcm_.aux[simcom_.indfc],
                 &nauxcm_.aux[simcom_.indhh], &jret);
@@ -298,7 +292,6 @@ L40:
         /*     __________________________________________________________________ */
         /*     next iteration */
         /* ...for constraint calculation */
-L50:
         aniter_(&x[1], &vx[1], &fcopy[1], nauxcm_.aux, &xp[1], &rh[1],
                 &nauxcm_.aux[simcom_.indwm], &dx[1]);
         goto L70;
