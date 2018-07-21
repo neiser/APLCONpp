@@ -39,6 +39,15 @@ if(EnableBenchmark)
   add_subdirectory(bench)
 endif()
 
+if(COVERAGE)
+  message(STATUS "Coverage build, enforce Debug build type")
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING
+    "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
+    FORCE)
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+endif()
+
+
 # enable testing at top-level to make it available to CTest
 enable_testing()
 
