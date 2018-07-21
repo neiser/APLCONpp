@@ -6,6 +6,7 @@
 
 #include "chprob.f90.h"
 #include "condutil.f90.h"
+#include "helper.h"
 
 using namespace std;
 
@@ -26,19 +27,7 @@ struct {
 } nauxcm_;
 
 
-class vec {
-    vector<double> c;
 
-public:
-
-    void resize(size_t n) {
-        c.resize(n);
-    }
-
-    double& operator[](size_t i) {
-        return c[i-1];
-    }
-};
 
 struct aplcon {
 
@@ -158,7 +147,7 @@ struct aplcon {
         /*     internal APLOOP */
         /* initial steps ST(.) */
 
-        static vec x_save;
+        static vecd x_save;
         x_save.resize(simcom_.nx);
 L10:
 
@@ -172,7 +161,7 @@ L10:
 
     /* Subroutine */
     static int iploop_(double *x, double *vx, double *f,
-                       vec& xs, double *dx, double *fcopy,
+                       vecd& xs, double *dx, double *fcopy,
                        double *xp, double *rh, int *iret) {
         /* Local variables */
         static int j;
@@ -550,9 +539,7 @@ L30:
                        double *wm, double *dx) {
         /* Local variables */
         static int i, j, ia, ii;
-        static double diag[1000];
-        static int nrank, ntrfl, ntvar;
-        static double qnext[1000];
+        static int ntrfl, ntvar;
 
         /* next iteration step */
 
@@ -614,10 +601,8 @@ L30:
                 wm[ii] = -max(abs(x[i]), 1.0);
             }
         }
-        duminv_(&a[1], &wm[1], &rh[1], &simcom_.nx, &simcom_.nf, &nrank,
-                diag, qnext);
-        simcom_.chisq = -scalxy_(&nauxcm_.aux[simcom_.indhh], &rh[simcom_.nx + 1],
-                &simcom_.nf);
+        duminv_(&a[1], &wm[1], &rh[1], simcom_.nx, simcom_.nf);
+        simcom_.chisq = -scalxy_(&nauxcm_.aux[simcom_.indhh], &rh[simcom_.nx + 1], &simcom_.nf);
         /* next chi^2 */
         if (simcom_.chisq < 0.) {
             simcom_.chisq = 0.;

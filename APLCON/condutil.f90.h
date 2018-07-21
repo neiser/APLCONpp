@@ -1,6 +1,8 @@
 #include <cmath>
 #include <algorithm>
 
+#include "helper.h"
+
 using namespace std;
 
 inline int ijsym_(int *i, int *j) {
@@ -14,10 +16,7 @@ inline int ijsym_(int *i, int *j) {
 } /* ijsym_ */
 
 /* Subroutine */
-inline int duminv_(double *a, double *w, double *b,
-                   int *nx, int *nf,
-                   int *nrank, double *aux,
-                   double *qnext) {
+inline int duminv_(double *a, double *w, double *b, int nx, int nf) {
     /* Initialized data */
 
     static double eps = 1e-6;
@@ -51,8 +50,6 @@ inline int duminv_(double *a, double *w, double *b,
 
     /* matrix inve */
     /* Parameter adjustments */
-    --qnext;
-    --aux;
     --b;
     --w;
     --a;
@@ -60,47 +57,44 @@ inline int duminv_(double *a, double *w, double *b,
     /* Function Body */
     /*     special entry for partial inversion ****************************** */
     /*     ... */
-    *nrank = 0;
-    n = *nx + *nf;
-    /*     make sure AUX is zero, prevents uninit access */
-    /*     in continued execution of DBMINV */
-    /* dimension parameter */
-    for (i = 1; i <= n; ++i) {
-        aux[i] = 0.;
-    }
+    n = nx + nf;
+
+    vecd aux;
+    aux.resize(n);
+
+    vec<int> qnext;
+    qnext.resize(n);
+
+
     /*     -VX(NX-sym) is already inserted in W(NX+NF-sym) ------------------ */
-    ij = (*nx * *nx + *nx) / 2;
+    ij = (nx * nx + nx) / 2;
     /* number of elements of V(.) */
-    for (i = 1; i <= n; ++i) {
-        qnext[i] = 0.;
-        /* reset pointer */
-    }
     ia = 0;
-    for (j = 1; j <= *nf; ++j) {
-        for (i = 1; i <= *nx; ++i) {
+    for (j = 1; j <= nf; ++j) {
+        for (i = 1; i <= nx; ++i) {
             w[ij + i] = a[ia + i];
             /* copy A(.) into W_12 */
         }
         for (i = 1; i <= j; ++i) {
-            w[ij + *nx + i] = 0.f;
+            w[ij + nx + i] = 0.f;
             /* reset last submatrix W_22 of W(.) */
         }
-        ij = ij + *nx + j;
-        ia += *nx;
+        ij = ij + nx + j;
+        ia += nx;
     }
     /*     distinguish between measured and unmeasured variables ------------ */
     jfirst = 0;
     /* first index of measured variable */
     nmeas = 0;
     /* number of measured variables */
-    for (i = 1; i <= *nx; ++i) {
+    for (i = 1; i <= nx; ++i) {
         if (w[(i * i + i) / 2] < 0.f) {
             /* measured variable */
             if (jfirst == 0) {
                 jfirst = i;
                 /* first index of measured variable */
             } else {
-                qnext[jlast] = (double)i;
+                qnext[jlast] = i;
                 /* insert index at previous index */
             }
             jlast = i;
@@ -112,10 +106,10 @@ inline int duminv_(double *a, double *w, double *b,
         goto L10;
     }
     /* nothing to do */
-    qnext[jlast] = -1.;
+    qnext[jlast] = -1;
     /*     apply exchange algorithm to sub-matrices ------------------------- */
     /* stop index for last measured variable */
-    for (i = *nx + 1; i <= n; ++i) {
+    for (i = nx + 1; i <= n; ++i) {
         /* loop I over constraint equations */
         j = jfirst;
         /* first index of unmeasured variable */
@@ -124,12 +118,12 @@ inline int duminv_(double *a, double *w, double *b,
             sum = 0.;
             jk = (j * j - j) / 2;
             /* index of diagonal element before */
-            for (k = 1; k <= *nx; ++k) {
+            for (k = 1; k <= nx; ++k) {
                 if (k <= j) {
                     ++jk;
                 }
                 /* index in j column */
-                if (qnext[k] != 0.) {
+                if (qnext[k] != 0) {
                     sum += w[jk] * w[(i * i - i) / 2 + k];
                 }
                 if (k >= j) {
@@ -139,7 +133,7 @@ inline int duminv_(double *a, double *w, double *b,
             }
             aux[j] = sum;
             /* = A-row * VX-row/col */
-            j = (int)qnext[j];
+            j = qnext[j];
             /* next index of unmeasured variable */
         }
         for (k = i; k <= n; ++k) {
@@ -150,7 +144,7 @@ inline int duminv_(double *a, double *w, double *b,
                 /* already inverted element index J */
                 sum += w[(k * k - k) / 2 + j] * aux[j];
                 /* = A-row * H */
-                j = (int)qnext[j];
+                j = qnext[j];
                 /* next index of unmeasured variable */
             }
             w[(k * k - k) / 2 + i] += sum;
@@ -161,7 +155,7 @@ inline int duminv_(double *a, double *w, double *b,
         for (m = 1; m <= nmeas; ++m) {
             w[(i * i - i) / 2 + j] = -aux[j];
             /* add to off-diagonal W_22 */
-            j = (int)qnext[j];
+            j = qnext[j];
             /* next index of unmeasured variable */
         }
     }
@@ -169,18 +163,18 @@ inline int duminv_(double *a, double *w, double *b,
     jfirst = 0;
     jlast = 0;
     for (i = 1; i <= n; ++i) {
-        if (qnext[i] == 0.) {
+        if (qnext[i] == 0) {
             /* unmeasured variable */
             if (jfirst == 0) {
                 jfirst = i;
                 /* first index of unmeasured variable */
             } else {
-                qnext[jlast] = (double)i;
+                qnext[jlast] = i;
                 /* next index of unmeasured variable */
             }
             jlast = i;
         } else {
-            qnext[i] = 0.;
+            qnext[i] = 0;
             /* reset index for measured variable */
         }
     }
@@ -188,7 +182,7 @@ inline int duminv_(double *a, double *w, double *b,
         goto L10;
     }
     /* no unmeasured variable */
-    qnext[jlast] = -1.;
+    qnext[jlast] = -1;
     /*     common code for inversion and (M=1) solution of matrix equation */
     /* end flag */
 L10:
@@ -217,14 +211,12 @@ L20:
                 l = last;
             }
             last = j;
-            j = (int)qnext[j];
+            j = qnext[j];
             /* index of next candidate */
             goto L20;
         }
         if (k != 0) {
             /* pivot element found - proceed */
-            ++(*nrank);
-            /* increase rank counter */
             kk = (k * k + k) / 2;
             if (l == 0) {
                 jfirst = (int)qnext[k];
@@ -233,10 +225,8 @@ L20:
                 qnext[l] = qnext[k];
                 /* bridge used index */
             }
-            qnext[k] = 0.;
+            qnext[k] = 0;
             /* reset used index */
-            ++(*nrank);
-            /* increase rank */
             vkk = 1.f / vkk;
             /* invert pivot */
             w[kk] = -vkk;
@@ -276,12 +266,12 @@ L20:
         } else {
             /* no pivot candadate found - reset */
             for (k = 1; k <= n; ++k) {
-                if (qnext[k] != 0.) {
+                if (qnext[k] != 0) {
                     /* undefined variable */
                     b[k] = 0;
                     /* clear undefined vector element */
                     for (j = 1; j <= k; ++j) {
-                        if (qnext[j] != 0.) {
+                        if (qnext[j] != 0) {
                             w[(k * k - k) / 2 + j] = 0.;
                         }
                         /* clear matrix */
