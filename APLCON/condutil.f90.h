@@ -5,9 +5,9 @@ using namespace std;
 
 typedef double doublereal;
 typedef int integer;
-typedef integer logical;
+typedef bool logical;
 
-integer ijsym_(integer *i__, integer *j) {
+inline integer ijsym_(integer *i__, integer *j) {
     /* System generated locals */
     integer ret_val;
 
@@ -21,7 +21,8 @@ integer ijsym_(integer *i__, integer *j) {
     return ret_val;
 } /* ijsym_ */
 
-/* Subroutine */ int duminv_(doublereal *a, doublereal *w, doublereal *b,
+/* Subroutine */
+inline int duminv_(doublereal *a, doublereal *w, doublereal *b,
                              integer *nx, integer *nf,
                              integer *nrank, doublereal *aux,
                              doublereal *qnext) {
@@ -307,7 +308,7 @@ L30:
     return 0;
 } /* duminv_ */
 
-doublereal scalxy_(doublereal *x, doublereal *y, integer *n) {
+inline doublereal scalxy_(doublereal *x, doublereal *y, integer *n) {
     /* System generated locals */
     integer i__1;
     doublereal ret_val;

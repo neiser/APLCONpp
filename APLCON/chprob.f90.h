@@ -5,7 +5,7 @@ typedef int integer;
 
 using namespace std;
 
-doublereal dgamml_(doublereal *x) {
+inline doublereal dgamml_(doublereal *x) {
     /* Initialized data */
 
     static doublereal cof[6] = {76.18009172947146,   -86.50532032941677,
@@ -34,7 +34,7 @@ doublereal dgamml_(doublereal *x) {
     return ret_val;
 } /* dgamml_ */
 
-doublereal dgamin_(doublereal *a, doublereal *x) {
+inline doublereal dgamin_(doublereal *a, doublereal *x) {
     /* System generated locals */
     doublereal ret_val, d__1;
 
@@ -101,7 +101,7 @@ L20:
     return ret_val;
 } /* dgamin_ */
 
-doublereal chprob_(doublereal *chisq, integer *n) {
+inline doublereal chprob_(doublereal *chisq, integer *n) {
     /* System generated locals */
     doublereal ret_val, d__1, d__2;
 

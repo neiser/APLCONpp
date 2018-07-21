@@ -4,12 +4,16 @@
 #include <stdexcept>
 #include <sstream>
 
+#include "chprob.f90.h"
+#include "condutil.f90.h"
+
 typedef double doublereal;
 typedef int integer;
 typedef bool logical;
 typedef float real;
 
 using namespace std;
+
 
 /* Common Block Declarations */
 
@@ -335,7 +339,6 @@ L80:
         static integer i__, j, ii;
         static doublereal vii;
         static integer ntine, ntrfl, ntvar;
-        extern integer ijsym_(integer *, integer *);
 
         /*     ================================================================== */
         /*     check transformed variables (e.g. > 0) */
@@ -592,10 +595,6 @@ L30:
         static doublereal diag[1000];
         static integer nrank, ntrfl, ntvar;
         static doublereal qnext[1000];
-        extern /* Subroutine */ int duminv_(doublereal *, doublereal *, doublereal *,
-                                            integer *, integer *,
-                                            integer *, doublereal *, doublereal *);
-        extern doublereal scalxy_(doublereal *, doublereal *, integer *);
 
         /* next iteration step */
 
@@ -880,7 +879,6 @@ L30:
 
     /* Subroutine */
     static int chndpv_(real *chi2, integer *nd, real *pval) {
-        extern doublereal chprob_(doublereal *, integer *);
 
         *chi2 = simcom_.chisq;
         /* chi^square */

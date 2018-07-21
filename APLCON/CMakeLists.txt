@@ -6,8 +6,8 @@
 # build the library
 set(SRCS_LIB
   aploop.f90.cpp
-  chprob.f90.cpp
-  condutil.f90.cpp
+  chprob.f90.h
+  condutil.f90.h
   )
 
 add_library(aplcon OBJECT ${SRCS_LIB})
