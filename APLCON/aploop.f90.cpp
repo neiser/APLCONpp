@@ -441,10 +441,8 @@ L80:
         static integer i__, j, ij;
         static doublereal xd[2], xt[2], der;
         static integer ilr;
-        static doublereal stm;
         static integer nzer, nonz, ntder, ntine, ntvar, ntmes, ntlim, ntprf;
         static doublereal xsave;
-        static logical limdef;
         static doublereal ratdif, ratmax, derzer;
 
         /*     ================================================================== */
@@ -511,43 +509,6 @@ L10:
         xsave = x[i__];
         /* save current value of variable */
         ilr = 0;
-        /*     __________________________________________________________________ */
-        /*     check limits for variable */
-        /* define steps */
-        limdef = xl[(i__ << 1) + 1] != xl[(i__ << 1) + 2];
-        /* true if limits defined */
-        if (limdef) {
-            if (xsave + st[i__] > xl[(i__ << 1) + 2] ||
-                xsave - st[i__] > xl[(i__ << 1) + 1]) {
-                /* Computing MIN */
-                d__1 = xl[(i__ << 1) + 2] - xsave, d__2 = xsave - xl[(i__ << 1) + 1];
-                stm = min(d__1, d__2) * .9999f;
-                /* minimal step s */
-                if (stm * 3.f > st[i__]) {
-                    st[i__] = stm;
-                    /* use smaller symmetric step */
-                } else {
-                    /* Computing MAX */
-                    d__1 = xl[(i__ << 1) + 2] - xsave, d__2 = xsave - xl[(i__ << 1) + 1];
-                    stm = max(d__1, d__2) * .4999f;
-                    /* minimal ste */
-                    if (stm * 2.f < st[i__]) {
-                        st[i__] = stm;
-                    }
-                    if (st[i__] < xl[(i__ << 1) + 2] - xsave) {
-                        xd[0] = xsave + st[i__];
-                        xd[1] = xsave + st[i__] * 2.f;
-                        /* + one-sided steps */
-                        ilr = 1;
-                    } else {
-                        xd[0] = xsave - st[i__];
-                        xd[1] = xsave - st[i__] * 2.f;
-                        /* - one-sided steps */
-                        ilr = 2;
-                    }
-                }
-            }
-        }
         /*     __________________________________________________________________ */
         /*     define displaced values for derivative calculation */
         if (ilr == 0) {
