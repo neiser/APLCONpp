@@ -14,7 +14,7 @@ using namespace std;
 /* Common Block Declarations */
 
 struct {
-    double epsf, epschi, chisq, ftest, ftestp, chsqp, frms, frmsp, derfac,
+    double epsf, epschi, chisq, ftest, ftestp, chsqp, derfac,
     derufc, derlow, weight;
     int nx, nf, ipak, indcf, indst, indlm,
     indas, indtr, indfc, indhh, indxs, inddx, indxp,
@@ -160,7 +160,7 @@ L10:
                        double *xp, double *rh, int *iret) {
 
         static vecd a;
-        a.resize(simcom_.nx * (simcom_.nf + 2));
+        a.resize(simcom_.nx * simcom_.nf);
 
         /* Local variables */
         static int j;
@@ -224,23 +224,15 @@ L20:
         /* save previous value */
         simcom_.ftest = 0.;
         /* reset constraint tests */
-        simcom_.frmsp = simcom_.frms;
-        simcom_.frms = 0.;
         for (j = 1; j <= simcom_.nf; ++j) {
             fj = f[j];
             fcopy[j] = fj;
             /* copy constraint vector */
             simcom_.ftest += abs(fj);
             /* sum absolute values */
-            /* Computing 2nd power */
-            simcom_.frms += fj * fj;
-            /* sum squares */
         }
-        /* Computing MAX */
         simcom_.ftest = max(1e-16, simcom_.ftest / (double)simcom_.nf);
         /* average |F| */
-        simcom_.frms = sqrt(simcom_.frms / (double)simcom_.nf + 1e-32);
-        /* LS mean */
         if (istatu == 1) {
             goto L60;
         }
@@ -251,11 +243,10 @@ L30:
         /*     __________________________________________________________________ */
         /*     derivative calculation */
         anumde_(&x[1], &f[1], a, &nauxcm_.aux[simcom_.indst],
-                &nauxcm_.aux[simcom_.indlm], &nauxcm_.aux[simcom_.indfc],
+                &nauxcm_.aux[simcom_.indfc],
                 &nauxcm_.aux[simcom_.indhh], &jret);
         /* derivative matrix A */
         /* steps  ST(.) */
-        /* limits XL(2,.) */
         /* copy FC(.) central F(.) */
         /* copy HH(.) shifted F(.) */
         *iret = -1;
@@ -376,7 +367,7 @@ L80:
 
     /* Subroutine */
     static int anumde_(double *x, double *f, vecd& a,
-                       double *st, double *xl, double *fc,
+                       double *st, double *fc,
                        double *hh, int *jret) {
         /* Initialized data */
         static bool tinue = false;
@@ -399,7 +390,6 @@ L80:
         /*     X(.),F(.) = variables and constraints */
         /*     A(.)      = Jacobian */
         /*     ST(.)     = steps */
-        /*     XL(2,.)   = limits */
         /*     FC(.)     = Constraints at central variable values */
         /*     HH(.)     = Constraints at first step (variable + step) */
         /*     __________________________________________________________________ */
@@ -415,7 +405,6 @@ L80:
         /* Parameter adjustments */
         --hh;
         --fc;
-        xl -= 3;
         --st;
         --f;
         --x;
