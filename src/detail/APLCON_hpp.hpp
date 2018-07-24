@@ -61,7 +61,7 @@ struct has_getFitterSettings
 };
 
 template < typename... T >
-std::tuple<const T&...> ctie( const T&... args )
+constexpr std::tuple<const T&...> ctie( const T&... args )
 {
     return std::tie( args... );
 }
