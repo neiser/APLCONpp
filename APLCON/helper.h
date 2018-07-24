@@ -20,6 +20,11 @@ public:
     T& operator[](size_t i) {
         return c[i-1];
     }
+
+    const T& operator[](size_t i) const {
+        return c[i-1];
+    }
+
 };
 
 using vecd = vec<double>;

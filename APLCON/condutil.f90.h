@@ -16,7 +16,7 @@ inline int ijsym_(int *i, int *j) {
 } /* ijsym_ */
 
 /* Subroutine */
-inline int duminv_(double *a, double *w, double *b, int nx, int nf) {
+inline int duminv_(const vecd& a, vecd& w, vecd& b, int nx, int nf) {
     /* Initialized data */
 
     static double eps = 1e-6;
@@ -49,10 +49,6 @@ inline int duminv_(double *a, double *w, double *b, int nx, int nf) {
     /*     SMINV can be used for a dimension up to 100 (see INVCDR). */
 
     /* matrix inve */
-    /* Parameter adjustments */
-    --b;
-    --w;
-    --a;
 
     /* Function Body */
     /*     special entry for partial inversion ****************************** */

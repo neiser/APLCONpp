@@ -198,8 +198,7 @@ L30:
         /*     __________________________________________________________________ */
         /*     next iteration */
         /* ...for constraint calculation */
-        aniter_(&x[1], &vx[1], &fcopy[1], a, &xp[1],
-                &wm[1], &dx[1]);
+        aniter_(&x[1], &vx[1], fcopy, a, xp, wm, dx);
         goto L70;
         /*     __________________________________________________________________ */
         /*     test cutsteps */
@@ -216,7 +215,7 @@ L60:
         /*     apply corrections DX(.) to X(.) with transformations */
         /* convergence or failure: ISTATU= 2 */
 L70:
-        addtox_(&x[1], &xs[1], &dx[1], &xp[1]);
+        addtox_(&x[1], xs, dx, xp);
         istatu = 1;
         /* test at next entry */
         return 0;
@@ -224,7 +223,7 @@ L70:
         /*     end-of-primary-fit (NFIT=1) */
 L80:
         istatu = 2;
-        acopxv_(&x[1], &vx[1], dx, &wm[1]);
+        acopxv_(&x[1], &vx[1], dx, wm);
         *iret = 0;
         return 0;
     } /* iploop_ */
@@ -313,9 +312,6 @@ L80:
         static int nzer, nonz, ntvar;
         static double xsave;
         static double ratdif, ratmax;
-
-        static vecd fc;
-        fc.resize(simcom_.nf);
 
         static vecd hh;
         hh.resize(simcom_.nf);
@@ -448,9 +444,7 @@ L30:
     } /* anumde_ */
 
     /* Subroutine */
-    static int aniter_(double *x, double *vx, double *f,
-                       vecd& a, double *xp,
-                       double *wm, double *dx) {
+    static int aniter_(double *x, double *vx, const vecd& f, vecd& a, vecd& xp, vecd& wm, vecd& dx) {
         /* Local variables */
         static int i, j, ia, ii;
         static int ntrfl, ntvar;
@@ -461,10 +455,6 @@ L30:
         /* next iteration step */
 
         /* Parameter adjustments */
-        --dx;
-        --wm;
-        --xp;
-        --f;
         --vx;
         --x;
 
@@ -515,7 +505,7 @@ L30:
                 wm[ii] = -max(abs(x[i]), 1.0);
             }
         }
-        duminv_(&a[1], &wm[1], &rh[1], simcom_.nx, simcom_.nf);
+        duminv_(a, wm, rh, simcom_.nx, simcom_.nf);
         simcom_.chisq = -scalxy_(&hh[1], &rh[simcom_.nx + 1], &simcom_.nf);
         /* next chi^2 */
         if (simcom_.chisq < 0.) {
@@ -541,12 +531,8 @@ L30:
     } /* aniter_ */
 
     /* Subroutine */
-    static int addtox_(double *x, double *xs, double *dx,
-                       double *xp) {
+    static int addtox_(double *x, const vecd& xs, vecd& dx, const vecd& xp) {
         /* Parameter adjustments */
-        --xp;
-        --dx;
-        --xs;
         --x;
 
         /* Function Body */
@@ -595,7 +581,7 @@ L30:
     } /* antest_ */
 
     /* Subroutine */
-    static int acopxv_(double *x, double *vx, vecd& dx, double *wm) {
+    static int acopxv_(double *x, double *vx, vecd& dx, vecd& wm) {
 
         /* Local variables */
         static int i, ii;
@@ -604,7 +590,6 @@ L30:
         /*     __________________________________________________________________ */
         /*     convergence: pull calculation */
         /* Parameter adjustments */
-        --wm;
         --vx;
         --x;
 
