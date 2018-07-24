@@ -120,8 +120,7 @@ L10:
         /*     call IPLCON */
         /*     ================================================================== */
         /* steering routine for loop */
-        /* ,FOPT,FAC */
-        /*     local variables */
+
         /* Parameter adjustments */
         --f;
         --vx;
