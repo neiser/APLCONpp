@@ -17,20 +17,15 @@ struct {
     double epsf, epschi, chisq, ftest, ftestp, chsqp, derfac,
     derufc, derlow, weight;
     int nx, nf,
-    indas, indxp,
-    indwm, ndtot, nxf, mxf, ndf, ncst, iter,
-    ncalls, itermx, indpu;
+    ndtot, nxf, mxf, ndf, ncst, iter,
+    ncalls, itermx;
 } simcom_;
-
-struct {
-    double aux[125000];
-} nauxcm_;
-
 
 struct aplcon {
 
     static vecd st; // steps
     static veci flags; // flags for variables
+    static vecd pu; // pulls
 
     /* Subroutine */
     static int aplcon_(int *nvar, int *mcst) {
@@ -61,6 +56,7 @@ struct aplcon {
 
         flags.resize_and_reset(simcom_.nx);
         st.resize_and_reset(simcom_.nx);
+        pu.resize_and_reset(simcom_.nx);
 
         simcom_.ndf = simcom_.nf;
         /* reset n d f */
@@ -70,8 +66,7 @@ struct aplcon {
     } /* aplcon_ */
 
     /* Subroutine */
-    static int aploop_(double *x, double *vx, double *f,
-                       int *iret) {
+    static int aploop_(double *x, double *vx, double *f, int *iret) {
         /* steering routine for loop */
 
         /* Parameter adjustments */
@@ -83,39 +78,18 @@ struct aplcon {
         if (simcom_.ncalls != 0) {
             goto L10;
         }
-        /*     __________________________________________________________________ */
-        /*     indices/pointer etc at first APLOOP entry */
 
-        simcom_.nxf = simcom_.nx + simcom_.nf;
-        /* total number of fit equations */
-        simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
-        /* number elements symmetric matrix */
-        simcom_.indxp = 0;
-        /* previos step */
-        simcom_.indwm = simcom_.indxp + simcom_.nx;
-        /* weight matrix */
-        simcom_.indas = simcom_.indwm + simcom_.mxf;
-        /* X result */
-        simcom_.indpu = simcom_.indas + simcom_.nx;
-        /* pulls, solution X and Vx */
         asteps_(&x[1], &vx[1]);
-        /*     __________________________________________________________________ */
-        /*     internal APLOOP */
         /* initial steps ST(.) */
-
-
 L10:
-
         *iret = -1;
         /* default status is -1 = continue */
-        iploop_(&x[1], &vx[1], &f[1],
-                &nauxcm_.aux[simcom_.indxp], iret);
+        iploop_(&x[1], &vx[1], &f[1], iret);
         return 0;
     } /* aploop_ */
 
     /* Subroutine */
-    static int iploop_(double *x, double *vx, double *f,
-                       double *xp, int *iret) {
+    static int iploop_(double *x, double *vx, double *f, int *iret) {
 
         static vecd a;
         a.resize(simcom_.nx * simcom_.nf);
@@ -128,6 +102,12 @@ L10:
 
         static vecd fcopy;
         fcopy.resize(simcom_.nf);
+
+        static vecd xp;
+        xp.resize(simcom_.nx);
+
+        static vecd wm;
+        wm.resize(simcom_.mxf);
 
         /* Local variables */
         static int j;
@@ -143,7 +123,6 @@ L10:
         /* ,FOPT,FAC */
         /*     local variables */
         /* Parameter adjustments */
-        --xp;
         --f;
         --vx;
         --x;
@@ -220,7 +199,7 @@ L30:
         /*     next iteration */
         /* ...for constraint calculation */
         aniter_(&x[1], &vx[1], &fcopy[1], a, &xp[1],
-                &nauxcm_.aux[simcom_.indwm], &dx[1]);
+                &wm[1], &dx[1]);
         goto L70;
         /*     __________________________________________________________________ */
         /*     test cutsteps */
@@ -245,9 +224,7 @@ L70:
         /*     end-of-primary-fit (NFIT=1) */
 L80:
         istatu = 2;
-        acopxv_(&x[1], &vx[1], dx,
-                &nauxcm_.aux[simcom_.indas], &nauxcm_.aux[simcom_.indwm],
-                &nauxcm_.aux[simcom_.indpu]);
+        acopxv_(&x[1], &vx[1], dx, &wm[1]);
         *iret = 0;
         return 0;
     } /* iploop_ */
@@ -618,8 +595,7 @@ L30:
     } /* antest_ */
 
     /* Subroutine */
-    static int acopxv_(double *x, double *vx, vecd& dx,
-                       double *as, double *wm, double *pu) {
+    static int acopxv_(double *x, double *vx, vecd& dx, double *wm) {
 
         /* Local variables */
         static int i, ii;
@@ -628,16 +604,13 @@ L30:
         /*     __________________________________________________________________ */
         /*     convergence: pull calculation */
         /* Parameter adjustments */
-        --pu;
         --wm;
-        --as;
         --vx;
         --x;
 
         /* Function Body */
         ii = 0;
         for (i = 1; i <= simcom_.nx; ++i) {
-            as[i] = x[i];
             ii += i;
             pu[i] = 0.f;
             if (vx[ii] > 0.f) {
@@ -789,12 +762,13 @@ L100:
 
         /* Function Body */
         for (i = 1; i <= simcom_.nx; ++i) {
-            pulls[i] = nauxcm_.aux[simcom_.indpu + i - 1];
+            pulls[i] = pu[i];
         }
         return 0;
     } /* appull_ */
 
 };
 
+vecd aplcon::pu;
 vecd aplcon::st;
 veci aplcon::flags;
