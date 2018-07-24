@@ -24,12 +24,14 @@ message(STATUS "*** Build Type:                " ${CMAKE_BUILD_TYPE})
 message(STATUS "*** Compiler Flags (CXX):      " ${DEFAULT_CXX_COMPILE_FLAGS})
 message(STATUS "*** Compiler Flags (Fortran):  " ${DEFAULT_Fortran_COMPILE_FLAGS})
 
-add_subdirectory(APLCON)
-
 add_library(aplcon++ SHARED
     src/APLCON.hpp src/detail/APLCON_hpp.hpp
     src/wrapper/APLCON.cpp src/wrapper/APLCON.h
-    $<TARGET_OBJECTS:aplcon>)
+    APLCON/aploop.f90.h
+    APLCON/chprob.f90.h
+    APLCON/condutil.f90.h
+    APLCON/helper.h
+    )
 
 # Benchmarking business
 option(EnableBenchmark "Build benchmark binaries" OFF)

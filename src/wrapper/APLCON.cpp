@@ -4,7 +4,7 @@ typedef double doublereal;
 typedef int integer;
 typedef float real;
 
-#include "../../APLCON/aploop.f90.cpp"
+#include "../../APLCON/aploop.f90.h"
 
 // main routines
 

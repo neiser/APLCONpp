@@ -16,8 +16,8 @@ using namespace std;
 struct {
     double epsf, epschi, chisq, ftest, ftestp, chsqp, derfac,
     derufc, derlow, weight;
-    int nx, nf, ipak, indst,
-    indas, indtr, indfc, indhh, indxp,
+    int nx, nf,
+    indas, indfc, indhh, indxp,
     indrh, indwm, ndtot, nxf, mxf, ndf, ncst, iter,
     ncalls, itermx, indpu;
 } simcom_;
@@ -27,15 +27,13 @@ struct {
 } nauxcm_;
 
 
-
-
 struct aplcon {
+
+    static vecd st; // steps
+    static veci flags; // flags for variables
 
     /* Subroutine */
     static int aplcon_(int *nvar, int *mcst) {
-        /* Local variables */
-        static int ij;
-
         /*     ================================================================== */
         /*     initialize and define dimension  NVAR/MCST */
         /*     set default parameters */
@@ -62,27 +60,10 @@ struct aplcon {
         simcom_.nxf = simcom_.nx + simcom_.nf;
         /* total number of fit equations */
         simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
-        /* ______________________________________________________________________ */
-        /*     Indices for steps, flags and limits are defined here */
-        simcom_.indst = 0;
-        /* steps */
-        simcom_.indtr = simcom_.indst + simcom_.nx;
-        /* transformation flags */
-        simcom_.ndtot = simcom_.indtr + simcom_.nx;
-        /*     __________________________________________________________________ */
-        /*     storage of initial sub-arrays */
-        /*           1 ...    NX * (NF+2)   Jacobian, derivative matrix   A(.) */
-        /*     INDST+1 ...    NX            steps                         ST(.) */
-        /*     INDTR+1 ...    NX            properties of variables */
-        /*     INDLM+1 ...    2 * NX        limits for variables          XL(2,.) */
-        /*                    ----------- */
-        /*     NDTOT =        NX * (NF+6)   initial memory area */
-        /* space used so far */
-        for (ij = 1; ij <= simcom_.ndtot; ++ij) {
-            /* NX*(NF+6) */
-            nauxcm_.aux[ij - 1] = 0.;
-            /* clear  A(.), ST(.),...,XL(2,.) */
-        }
+
+        flags.resize_and_reset(simcom_.nx);
+        st.resize_and_reset(simcom_.nx);
+
         simcom_.ndf = simcom_.nf;
         /* reset n d f */
         simcom_.ncalls = 0;
@@ -125,7 +106,7 @@ struct aplcon {
         /* X result */
         simcom_.indpu = simcom_.indas + simcom_.nx;
         /* pulls, solution X and Vx */
-        asteps_(&x[1], &vx[1], &nauxcm_.aux[simcom_.indst]);
+        asteps_(&x[1], &vx[1]);
         /*     __________________________________________________________________ */
         /*     internal APLOOP */
         /* initial steps ST(.) */
@@ -234,7 +215,7 @@ L30:
         istatu = -1;
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-        anumde_(&x[1], &f[1], a, &nauxcm_.aux[simcom_.indst],
+        anumde_(&x[1], &f[1], a,
                 &nauxcm_.aux[simcom_.indfc],
                 &nauxcm_.aux[simcom_.indhh], &jret);
         /* derivative matrix A */
@@ -282,7 +263,7 @@ L80:
     } /* iploop_ */
 
     /* Subroutine */
-    static int asteps_(double *x, double *vx, double *st) {
+    static int asteps_(double *x, double *vx) {
         /* Local variables */
         static int i, j, ii;
         static double vii;
@@ -301,7 +282,6 @@ L80:
         /* define initial steps */
 
         /* Parameter adjustments */
-        --st;
         --vx;
         --x;
 
@@ -309,9 +289,7 @@ L80:
         ii = 0;
         for (i = 1; i <= simcom_.nx; ++i) {
             /* loop on all variables */
-            simcom_.ipak = i;
-            /*     unpackfl.inc = code for flag unpacking */
-            ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+            ntrfl = flags[i];
             /* get packed flags */
             ntvar = ntrfl % 10;
             /* transformation flag */
@@ -359,7 +337,7 @@ L80:
 
     /* Subroutine */
     static int anumde_(double *x, double *f, vecd& a,
-                       double *st, double *fc,
+                       double *fc,
                        double *hh, int *jret) {
         /* Initialized data */
         static bool tinue = false;
@@ -397,7 +375,6 @@ L80:
         /* Parameter adjustments */
         --hh;
         --fc;
-        --st;
         --f;
         --x;
 
@@ -556,9 +533,7 @@ L30:
         /* modify V for Poisson variables */
         for (i = 1; i <= simcom_.nx; ++i) {
             ii += i;
-            simcom_.ipak = i;
-            /*     unpackfl.inc = code for flag unpacking */
-            ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+            ntrfl = flags[i];
             /* get packed flags */
             ntvar = ntrfl % 10;
             /* transformation flag */
@@ -726,9 +701,7 @@ L_apstep:
         if (*i < 1 || *i > simcom_.nx) {
             return 0;
         }
-        simcom_.ipak = *i;
-        /*     unpackfl.inc = code for flag unpacking */
-        ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+        ntrfl = flags[*i];
         /* get packed flags */
         ntvar = ntrfl % 10;
         /* transformation flag */
@@ -740,7 +713,7 @@ L_apstep:
         /* limit flag */
         ntprf = ntrfl / 100000 % 10;
         /* profile flag */
-        nauxcm_.aux[simcom_.indst + *i - 1] = abs(*step);
+        st[*i] = abs(*step);
         /* ST(I)= ... */
         if (*step != 0.) {
             ntine = 0;
@@ -757,9 +730,7 @@ L_apoiss:
         if (*i < 1 || *i > simcom_.nx) {
             return 0;
         }
-        simcom_.ipak = *i;
-        /*     unpackfl.inc = code for flag unpacking */
-        ntrfl = (int)nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1];
+        ntrfl = flags[*i];
         /* get packed flags */
         ntvar = ntrfl % 10;
         /* transformation flag */
@@ -782,9 +753,7 @@ L100:
         /*     packfl.inc   = code for flag packing */
         /*     explanation see: */
         /*     unpackfl.inc = code for flag unpacking */
-        nauxcm_.aux[simcom_.indtr + simcom_.ipak - 1] = (double)(
-                                                            ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 +
-                                                            ntvar);
+        flags[*i] = ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 + ntvar;
         return 0;
     } /* adummy_ */
 
@@ -831,3 +800,6 @@ L100:
     } /* appull_ */
 
 };
+
+vecd aplcon::st;
+veci aplcon::flags;
