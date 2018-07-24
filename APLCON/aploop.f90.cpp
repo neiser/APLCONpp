@@ -16,7 +16,7 @@ using namespace std;
 struct {
     double epsf, epschi, chisq, ftest, ftestp, chsqp, derfac,
     derufc, derlow, weight;
-    int nx, nf, ipak, indst, indlm,
+    int nx, nf, ipak, indst,
     indas, indtr, indfc, indhh, indxp,
     indrh, indwm, ndtot, nxf, mxf, ndf, ncst, iter,
     ncalls, itermx, indpu;
@@ -64,15 +64,11 @@ struct aplcon {
         simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
         /* ______________________________________________________________________ */
         /*     Indices for steps, flags and limits are defined here */
-        /* reserve NX * (NF + 2) for Jacobian */
-        /* number elements symmetric matrix */
-        simcom_.indst = simcom_.nx * (simcom_.nf + 2);
+        simcom_.indst = 0;
         /* steps */
         simcom_.indtr = simcom_.indst + simcom_.nx;
         /* transformation flags */
-        simcom_.indlm = simcom_.indtr + simcom_.nx;
-        /* 2*limits for variables */
-        simcom_.ndtot = simcom_.indlm + (simcom_.nx << 1);
+        simcom_.ndtot = simcom_.indtr + simcom_.nx;
         /*     __________________________________________________________________ */
         /*     storage of initial sub-arrays */
         /*           1 ...    NX * (NF+2)   Jacobian, derivative matrix   A(.) */
@@ -115,7 +111,7 @@ struct aplcon {
         /* total number of fit equations */
         simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
         /* number elements symmetric matrix */
-        simcom_.indfc = simcom_.indlm + (simcom_.nx << 1);
+        simcom_.indfc = simcom_.ndtot + simcom_.nx;
         /* pointer to FC(NF) = copy of F(NF) */
         simcom_.indhh = simcom_.indfc + simcom_.nf;
         /* step */
@@ -129,8 +125,6 @@ struct aplcon {
         /* X result */
         simcom_.indpu = simcom_.indas + simcom_.nx;
         /* pulls, solution X and Vx */
-        simcom_.ndtot = simcom_.indpu + simcom_.nx;
-        /* total number of words (so far) */
         asteps_(&x[1], &vx[1], &nauxcm_.aux[simcom_.indst]);
         /*     __________________________________________________________________ */
         /*     internal APLOOP */
