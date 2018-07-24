@@ -17,8 +17,8 @@ struct {
     double epsf, epschi, chisq, ftest, ftestp, chsqp, derfac,
     derufc, derlow, weight;
     int nx, nf,
-    indas, indfc, indhh, indxp,
-    indrh, indwm, ndtot, nxf, mxf, ndf, ncst, iter,
+    indas, indxp,
+    indwm, ndtot, nxf, mxf, ndf, ncst, iter,
     ncalls, itermx, indpu;
 } simcom_;
 
@@ -37,8 +37,6 @@ struct aplcon {
         /*     ================================================================== */
         /*     initialize and define dimension  NVAR/MCST */
         /*     set default parameters */
-        /*     define pointer to arrays within aux array */
-        /*     clear aux array */
         /*     ================================================================== */
         simcom_.nx = *nvar;
         /* number of variables */
@@ -92,15 +90,9 @@ struct aplcon {
         /* total number of fit equations */
         simcom_.mxf = (simcom_.nxf * simcom_.nxf + simcom_.nxf) / 2;
         /* number elements symmetric matrix */
-        simcom_.indfc = simcom_.ndtot + simcom_.nx;
-        /* pointer to FC(NF) = copy of F(NF) */
-        simcom_.indhh = simcom_.indfc + simcom_.nf;
-        /* step */
-        simcom_.indxp = simcom_.indhh + simcom_.nx;
+        simcom_.indxp = 0;
         /* previos step */
-        simcom_.indrh = simcom_.indxp + simcom_.nx;
-        /* right-hand side */
-        simcom_.indwm = simcom_.indrh + simcom_.nxf;
+        simcom_.indwm = simcom_.indxp + simcom_.nx;
         /* weight matrix */
         simcom_.indas = simcom_.indwm + simcom_.mxf;
         /* X result */
@@ -117,13 +109,13 @@ L10:
         *iret = -1;
         /* default status is -1 = continue */
         iploop_(&x[1], &vx[1], &f[1],
-                &nauxcm_.aux[simcom_.indxp], &nauxcm_.aux[simcom_.indrh], iret);
+                &nauxcm_.aux[simcom_.indxp], iret);
         return 0;
     } /* aploop_ */
 
     /* Subroutine */
     static int iploop_(double *x, double *vx, double *f,
-                       double *xp, double *rh, int *iret) {
+                       double *xp, int *iret) {
 
         static vecd a;
         a.resize(simcom_.nx * simcom_.nf);
@@ -151,7 +143,6 @@ L10:
         /* ,FOPT,FAC */
         /*     local variables */
         /* Parameter adjustments */
-        --rh;
         --xp;
         --f;
         --vx;
@@ -216,8 +207,7 @@ L30:
         /*     __________________________________________________________________ */
         /*     derivative calculation */
         anumde_(&x[1], &f[1], a,
-                &nauxcm_.aux[simcom_.indfc],
-                &nauxcm_.aux[simcom_.indhh], &jret);
+                &jret);
         /* derivative matrix A */
         /* steps  ST(.) */
         /* copy FC(.) central F(.) */
@@ -229,7 +219,7 @@ L30:
         /*     __________________________________________________________________ */
         /*     next iteration */
         /* ...for constraint calculation */
-        aniter_(&x[1], &vx[1], &fcopy[1], a, &xp[1], &rh[1],
+        aniter_(&x[1], &vx[1], &fcopy[1], a, &xp[1],
                 &nauxcm_.aux[simcom_.indwm], &dx[1]);
         goto L70;
         /*     __________________________________________________________________ */
@@ -336,9 +326,7 @@ L80:
     } /* asteps_ */
 
     /* Subroutine */
-    static int anumde_(double *x, double *f, vecd& a,
-                       double *fc,
-                       double *hh, int *jret) {
+    static int anumde_(double *x, double *f, vecd& a, int *jret) {
         /* Initialized data */
         static bool tinue = false;
 
@@ -348,6 +336,12 @@ L80:
         static int nzer, nonz, ntvar;
         static double xsave;
         static double ratdif, ratmax;
+
+        static vecd fc;
+        fc.resize(simcom_.nf);
+
+        static vecd hh;
+        hh.resize(simcom_.nf);
 
         /*     ================================================================== */
         /*     calculation of numerical derivatives, one variable at a time */
@@ -373,8 +367,6 @@ L80:
         /* numerical derivatives */
 
         /* Parameter adjustments */
-        --hh;
-        --fc;
         --f;
         --x;
 
@@ -480,18 +472,20 @@ L30:
 
     /* Subroutine */
     static int aniter_(double *x, double *vx, double *f,
-                       vecd& a, double *xp, double *rh,
+                       vecd& a, double *xp,
                        double *wm, double *dx) {
         /* Local variables */
         static int i, j, ia, ii;
         static int ntrfl, ntvar;
+
+        static vecd rh;
+        rh.resize(simcom_.nxf);
 
         /* next iteration step */
 
         /* Parameter adjustments */
         --dx;
         --wm;
-        --rh;
         --xp;
         --f;
         --vx;
@@ -512,15 +506,16 @@ L30:
         }
         for (j = 1; j <= simcom_.nf; ++j) {
             /* next NF components */
-            nauxcm_.aux[simcom_.indfc + j - 1] = f[j];
             rh[simcom_.nx + j] = -f[j];
         }
         ia = 0;
+        vecd hh;
+        hh.resize(simcom_.nf);
         for (j = 1; j <= simcom_.nf; ++j) {
             /* "subtract" actual step */
             rh[simcom_.nx + j] += scalxy_(&a[ia + 1], &dx[1], &simcom_.nx);
             ia += simcom_.nx;
-            nauxcm_.aux[simcom_.indhh + j - 1] = rh[simcom_.nx + j];
+            hh[j] = rh[simcom_.nx + j];
             /* right hand side for chi**2 */
         }
         /*     __________________________________________________________________ */
@@ -544,7 +539,7 @@ L30:
             }
         }
         duminv_(&a[1], &wm[1], &rh[1], simcom_.nx, simcom_.nf);
-        simcom_.chisq = -scalxy_(&nauxcm_.aux[simcom_.indhh], &rh[simcom_.nx + 1], &simcom_.nf);
+        simcom_.chisq = -scalxy_(&hh[1], &rh[simcom_.nx + 1], &simcom_.nf);
         /* next chi^2 */
         if (simcom_.chisq < 0.) {
             simcom_.chisq = 0.;
