@@ -142,13 +142,12 @@ struct aplcon {
         /*     internal APLOOP */
         /* initial steps ST(.) */
 
-        static vecd x_save;
-        x_save.resize(simcom_.nx);
+
 L10:
 
         *iret = -1;
         /* default status is -1 = continue */
-        iploop_(&x[1], &vx[1], &f[1], x_save,
+        iploop_(&x[1], &vx[1], &f[1],
                 &nauxcm_.aux[simcom_.inddx], &nauxcm_.aux[simcom_.indcf],
                 &nauxcm_.aux[simcom_.indxp], &nauxcm_.aux[simcom_.indrh], iret);
         return 0;
@@ -156,11 +155,14 @@ L10:
 
     /* Subroutine */
     static int iploop_(double *x, double *vx, double *f,
-                       vecd& xs, double *dx, double *fcopy,
+                       double *dx, double *fcopy,
                        double *xp, double *rh, int *iret) {
 
         static vecd a;
         a.resize(simcom_.nx * simcom_.nf);
+
+        static vecd xs;
+        xs.resize(simcom_.nx);
 
         /* Local variables */
         static int j;
