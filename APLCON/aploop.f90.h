@@ -181,8 +181,7 @@ L30:
         istatu = -1;
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-        anumde_(&x[1], &f[1], a,
-                &jret);
+        anumde_(&x[1], &f[1], a, &jret);
         /* derivative matrix A */
         /* steps  ST(.) */
         /* copy FC(.) central F(.) */
@@ -305,9 +304,8 @@ L80:
         /* Local variables */
         static int i, j, ij;
         static double xd[2], xt[2], der;
-        static int nzer, nonz, ntvar;
+        static int ntvar;
         static double xsave;
-        static double ratdif, ratmax;
 
         static vecd hh;
         hh.resize(simcom_.nf);
@@ -407,12 +405,6 @@ L30:
         /* restore variable I */
         ij = i;
         /* derivative calculation */
-        nzer = 0;
-        /* reset: number of zero derivatives */
-        nonz = 0;
-        /* reset: number of non-zero derivatives */
-        ratmax = 0.;
-        /* max of diff-ratio */
         for (j = 1; j <= simcom_.nf; ++j) {
             /* loop on all constraint functions */
 
@@ -420,18 +412,6 @@ L30:
             der = (hh[j] - f[j]) / (xt[0] - xt[1]);
             /* !! internal variable */
 
-            /*      _________________________________________________________________ */
-            /*      classify derivative properties of variable I */
-            if (der == 0.) {
-                ++nzer;
-                /* derivative zero - count */
-            } else {
-                /* derivative non-zero */
-                ratdif = abs(a[ij] - der) / (abs(a[ij]) + abs(der));
-                ratmax = max(ratmax, ratdif);
-                ++nonz;
-                /* count non-zero derivative */
-            }
             a[ij] = der;
             /* insert into Jacobian matrix A */
             ij += simcom_.nx;
