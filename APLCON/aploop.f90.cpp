@@ -16,8 +16,8 @@ using namespace std;
 struct {
     double epsf, epschi, chisq, ftest, ftestp, chsqp, derfac,
     derufc, derlow, weight;
-    int nx, nf, ipak, indcf, indst, indlm,
-    indas, indtr, indfc, indhh, indxs, inddx, indxp,
+    int nx, nf, ipak, indst, indlm,
+    indas, indtr, indfc, indhh, indxp,
     indrh, indwm, ndtot, nxf, mxf, ndf, ncst, iter,
     ncalls, itermx, indpu;
 } simcom_;
@@ -117,15 +117,9 @@ struct aplcon {
         /* number elements symmetric matrix */
         simcom_.indfc = simcom_.indlm + (simcom_.nx << 1);
         /* pointer to FC(NF) = copy of F(NF) */
-        simcom_.indcf = simcom_.indfc + simcom_.nf;
-        /* pointer to FCOPY */
-        simcom_.indhh = simcom_.indcf + simcom_.nf;
-        /* pointer to HH(NF) = copy of F(.) */
-        simcom_.indxs = simcom_.indhh + simcom_.nf;
-        /* save X(.)        pointer */
-        simcom_.inddx = simcom_.indxs + simcom_.nx;
+        simcom_.indhh = simcom_.indfc + simcom_.nf;
         /* step */
-        simcom_.indxp = simcom_.inddx + simcom_.nx;
+        simcom_.indxp = simcom_.indhh + simcom_.nx;
         /* previos step */
         simcom_.indrh = simcom_.indxp + simcom_.nx;
         /* right-hand side */
@@ -148,14 +142,12 @@ L10:
         *iret = -1;
         /* default status is -1 = continue */
         iploop_(&x[1], &vx[1], &f[1],
-                &nauxcm_.aux[simcom_.inddx], &nauxcm_.aux[simcom_.indcf],
                 &nauxcm_.aux[simcom_.indxp], &nauxcm_.aux[simcom_.indrh], iret);
         return 0;
     } /* aploop_ */
 
     /* Subroutine */
     static int iploop_(double *x, double *vx, double *f,
-                       double *dx, double *fcopy,
                        double *xp, double *rh, int *iret) {
 
         static vecd a;
@@ -163,6 +155,12 @@ L10:
 
         static vecd xs;
         xs.resize(simcom_.nx);
+
+        static vecd dx;
+        dx.resize(simcom_.nx);
+
+        static vecd fcopy;
+        fcopy.resize(simcom_.nf);
 
         /* Local variables */
         static int j;
@@ -180,8 +178,6 @@ L10:
         /* Parameter adjustments */
         --rh;
         --xp;
-        --fcopy;
-        --dx;
         --f;
         --vx;
         --x;
@@ -284,7 +280,7 @@ L70:
         /*     end-of-primary-fit (NFIT=1) */
 L80:
         istatu = 2;
-        acopxv_(&x[1], &vx[1], &nauxcm_.aux[simcom_.inddx],
+        acopxv_(&x[1], &vx[1], dx,
                 &nauxcm_.aux[simcom_.indas], &nauxcm_.aux[simcom_.indwm],
                 &nauxcm_.aux[simcom_.indpu]);
         *iret = 0;
@@ -658,7 +654,7 @@ L30:
     } /* antest_ */
 
     /* Subroutine */
-    static int acopxv_(double *x, double *vx, double *dx,
+    static int acopxv_(double *x, double *vx, vecd& dx,
                        double *as, double *wm, double *pu) {
 
         /* Local variables */
@@ -671,7 +667,6 @@ L30:
         --pu;
         --wm;
         --as;
-        --dx;
         --vx;
         --x;
 
