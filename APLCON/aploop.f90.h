@@ -75,17 +75,13 @@ struct aplcon {
         --x;
 
         /* Function Body */
-        if (simcom_.ncalls != 0) {
-            goto L10;
+        if (simcom_.ncalls == 0) {
+            asteps_(&x[1], &vx[1]);
+            /* initial steps ST(.) */
         }
 
-        asteps_(&x[1], &vx[1]);
-        /* initial steps ST(.) */
-L10:
-        *iret = -1;
         /* default status is -1 = continue */
-        iploop_(&x[1], &vx[1], &f[1], iret);
-        return 0;
+        return iploop_(&x[1], &vx[1], &f[1], iret);
     } /* aploop_ */
 
     /* Subroutine */
@@ -181,7 +177,7 @@ L30:
         istatu = -1;
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-        anumde_(&x[1], &f[1], a, &jret);
+        jret = anumde_(&x[1], &f[1], a);
         /* derivative matrix A */
         /* steps  ST(.) */
         /* copy FC(.) central F(.) */
@@ -199,11 +195,11 @@ L30:
         /*     test cutsteps */
 L60:
         antest_(iret);
-        if (*iret + 1 == 0) {
+        if (*iret == -1) {
             goto L30;
         }
         /* numerical derivative:   ISTATU=-1 */
-        if (*iret >= 0) {
+        else if (*iret >= 0) {
             goto L80;
         }
         /*     __________________________________________________________________ */
@@ -297,7 +293,7 @@ L80:
     } /* asteps_ */
 
     /* Subroutine */
-    static int anumde_(double *x, double *f, vecd& a, int *jret) {
+    static int anumde_(double *x, double *f, vecd& a) {
         /* Initialized data */
         static bool tinue = false;
 
@@ -339,8 +335,7 @@ L80:
 
         /* Function Body */
         /*     ... */
-        /* entry flag */
-        *jret = -1;
+
         /* ...means continue at return */
         if (tinue) {
             goto L30;
@@ -351,8 +346,6 @@ L80:
         /* initialize derivative loop */
 L10:
         if (i >= simcom_.nx) {
-            /* finished */
-            *jret = 0;
             /* ... means differentation finished */
             tinue = false;
             /* Jacobian ready */
@@ -382,7 +375,7 @@ L10:
         x[i] = xd[0];
         /* first step */
         i = -i;
-        return 0;
+        return -1;
         /*     __________________________________________________________________ */
         /*     continue */
 L30:
@@ -396,7 +389,7 @@ L30:
             /* reverse flag */
             x[i] = xd[1];
             /* set next step ... */
-            return 0;
+            return -1;
             /* ... and return for second step */
         }
         /*     __________________________________________________________________ */
