@@ -240,7 +240,7 @@ private:
         using namespace detail;
         using Var = typename std::tuple_element<I, std::tuple<Vars...>>::type;
         using uVar = typename decay_stl_cont<Var>::type; // look inside stl container types for its contained element type (=value_type)
-        setVarSettings<Var, I>(std::enable_if<has_getFitterSettings<uVar, Variable_Settings_t>::value>(), // dispatch has method
+        setVarSettings<Var, I>(std::enable_if<has_getFitterSettings<uVar>::value>(), // dispatch has method
                                std::get<I>(t));
         setVarSettings<I+1, Vars...>(t);
     }

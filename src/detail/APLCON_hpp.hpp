@@ -51,13 +51,19 @@ struct decay_stl_cont<T, typename std::enable_if<is_stl_cont<T>::value>::type> {
 };
 
 
-template<typename T, typename Ret>
+template<typename T>
 struct has_getFitterSettings
 {
-    template<typename U, Ret (U::*)(size_t) const> struct SFINAE {};
-    template<typename U> static char Test(SFINAE<U, &U::template getFitterSettings<0>>*);
-    template<typename U> static int Test(...);
-    static constexpr bool value = sizeof(Test<T>(0)) == sizeof(char);
+    template <class, class> class checker;
+
+    template <typename C>
+    static std::true_type test(checker<C, decltype(&C::template getFitterSettings<0>)> *);
+
+    template <typename C>
+    static std::false_type test(...);
+
+    typedef decltype(test<T>(nullptr)) type;
+    static constexpr bool value = std::is_same<std::true_type, decltype(test<T>(nullptr))>::value;
 };
 
 template < typename... T >
