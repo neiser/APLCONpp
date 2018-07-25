@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <ostream>
 
 template<typename T>
 class vec {
@@ -25,6 +26,13 @@ public:
         return c[i-1];
     }
 
+    friend std::ostream& operator<<(std::ostream& s, const vec& v) {
+        s << '[';
+        for(const auto& i : v.c) {
+            s << i << ", ";
+        }
+        return s << "]";
+    }
 };
 
 using vecd = vec<double>;
