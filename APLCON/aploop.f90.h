@@ -333,31 +333,59 @@ L80:
         --f;
         --x;
 
-        /* Function Body */
-        /*     ... */
-
         /* ...means continue at return */
-        if (tinue) {
-            goto L30;
+        if (!tinue) {
+            /* continue */
+            tinue = true;
+            i = 0;
         }
-        /* continue */
-        tinue = true;
-        i = 0;
-        /* initialize derivative loop */
-L10:
-        if (i >= simcom_.nx) {
-            /* ... means differentation finished */
-            tinue = false;
-            /* Jacobian ready */
-            return 0;
+        else {
+            if (i < 0) {
+                /* calculation of first step done ... */
+                for (j = 1; j <= simcom_.nf; ++j) {
+                    hh[j] = f[j];
+                    /* save constraint values */
+                }
+                i = -i;
+                /* reverse flag */
+                x[i] = xd[1];
+                /* set next step ... */
+                return -1;
+                /* ... and return for second step */
+            }
+            /*     __________________________________________________________________ */
+            /*     INIT ne 0: second step done - calculate derivative */
+            x[i] = xsave;
+            /* restore variable I */
+            ij = i;
+            /* derivative calculation */
+            for (j = 1; j <= simcom_.nf; ++j) {
+                /* loop on all constraint functions */
+
+                /* symmetric formula */
+                der = (hh[j] - f[j]) / (xt[0] - xt[1]);
+                /* !! internal variable */
+
+                a[ij] = der;
+                /* insert into Jacobian matrix A */
+                ij += simcom_.nx;
+            }
         }
-        ++i;
-        /* next variable */
-        if (st[i] == 0.f) {
-            goto L10;
+
+        while(true) {
+            if (i >= simcom_.nx) {
+                /* ... means differentation finished */
+                tinue = false;
+                /* Jacobian ready */
+                return 0;
+            }
+            ++i;
+            /* next unfixed variable */
+            if (st[i] > 0) {
+                break;
+            }
         }
-        /* skip fixed variable */
-        /* skip repeated derivative calculation */
+
         xsave = x[i];
 
         /*     __________________________________________________________________ */
@@ -376,40 +404,7 @@ L10:
         /* first step */
         i = -i;
         return -1;
-        /*     __________________________________________________________________ */
-        /*     continue */
-L30:
-        if (i < 0) {
-            /* calculation of first step done ... */
-            for (j = 1; j <= simcom_.nf; ++j) {
-                hh[j] = f[j];
-                /* save constraint values */
-            }
-            i = -i;
-            /* reverse flag */
-            x[i] = xd[1];
-            /* set next step ... */
-            return -1;
-            /* ... and return for second step */
-        }
-        /*     __________________________________________________________________ */
-        /*     INIT ne 0: second step done - calculate derivative */
-        x[i] = xsave;
-        /* restore variable I */
-        ij = i;
-        /* derivative calculation */
-        for (j = 1; j <= simcom_.nf; ++j) {
-            /* loop on all constraint functions */
 
-            /* symmetric formula */
-            der = (hh[j] - f[j]) / (xt[0] - xt[1]);
-            /* !! internal variable */
-
-            a[ij] = der;
-            /* insert into Jacobian matrix A */
-            ij += simcom_.nx;
-        }
-        goto L10;
     } /* anumde_ */
 
     /* Subroutine */
