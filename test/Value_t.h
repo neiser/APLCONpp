@@ -1,6 +1,7 @@
 #pragma once
 
 #include "APLCON.hpp"
+#include <ostream>
 
 struct Value_t {
 
