@@ -8,6 +8,8 @@
 #include <limits>
 #include <functional>
 
+#include <iostream>
+
 namespace APLCON {
 
 // use those constants in your classes to
@@ -179,11 +181,44 @@ private:
         int aplcon_ret = -1;
         do {
 
+
             // compute F from constraints
             callConstraints(F.begin(), vars..., std::forward<Constraints>(constraints)...);
 
+            std::cout << "F = [";
+            for(const auto& i : F) {
+                std::cout << i << ", ";
+            }
+            std::cout << "]" << std::endl;
+
+            std::cout << "x_before = [";
+            for(const auto& i : X) {
+                std::cout << i << ", ";
+            }
+            std::cout << "]" << std::endl;
+
+            std::cout << "V_before = [";
+            for(const auto& i : V) {
+                std::cout << i << ", ";
+            }
+            std::cout << "]" << std::endl;
+
             // call APLCON iteration
             c_aplcon_aploop(X.data(), V.data(), F.data(), &aplcon_ret);
+
+            std::cout << "x_after = [";
+            for(const auto& i : X) {
+                std::cout << i << ", ";
+            }
+            std::cout << "]" << std::endl;
+
+            std::cout << "V_after = [";
+            for(const auto& i : V) {
+                std::cout << i << ", ";
+            }
+            std::cout << "]" << std::endl;
+
+            std::cout << std::endl;
 
             // copy X into vars, for constraint evaluation
             linker_linear_t linker(X.begin());
