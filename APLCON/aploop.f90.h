@@ -3,7 +3,6 @@
 #include <vector>
 #include <stdexcept>
 #include <sstream>
-#include <iostream>
 
 #include "chprob.f90.h"
 #include "condutil.f90.h"
@@ -82,9 +81,6 @@ struct aplcon {
 
         asteps_(&x[1], &vx[1]);
         /* initial steps ST(.) */
-
-        cout << "st = " << st << endl;
-        cout << "flags =" << flags << endl;
 L10:
         *iret = -1;
         /* default status is -1 = continue */
@@ -198,12 +194,6 @@ L30:
         /*     next iteration */
         /* ...for constraint calculation */
         aniter_(&x[1], &vx[1], fcopy, a, xp, wm, dx);
-        cout << "fcopy = " << fcopy << endl;
-        cout << "a = " << a << endl;
-        cout << "xp = " << xp << endl;
-        cout << "wm = " << wm << endl;
-        cout << "dx = " << wm << endl;
-
         goto L70;
         /*     __________________________________________________________________ */
         /*     test cutsteps */
@@ -366,7 +356,6 @@ L10:
             /* ... means differentation finished */
             tinue = false;
             /* Jacobian ready */
-            cout << "a = " <<  a << endl;
             return 0;
         }
         ++i;
@@ -534,16 +523,6 @@ L30:
 
     /* Subroutine */
     static int antest_(int *iret) {
-        cout << "antest"
-             << " ncst=" << simcom_.ncst
-             << " iter=" << simcom_.iter
-             << " ftest=" << simcom_.ftest
-             << " ftestp=" << simcom_.ftestp
-             << " chisq=" << simcom_.chisq
-             << " chsqp=" << simcom_.chsqp
-             << " epsf=" << simcom_.epsf
-             << " epschi=" << simcom_.epschi
-             << endl;
         *iret = -1;
         /* combined penalty */
         //        }
