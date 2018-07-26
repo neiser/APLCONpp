@@ -123,29 +123,27 @@ struct aplcon {
         /*     __________________________________________________________________ */
         /*     initialization */
         /* count calls */
-        if (simcom_.ncalls != 1) {
-            goto L20;
+        if (simcom_.ncalls == 1) {
+            istatu = 0;
+            /* !! */
+            nfit = 0;
+            /* reset fit count */
+            simcom_.iter = 0;
+            for (j = 1; j <= simcom_.nx; ++j) {
+                xs[j] = x[j];
+                /* save initial X values */
+                dx[j] = 0.;
+                /* reset correction DX */
+            }
+            /*     __________________________________________________________________ */
+            /*     start/restart */
+            /* L10: */
+            ++nfit;
+            /* count fits */
+            simcom_.iter = 0;
+            simcom_.ncst = 0;
+            simcom_.chisq = 0.;
         }
-        istatu = 0;
-        /* !! */
-        nfit = 0;
-        /* reset fit count */
-        simcom_.iter = 0;
-        for (j = 1; j <= simcom_.nx; ++j) {
-            xs[j] = x[j];
-            /* save initial X values */
-            dx[j] = 0.;
-            /* reset correction DX */
-        }
-        /*     __________________________________________________________________ */
-        /*     start/restart */
-        /* L10: */
-        ++nfit;
-        /* count fits */
-        simcom_.iter = 0;
-        simcom_.ncst = 0;
-        simcom_.chisq = 0.;
-L20:
         /*     __________________________________________________________________ */
         /*     constraint test summary */
         if (istatu < 0) {
@@ -190,7 +188,7 @@ L30:
         /*     __________________________________________________________________ */
         /*     test cutsteps */
 L60:
-        antest_(iret);
+        *iret = antest_();
         if (*iret == -1) {
             goto L30;
         }
@@ -381,7 +379,6 @@ L80:
 
         /*     __________________________________________________________________ */
         /*     define displaced values for derivative calculation */
-        /* L20: */
         if (ntvar == 0 || ntvar == 2 || ntvar == 3) {
             xt[0] = xsave + st[i];
             /* symmetric (two-sided) steps */
@@ -494,8 +491,7 @@ L80:
     } /* addtox_ */
 
     /* Subroutine */
-    static int antest_(int *iret) {
-        *iret = -1;
+    static int antest_() {
         /* combined penalty */
         //        }
         /*     __________________________________________________________________ */
@@ -505,16 +501,14 @@ L80:
             ++simcom_.ncst;
             simcom_.weight = .25;
             simcom_.weight = .5;
-            *iret = -2;
             /* cutstep - add corrections */
-            return 0;
+            return -2;
         }
         /*     __________________________________________________________________ */
         /*     convergent */
         if (simcom_.iter >= 2 && simcom_.ncst == 0) {
             double dchisq = simcom_.chisq - simcom_.chsqp;
             if (abs(dchisq) <= simcom_.epschi && simcom_.ftest < simcom_.epsf) {
-                *iret = 0;
                 /* convergence */
                 return 0;
             }
@@ -522,10 +516,10 @@ L80:
         /*     __________________________________________________________________ */
         /*     failure */
         if (simcom_.iter > simcom_.itermx) {
-            *iret = 2;
+            return 2;
         }
         /* non-convergence */
-        return 0;
+        return -1;
     } /* antest_ */
 
     /* Subroutine */
