@@ -66,7 +66,7 @@ struct aplcon {
     } /* aplcon_ */
 
     /* Subroutine */
-    static int aploop_(vecdr& x, vecdr& vx, double *f, int *iret) {
+    static int aploop_(vecdr& x, vecdr& vx, double *f) {
         /* steering routine for loop */
 
         /* Parameter adjustments */
@@ -79,11 +79,11 @@ struct aplcon {
         }
 
         /* default status is -1 = continue */
-        return iploop_(x, vx, &f[1], iret);
+        return iploop_(x, vx, &f[1]);
     } /* aploop_ */
 
     /* Subroutine */
-    static int iploop_(vecdr& x, vecdr& vx, double *f, int *iret) {
+    static int iploop_(vecdr& x, vecdr& vx, double *f) {
 
         static vecd a;
         a.resize(simcom_.nx * simcom_.nf);
@@ -106,7 +106,7 @@ struct aplcon {
         /* Local variables */
         static int j;
         static double fj;
-        static int nfit, jret;
+        static int jret;
         static int istatu;
 
         /*     ================================================================== */
@@ -126,8 +126,6 @@ struct aplcon {
         if (simcom_.ncalls == 1) {
             istatu = 0;
             /* !! */
-            nfit = 0;
-            /* reset fit count */
             simcom_.iter = 0;
             for (j = 1; j <= simcom_.nx; ++j) {
                 xs[j] = x[j];
@@ -138,8 +136,6 @@ struct aplcon {
             /*     __________________________________________________________________ */
             /*     start/restart */
             /* L10: */
-            ++nfit;
-            /* count fits */
             simcom_.iter = 0;
             simcom_.ncst = 0;
             simcom_.chisq = 0.;
@@ -160,7 +156,7 @@ struct aplcon {
             simcom_.ftest += abs(fj);
             /* sum absolute values */
         }
-        simcom_.ftest = max(1e-16, simcom_.ftest / (double)simcom_.nf);
+        simcom_.ftest = max(1e-16, simcom_.ftest / simcom_.nf);
         /* average |F| */
         if (istatu == 1) {
             goto L60;
@@ -176,9 +172,8 @@ L30:
         /* steps  ST(.) */
         /* copy FC(.) central F(.) */
         /* copy HH(.) shifted F(.) */
-        *iret = -1;
         if (jret < 0) {
-            return 0;
+            return -1;
         }
         /*     __________________________________________________________________ */
         /*     next iteration */
@@ -203,13 +198,12 @@ L70:
         addtox_(x, xs, dx, xp);
         istatu = 1;
         /* test at next entry */
-        return 0;
+        return -1;
         /*     __________________________________________________________________ */
         /*     end-of-primary-fit (NFIT=1) */
 L80:
         istatu = 2;
         acopxv_(vx, dx, wm);
-        *iret = 0;
         return 0;
     } /* iploop_ */
 

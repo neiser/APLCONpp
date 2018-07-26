@@ -15,9 +15,8 @@ void c_aplcon_aplcon(const int NVAR, const int MCST);
  * @param X current variable values
  * @param VX current covariance matrix (symmetrized)
  * @param F current constraint values
- * @param IRET status of fit iteration
  */
-void c_aplcon_aploop(std::vector<double>& X, std::vector<double>& VX, double F[], int* IRET);
+int c_aplcon_aploop(std::vector<double>& X, std::vector<double>& VX, double F[]);
 
 // routines to obtain results
 /**

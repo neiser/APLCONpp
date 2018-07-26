@@ -12,10 +12,10 @@ void c_aplcon_aplcon(int NVAR, int MCST) {
     aplcon::aplcon_(NVAR, MCST);
 }
 
-void c_aplcon_aploop(std::vector<double>& X, std::vector<double>& VX, double F[], int* IRET) {
+int c_aplcon_aploop(std::vector<double>& X, std::vector<double>& VX, double F[]) {
     vecdr x(X);
     vecdr vx(VX);
-    aplcon::aploop_(x, vx, F, IRET);
+    return aplcon::aploop_(x, vx, F);
 }
 
 // routines to obtain results
