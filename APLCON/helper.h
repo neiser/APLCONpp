@@ -3,11 +3,14 @@
 #include <vector>
 #include <ostream>
 
-template<typename T>
+template<typename T, typename Container = std::vector<T>>
 class vec {
-    std::vector<T> c;
+    Container c;
 
 public:
+
+    vec() = default;
+    explicit vec(Container c) : c(c) {}
 
     void resize(size_t n) {
         c.resize(n);
@@ -37,3 +40,4 @@ public:
 
 using vecd = vec<double>;
 using veci = vec<int>;
+using vecdr = vec<double, std::vector<double>&>;

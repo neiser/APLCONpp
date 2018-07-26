@@ -1,6 +1,8 @@
 #ifndef APLCON_wrapper_h
 #define APLCON_wrapper_h
 
+#include <vector>
+
 // main routines
 /**
  * @brief Initialize APLCON
@@ -15,7 +17,7 @@ void c_aplcon_aplcon(const int NVAR, const int MCST);
  * @param F current constraint values
  * @param IRET status of fit iteration
  */
-void c_aplcon_aploop(double X[], double VX[], double F[], int* IRET);
+void c_aplcon_aploop(std::vector<double>& X, std::vector<double>& VX, double F[], int* IRET);
 
 // routines to obtain results
 /**

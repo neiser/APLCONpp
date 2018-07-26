@@ -9,11 +9,13 @@ typedef float real;
 // main routines
 
 void c_aplcon_aplcon(int NVAR, int MCST) {
-    aplcon::aplcon_(&NVAR, &MCST);
+    aplcon::aplcon_(NVAR, MCST);
 }
 
-void c_aplcon_aploop(double X[], double VX[], double F[], int* IRET) {
-    aplcon::aploop_(X, VX, F, IRET);
+void c_aplcon_aploop(std::vector<double>& X, std::vector<double>& VX, double F[], int* IRET) {
+    vecdr x(X);
+    vecdr vx(VX);
+    aplcon::aploop_(x, vx, F, IRET);
 }
 
 // routines to obtain results

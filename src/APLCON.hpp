@@ -183,7 +183,7 @@ private:
             callConstraints(F.begin(), vars..., std::forward<Constraints>(constraints)...);
 
             // call APLCON iteration
-            c_aplcon_aploop(X.data(), V.data(), F.data(), &aplcon_ret);
+            c_aplcon_aploop(X, V, F.data(), &aplcon_ret);
 
             // copy X into vars, for constraint evaluation
             linker_linear_t linker(X.begin());

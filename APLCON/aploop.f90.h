@@ -28,14 +28,14 @@ struct aplcon {
     static vecd pu; // pulls
 
     /* Subroutine */
-    static int aplcon_(int *nvar, int *mcst) {
+    static int aplcon_(int nvar, int mcst) {
         /*     ================================================================== */
         /*     initialize and define dimension  NVAR/MCST */
         /*     set default parameters */
         /*     ================================================================== */
-        simcom_.nx = *nvar;
+        simcom_.nx = nvar;
         /* number of variables */
-        simcom_.nf = *mcst;
+        simcom_.nf = mcst;
         /* primary value of NF */
         simcom_.derfac = .001;
         /* derivative factor */
@@ -66,26 +66,24 @@ struct aplcon {
     } /* aplcon_ */
 
     /* Subroutine */
-    static int aploop_(double *x, double *vx, double *f, int *iret) {
+    static int aploop_(vecdr& x, vecdr& vx, double *f, int *iret) {
         /* steering routine for loop */
 
         /* Parameter adjustments */
         --f;
-        --vx;
-        --x;
 
         /* Function Body */
         if (simcom_.ncalls == 0) {
-            asteps_(&x[1], &vx[1]);
+            asteps_(x, vx);
             /* initial steps ST(.) */
         }
 
         /* default status is -1 = continue */
-        return iploop_(&x[1], &vx[1], &f[1], iret);
+        return iploop_(x, vx, &f[1], iret);
     } /* aploop_ */
 
     /* Subroutine */
-    static int iploop_(double *x, double *vx, double *f, int *iret) {
+    static int iploop_(vecdr& x, vecdr& vx, double *f, int *iret) {
 
         static vecd a;
         a.resize(simcom_.nx * simcom_.nf);
@@ -119,8 +117,6 @@ struct aplcon {
 
         /* Parameter adjustments */
         --f;
-        --vx;
-        --x;
 
         /* Function Body */
         ++simcom_.ncalls;
@@ -177,7 +173,7 @@ L30:
         istatu = -1;
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-        jret = anumde_(&x[1], &f[1], a);
+        jret = anumde_(x, &f[1], a);
         /* derivative matrix A */
         /* steps  ST(.) */
         /* copy FC(.) central F(.) */
@@ -189,7 +185,7 @@ L30:
         /*     __________________________________________________________________ */
         /*     next iteration */
         /* ...for constraint calculation */
-        aniter_(&x[1], &vx[1], fcopy, a, xp, wm, dx);
+        aniter_(x, vx, fcopy, a, xp, wm, dx);
         goto L70;
         /*     __________________________________________________________________ */
         /*     test cutsteps */
@@ -206,7 +202,7 @@ L60:
         /*     apply corrections DX(.) to X(.) with transformations */
         /* convergence or failure: ISTATU= 2 */
 L70:
-        addtox_(&x[1], xs, dx, xp);
+        addtox_(x, xs, dx, xp);
         istatu = 1;
         /* test at next entry */
         return 0;
@@ -214,13 +210,13 @@ L70:
         /*     end-of-primary-fit (NFIT=1) */
 L80:
         istatu = 2;
-        acopxv_(&x[1], &vx[1], dx, wm);
+        acopxv_(vx, dx, wm);
         *iret = 0;
         return 0;
     } /* iploop_ */
 
     /* Subroutine */
-    static int asteps_(double *x, double *vx) {
+    static int asteps_(vecdr& x, vecdr& vx) {
         /* Local variables */
         static int i, j, ii;
         static double vii;
@@ -237,10 +233,6 @@ L80:
         /*     ================================================================== */
 
         /* define initial steps */
-
-        /* Parameter adjustments */
-        --vx;
-        --x;
 
         /* Function Body */
         ii = 0;
@@ -293,7 +285,7 @@ L80:
     } /* asteps_ */
 
     /* Subroutine */
-    static int anumde_(double *x, double *f, vecd& a) {
+    static int anumde_(vecdr& x, double *f, vecd& a) {
         /* Initialized data */
         static bool tinue = false;
 
@@ -331,7 +323,6 @@ L80:
 
         /* Parameter adjustments */
         --f;
-        --x;
 
         /* ...means continue at return */
         if (!tinue) {
@@ -408,7 +399,7 @@ L80:
     } /* anumde_ */
 
     /* Subroutine */
-    static int aniter_(double *x, double *vx, const vecd& f, vecd& a, vecd& xp, vecd& wm, vecd& dx) {
+    static int aniter_(vecdr& x, vecdr& vx, const vecd& f, vecd& a, vecd& xp, vecd& wm, vecd& dx) {
         /* Local variables */
         static int i, j, ia, ii;
         static int ntrfl, ntvar;
@@ -417,10 +408,6 @@ L80:
         rh.resize(simcom_.nxf);
 
         /* next iteration step */
-
-        /* Parameter adjustments */
-        --vx;
-        --x;
 
         /* Function Body */
         ++simcom_.iter;
@@ -495,10 +482,7 @@ L80:
     } /* aniter_ */
 
     /* Subroutine */
-    static int addtox_(double *x, const vecd& xs, vecd& dx, const vecd& xp) {
-        /* Parameter adjustments */
-        --x;
-
+    static int addtox_(vecdr& x, const vecd& xs, vecd& dx, const vecd& xp) {
         /* Function Body */
         for (int i = 1; i <= simcom_.nx; ++i) {
             dx[i] = simcom_.weight * dx[i] + (1. - simcom_.weight) * xp[i];
@@ -545,7 +529,7 @@ L80:
     } /* antest_ */
 
     /* Subroutine */
-    static int acopxv_(double *x, double *vx, vecd& dx, vecd& wm) {
+    static int acopxv_(vecdr& vx, vecd& dx, vecd& wm) {
 
         /* Local variables */
         static int i, ii;
@@ -553,9 +537,6 @@ L80:
 
         /*     __________________________________________________________________ */
         /*     convergence: pull calculation */
-        /* Parameter adjustments */
-        --vx;
-        --x;
 
         /* Function Body */
         ii = 0;
