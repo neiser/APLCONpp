@@ -16,7 +16,7 @@ inline int ijsym_(int *i, int *j) {
 } /* ijsym_ */
 
 /* Subroutine */
-inline int duminv_(const vecd& a, vecd& w, vecd& b, int nx, int nf) {
+inline void duminv_(const vecd& a, vecd& w, vecd& b, int nx, int nf) {
     /* Initialized data */
 
     static double eps = 1e-6;
@@ -283,7 +283,7 @@ L30:
         w[i] = -w[i];
         /* finally reverse sign */
     }
-    return 0;
+
 } /* duminv_ */
 
 inline double scalxy_(double *x, double *y, int *n) {

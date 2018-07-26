@@ -188,12 +188,12 @@ L30:
         /*     __________________________________________________________________ */
         /*     test cutsteps */
 L60:
-        *iret = antest_();
-        if (*iret == -1) {
+        jret = antest_();
+        if (jret == -1) {
             goto L30;
         }
         /* numerical derivative:   ISTATU=-1 */
-        else if (*iret >= 0) {
+        else if (jret >= 0) {
             goto L80;
         }
         /*     __________________________________________________________________ */
@@ -214,7 +214,7 @@ L80:
     } /* iploop_ */
 
     /* Subroutine */
-    static int asteps_(vecdr& x, vecdr& vx) {
+    static void asteps_(vecdr& x, vecdr& vx) {
         /* Local variables */
         static int i, j, ii;
         static double vii;
@@ -279,7 +279,6 @@ L80:
                 st[i] = 0.;
             }
         }
-        return 0;
     } /* asteps_ */
 
     /* Subroutine */
@@ -396,7 +395,7 @@ L80:
     } /* anumde_ */
 
     /* Subroutine */
-    static int aniter_(vecdr& x, vecdr& vx, const vecd& f, vecd& a, vecd& xp, vecd& wm, vecd& dx) {
+    static void aniter_(vecdr& x, vecdr& vx, const vecd& f, vecd& a, vecd& xp, vecd& wm, vecd& dx) {
         /* Local variables */
         static int i, j, ia, ii;
         static int ntrfl, ntvar;
@@ -475,11 +474,10 @@ L80:
             dx[i] = rh[i];
             /* store new corrections */
         }
-        return 0;
     } /* aniter_ */
 
     /* Subroutine */
-    static int addtox_(vecdr& x, const vecd& xs, vecd& dx, const vecd& xp) {
+    static void addtox_(vecdr& x, const vecd& xs, vecd& dx, const vecd& xp) {
         /* Function Body */
         for (int i = 1; i <= simcom_.nx; ++i) {
             dx[i] = simcom_.weight * dx[i] + (1. - simcom_.weight) * xp[i];
@@ -487,7 +485,6 @@ L80:
             x[i] = xs[i] + dx[i];
             /* correct x and return to test constraints */
         }
-        return 0;
     } /* addtox_ */
 
     /* Subroutine */
@@ -523,7 +520,7 @@ L80:
     } /* antest_ */
 
     /* Subroutine */
-    static int acopxv_(vecdr& vx, vecd& dx, vecd& wm) {
+    static void acopxv_(vecdr& vx, vecd& dx, vecd& wm) {
 
         /* Local variables */
         static int i, ii;
@@ -552,11 +549,10 @@ L80:
             wm[i] = scopy;
             /* ... and save input matrix */
         }
-        return 0;
     } /* acopxv_ */
 
     /* Subroutine */
-    static int chndpv_(double *chi2, int *nd, double *pval) {
+    static void chndpv_(double *chi2, int *nd, double *pval) {
 
         *chi2 = simcom_.chisq;
         /* chi^square */
@@ -564,11 +560,10 @@ L80:
         /* number of degrees of freedom */
         *pval = chprob_(simcom_.chisq, simcom_.ndf);
         /* p-value */
-        return 0;
     } /* chndpv_ */
 
     /* Subroutine */
-    static int adummy_0_(int n__, double *arg, int *i, double *step) {
+    static void adummy_0_(int n__, double *arg, int *i, double *step) {
         static int ntder, ntine, ntrfl, ntvar, ntmes, ntlim, ntprf;
         /*     parameters for fit method */
         /*     __________________________________________________________________ */
@@ -585,13 +580,13 @@ L_apdeps:
         /* constraint accuracy */
         simcom_.epsf = *arg;
         /* |F| accuracy */
-        return 0;
+        return;
         /*     __________________________________________________________________ */
 
 L_apstep:
         /* step size for numdif */
         if (*i < 1 || *i > simcom_.nx) {
-            return 0;
+            return;
         }
         ntrfl = flags[*i];
         /* get packed flags */
@@ -620,7 +615,7 @@ L_apstep:
 L_apoiss:
         /* Poisson distributed variable */
         if (*i < 1 || *i > simcom_.nx) {
-            return 0;
+            return;
         }
         ntrfl = flags[*i];
         /* get packed flags */
@@ -646,26 +641,25 @@ L100:
         /*     explanation see: */
         /*     unpackfl.inc = code for flag unpacking */
         flags[*i] = ((((ntprf * 10 + ntlim) * 10 + ntine) * 10 + ntder) * 10 + ntmes) * 10 + ntvar;
-        return 0;
     } /* adummy_ */
 
     /* Subroutine */
-    static int apdeps_(double *arg) {
-        return adummy_0_(2, arg, (int *)0, (double *)0);
+    static void apdeps_(double *arg) {
+        adummy_0_(2, arg, (int *)0, (double *)0);
     }
 
     /* Subroutine */
-    static int apstep_(int *i, double *step) {
-        return adummy_0_(8, (double *)0, i, step);
+    static void apstep_(int *i, double *step) {
+        adummy_0_(8, (double *)0, i, step);
     }
 
     /* Subroutine */
-    static int apoiss_(int *i) {
-        return adummy_0_(12, (double *)0, i, (double*)0);
+    static void apoiss_(int *i) {
+        adummy_0_(12, (double *)0, i, (double*)0);
     }
 
     /* Subroutine */
-    static int apstat_(double *fopt, int *nfun, int *niter) {
+    static void apstat_(double *fopt, int *nfun, int *niter) {
         /*     __________________________________________________________________ */
         /*     return information after the fit */
         /*     __________________________________________________________________ */
@@ -673,11 +667,10 @@ L100:
         *fopt = simcom_.chisq;
         *nfun = simcom_.ncalls;
         *niter = simcom_.iter;
-        return 0;
     } /* apstat_ */
 
     /* Subroutine */
-    static int appull_(double *pulls) {
+    static void appull_(double *pulls) {
         /* Local variables */
         static int i;
 
@@ -688,7 +681,6 @@ L100:
         for (i = 1; i <= simcom_.nx; ++i) {
             pulls[i] = pu[i];
         }
-        return 0;
     } /* appull_ */
 
 };
