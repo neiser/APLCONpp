@@ -105,7 +105,6 @@ struct aplcon {
 
         /* Local variables */
         static int j;
-        static double fj;
         static int jret;
         static int istatu;
 
@@ -118,14 +117,9 @@ struct aplcon {
         /* Parameter adjustments */
         --f;
 
-        /* Function Body */
-        ++simcom_.ncalls;
-        /*     __________________________________________________________________ */
-        /*     initialization */
-        /* count calls */
-        if (simcom_.ncalls == 1) {
+        if (simcom_.ncalls == 0) {
+            // init
             istatu = 0;
-            /* !! */
             simcom_.iter = 0;
             for (j = 1; j <= simcom_.nx; ++j) {
                 xs[j] = x[j];
@@ -133,16 +127,16 @@ struct aplcon {
                 dx[j] = 0.;
                 /* reset correction DX */
             }
-            /*     __________________________________________________________________ */
-            /*     start/restart */
-            /* L10: */
             simcom_.iter = 0;
             simcom_.ncst = 0;
             simcom_.chisq = 0.;
         }
+        ++simcom_.ncalls;
+        /* count calls */
+
         /*     __________________________________________________________________ */
         /*     constraint test summary */
-        if (istatu < 0) {
+        if (istatu == -1) {
             goto L30;
         }
 
@@ -151,17 +145,25 @@ struct aplcon {
         simcom_.ftest = 0.;
         /* reset constraint tests */
         for (j = 1; j <= simcom_.nf; ++j) {
-            fj = f[j];
-            fcopy[j] = fj;
+            fcopy[j] = f[j];
             /* copy constraint vector */
-            simcom_.ftest += abs(fj);
+            simcom_.ftest += abs(f[j]);
             /* sum absolute values */
         }
         simcom_.ftest = max(1e-16, simcom_.ftest / simcom_.nf);
         /* average |F| */
 
         if (istatu == 1) {
-            goto L60;
+            jret = antest_();
+            if (jret == -2) {
+                addtox_(x, xs, dx, xp);
+                istatu = 1;
+                return -1;
+            }
+            else if (jret >= 0) {
+                acopxv_(vx, dx, wm);
+                return 0;
+            }
         }
         /*     __________________________________________________________________ */
         /*     start numerical derivatives */
@@ -170,10 +172,6 @@ L30:
 
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-        /* derivative matrix A */
-        /* steps  ST(.) */
-        /* copy FC(.) central F(.) */
-        /* copy HH(.) shifted F(.) */
         if (anumde_(x, &f[1], a) < 0) {
             istatu = -1;
             return -1;
@@ -182,30 +180,10 @@ L30:
         /*     next iteration */
         /* ...for constraint calculation */
         aniter_(x, vx, fcopy, a, xp, wm, dx);
-        goto L70;
-        /*     __________________________________________________________________ */
-        /*     test cutsteps */
-L60:
-        jret = antest_();
-        if (jret == -1) {
-            goto L30;
-        }
-        /* numerical derivative:   ISTATU=-1 */
-        else if (jret >= 0) {
-            istatu = 2;
-            acopxv_(vx, dx, wm);
-            return 0;
-        }
-        /*     __________________________________________________________________ */
-        /*     apply corrections DX(.) to X(.) with transformations */
-        /* convergence or failure: ISTATU= 2 */
-L70:
         addtox_(x, xs, dx, xp);
         istatu = 1;
         /* test at next entry */
         return -1;
-        /*     __________________________________________________________________ */
-        /*     end-of-primary-fit (NFIT=1) */
     } /* iploop_ */
 
     /* Subroutine */
@@ -475,7 +453,7 @@ L70:
     static void addtox_(vecdr& x, const vecd& xs, vecd& dx, const vecd& xp) {
         /* Function Body */
         for (int i = 1; i <= simcom_.nx; ++i) {
-            dx[i] = simcom_.weight * dx[i] + (1. - simcom_.weight) * xp[i];
+            dx[i] = simcom_.weight * dx[i] + (1 - simcom_.weight) * xp[i];
             /* reduce step evtl. */
             x[i] = xs[i] + dx[i];
             /* correct x and return to test constraints */
