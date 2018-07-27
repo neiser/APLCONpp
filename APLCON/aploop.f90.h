@@ -145,6 +145,7 @@ struct aplcon {
         if (istatu < 0) {
             goto L30;
         }
+
         simcom_.ftestp = simcom_.ftest;
         /* save previous value */
         simcom_.ftest = 0.;
@@ -158,21 +159,23 @@ struct aplcon {
         }
         simcom_.ftest = max(1e-16, simcom_.ftest / simcom_.nf);
         /* average |F| */
+
         if (istatu == 1) {
             goto L60;
         }
         /*     __________________________________________________________________ */
         /*     start numerical derivatives */
 L30:
-        istatu = -1;
+
+
         /*     __________________________________________________________________ */
         /*     derivative calculation */
-        jret = anumde_(x, &f[1], a);
         /* derivative matrix A */
         /* steps  ST(.) */
         /* copy FC(.) central F(.) */
         /* copy HH(.) shifted F(.) */
-        if (jret < 0) {
+        if (anumde_(x, &f[1], a) < 0) {
+            istatu = -1;
             return -1;
         }
         /*     __________________________________________________________________ */
@@ -189,7 +192,9 @@ L60:
         }
         /* numerical derivative:   ISTATU=-1 */
         else if (jret >= 0) {
-            goto L80;
+            istatu = 2;
+            acopxv_(vx, dx, wm);
+            return 0;
         }
         /*     __________________________________________________________________ */
         /*     apply corrections DX(.) to X(.) with transformations */
@@ -201,10 +206,6 @@ L70:
         return -1;
         /*     __________________________________________________________________ */
         /*     end-of-primary-fit (NFIT=1) */
-L80:
-        istatu = 2;
-        acopxv_(vx, dx, wm);
-        return 0;
     } /* iploop_ */
 
     /* Subroutine */
@@ -488,7 +489,7 @@ L80:
         /*     __________________________________________________________________ */
         /*     cutstep */
         if (simcom_.ncst < 2 && simcom_.iter > 1 &&
-            simcom_.ftest > simcom_.ftestp * 2. + simcom_.epsf) {
+            simcom_.ftest > 2*simcom_.ftestp + simcom_.epsf) {
             ++simcom_.ncst;
             simcom_.weight = .25;
             simcom_.weight = .5;
