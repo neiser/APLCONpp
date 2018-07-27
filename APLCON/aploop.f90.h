@@ -497,7 +497,6 @@ L30:
 
         /* Local variables */
         static int i, ii;
-        static double scopy;
 
         /*     __________________________________________________________________ */
         /*     convergence: pull calculation */
@@ -516,11 +515,7 @@ L30:
         /*     __________________________________________________________________ */
         /*     copy/exchange result/input covariance matrix */
         for (i = 1; i <= (simcom_.nx * simcom_.nx + simcom_.nx) / 2; ++i) {
-            scopy = vx[i];
-            vx[i] = wm[i];
-            /* copy fitted covariance matrix */
-            wm[i] = scopy;
-            /* ... and save input matrix */
+            std::swap(vx[i], wm[i]);
         }
     } /* acopxv_ */
 
